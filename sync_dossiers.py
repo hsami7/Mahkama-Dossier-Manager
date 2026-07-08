@@ -61,8 +61,8 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 username_input = all_inputs[0]
                 password_input = all_inputs[1]
                 
-                username_input.fill("ndmini")
-                password_input.fill("password")
+                username_input.fill("nelissaoui")
+                password_input.fill("Admin.123")
                 
                 # Try to find a submit button and click it
                 submit_btn = page.locator('input[type="submit"], button[type="submit"], a:has-text("دخول")').first
@@ -72,8 +72,8 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                     password_input.press("Enter")
             else:
                 log("[-] Could not find enough input fields. Trying fallback method...")
-                page.get_by_placeholder("اسم المستخدم").fill("ndmini")
-                page.get_by_placeholder("كلمة المرور").fill("password")
+                page.get_by_placeholder("اسم المستخدم").fill("nelissaoui")
+                page.get_by_placeholder("كلمة المرور").fill("Admin.123")
                 page.keyboard.press("Enter")
             
             # Wait for navigation after login (increase timeout in case server is slow)
