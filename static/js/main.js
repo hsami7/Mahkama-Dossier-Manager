@@ -1072,25 +1072,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Update Checker ---
     async function checkUpdate() {
+        const banner = document.getElementById('updateBanner');
+        const bannerText = document.getElementById('updateBannerText');
+        const progressText = document.getElementById('updateProgressText');
+        const btnTrigger = document.getElementById('btnTriggerUpdate');
+        const btnClose = document.getElementById('btnUpdateClose');
+
+        if (btnClose && banner) {
+            btnClose.addEventListener('click', () => {
+                banner.style.display = 'none';
+            });
+        }
+
         try {
             const response = await fetch('/api/check-update');
             const data = await response.json();
-            if (data.has_update && data.latest_version && data.download_url) {
-                const banner = document.getElementById('updateBanner');
-                const bannerText = document.getElementById('updateBannerText');
-                const bannerLink = document.getElementById('updateBannerLink');
-                const btnClose = document.getElementById('btnUpdateClose');
-                
-                if (banner && bannerText && bannerLink) {
-                    bannerText.textContent = `تحديث جديد متاح (${data.latest_version}).`;
-                    bannerLink.href = data.download_url;
+            
+            if (data.has_update && data.latest_version) {
+                if (banner && bannerText) {
                     banner.style.display = 'block';
                     
-                    if (btnClose) {
-                        btnClose.addEventListener('click', () => {
-                            banner.style.display = 'none';
-                        });
-                    }
+                    // Poll update status every 2 seconds
+                    const updatePollInterval = setInterval(async () => {
+                        try {
+                            const res = await fetch('/api/update-status');
+                            const statusData = await res.json();
+                            
+                            if (statusData.status === 'downloading') {
+                                bannerText.textContent = `جاري تحميل التحديث الجديد (${data.latest_version}) تلقائياً في الخلفية...`;
+                                if (progressText) progressText.textContent = `${statusData.progress}%`;
+                                if (btnTrigger) btnTrigger.style.display = 'none';
+                            } else if (statusData.status === 'ready') {
+                                bannerText.textContent = `تحديث جديد متاح (${data.latest_version}) جاهز للتثبيت!`;
+                                if (progressText) progressText.textContent = '';
+                                if (btnTrigger) {
+                                    btnTrigger.style.display = 'inline-block';
+                                    btnTrigger.onclick = async () => {
+                                        btnTrigger.disabled = true;
+                                        btnTrigger.innerText = 'جاري التثبيت...';
+                                        try {
+                                            const triggerRes = await fetch('/api/trigger-update', { method: 'POST' });
+                                            const triggerData = await triggerRes.json();
+                                            if (triggerData.error) {
+                                                showAlert(triggerData.error);
+                                                btnTrigger.disabled = false;
+                                                btnTrigger.innerText = '🚀 تثبيت وإعادة التشغيل';
+                                            } else {
+                                                showAlert('جاري إعادة تشغيل التطبيق لتثبيت التحديث... ⏳');
+                                            }
+                                        } catch (err) {
+                                            showAlert('حدث خطأ أثناء محاولة تثبيت التحديث.');
+                                            btnTrigger.disabled = false;
+                                            btnTrigger.innerText = '🚀 تثبيت وإعادة التشغيل';
+                                        }
+                                    };
+                                }
+                                clearInterval(updatePollInterval);
+                            } else if (statusData.status === 'failed') {
+                                bannerText.textContent = `فشل تحميل التحديث الجديد (${data.latest_version}).`;
+                                if (progressText) progressText.textContent = '';
+                                if (btnTrigger) btnTrigger.style.display = 'none';
+                                clearInterval(updatePollInterval);
+                            }
+                        } catch (err) {
+                            console.error('Error polling update status:', err);
+                        }
+                    }, 2000);
                 }
             }
         } catch (e) {

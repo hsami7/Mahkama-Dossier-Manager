@@ -21,6 +21,41 @@ def start_server(port):
     app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
+    # Handle self-updater replace-and-start command
+    if len(sys.argv) >= 4 and sys.argv[1] == '--replace-and-start':
+        target_path = sys.argv[2]
+        old_pid = int(sys.argv[3])
+        
+        # Wait for the old process to exit
+        import time
+        for _ in range(100): # Wait up to 10 seconds
+            try:
+                os.kill(old_pid, 0)
+                time.sleep(0.1)
+            except OSError:
+                break
+                
+        # Copy this running executable to overwrite the old one
+        import shutil
+        this_exe = sys.executable
+        copied = False
+        for _ in range(20): # Try up to 10 seconds in case of file locks
+            try:
+                shutil.copy2(this_exe, target_path)
+                copied = True
+                break
+            except Exception:
+                time.sleep(0.5)
+                
+        # Launch the updated executable
+        if copied:
+            import subprocess
+            try:
+                subprocess.Popen([target_path])
+            except Exception:
+                pass
+        sys.exit(0)
+
     # Single instance check and Taskbar grouping (Windows only)
     if os.name == 'nt':
         import ctypes

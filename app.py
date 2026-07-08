@@ -12,9 +12,60 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.2" 
+CURRENT_VERSION = "v1.1.3" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+
+import tempfile
+import threading
+import time
+
+update_status = {"status": "idle", "progress": 0, "version": None, "error": None}
+update_lock = threading.Lock()
+update_thread = None
+
+def download_update_worker(download_url, version):
+    global update_status
+    with update_lock:
+        update_status["status"] = "downloading"
+        update_status["progress"] = 0
+        update_status["version"] = version
+        update_status["error"] = None
+        
+    try:
+        temp_dir = tempfile.gettempdir()
+        temp_file = os.path.join(temp_dir, 'mahkama_update.exe')
+        
+        # Download chunk-by-chunk to calculate progress
+        req = urllib.request.Request(
+            download_url,
+            headers={'User-Agent': 'Mahkama-Dossier-Manager'}
+        )
+        with urllib.request.urlopen(req) as response:
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded = 0
+            block_size = 8192
+            
+            with open(temp_file, 'wb') as f:
+                while True:
+                    buffer = response.read(block_size)
+                    if not buffer:
+                        break
+                    f.write(buffer)
+                    downloaded += len(buffer)
+                    if total_size > 0:
+                        progress = int((downloaded / total_size) * 100)
+                        with update_lock:
+                            update_status["progress"] = progress
+                            
+        with update_lock:
+            update_status["status"] = "ready"
+            update_status["progress"] = 100
+            
+    except Exception as e:
+        with update_lock:
+            update_status["status"] = "failed"
+            update_status["error"] = str(e)
 
 @app.route('/api/check-update', methods=['GET'])
 def api_check_update():
@@ -28,16 +79,70 @@ def api_check_update():
             latest_version = data.get('tag_name')
             html_url = data.get('html_url')
             
+            assets = data.get('assets', [])
+            download_url = None
+            for asset in assets:
+                name = asset.get('name', '')
+                if name.endswith('.exe'):
+                    download_url = asset.get('browser_download_url')
+                    break
+                    
+            if not download_url:
+                download_url = html_url
+                
             if latest_version and latest_version != CURRENT_VERSION:
+                # Trigger background download if idle
+                global update_thread
+                with update_lock:
+                    if update_status["status"] == "idle" or (update_status["status"] == "failed" and update_status["version"] != latest_version):
+                        if download_url and download_url.endswith('.exe'):
+                            update_thread = threading.Thread(target=download_update_worker, args=(download_url, latest_version))
+                            update_thread.daemon = True
+                            update_thread.start()
+                            
                 return jsonify({
                     "has_update": True,
                     "latest_version": latest_version,
                     "download_url": html_url
                 })
     except Exception:
-        pass # Silently fail if offline or rate-limited
+        pass
         
     return jsonify({"has_update": False})
+
+@app.route('/api/update-status', methods=['GET'])
+def api_update_status():
+    with update_lock:
+        return jsonify(update_status)
+
+@app.route('/api/trigger-update', methods=['POST'])
+def api_trigger_update():
+    global update_status
+    with update_lock:
+        if update_status["status"] != "ready":
+            return jsonify({"error": "التحديث ليس جاهزاً بعد."}), 400
+            
+    try:
+        temp_dir = tempfile.gettempdir()
+        temp_file = os.path.join(temp_dir, 'mahkama_update.exe')
+        
+        if not os.path.exists(temp_file):
+            return jsonify({"error": "ملف التحديث غير موجود."}), 404
+            
+        is_frozen = getattr(sys, 'frozen', False)
+        if is_frozen:
+            import subprocess
+            subprocess.Popen([temp_file, '--replace-and-start', sys.executable, str(os.getpid())])
+            # Exit after short delay
+            threading.Thread(target=lambda: (time.sleep(0.5), os._exit(0))).start()
+        else:
+            # Dev mode: just run it
+            import subprocess
+            subprocess.Popen([temp_file])
+            
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def get_default_workspace():
     # Use robust method to find real Desktop path on Windows (ignores language)
