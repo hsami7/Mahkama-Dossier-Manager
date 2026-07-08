@@ -1,10 +1,11 @@
 import os
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 from flask import Flask, jsonify, request, render_template
 import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.0.5" 
+CURRENT_VERSION = "v1.0.6" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -171,36 +172,26 @@ def api_browse():
 @app.route('/api/select-folder', methods=['POST'])
 def api_select_folder():
     try:
-        import gi
-        gi.require_version('Gtk', '3.0')
-        from gi.repository import Gtk
+        import tkinter as tk
+        from tkinter import filedialog
         
-        # Initialize GTK
-        Gtk.init(None)
+        # Create a hidden root window
+        root = tk.Tk()
+        root.withdraw()
+        # Keep the dialog on top of the webview window
+        root.attributes('-topmost', True)
         
-        dialog = Gtk.FileChooserDialog(
-            title="اختر مجلد ملفات المحاكم",
-            action=Gtk.FileChooserAction.SELECT_FOLDER
+        selected_path = filedialog.askdirectory(
+            initialdir=get_default_workspace(),
+            title="اختر مجلد ملفات المحاكم"
         )
-        dialog.add_button("إلغاء", Gtk.ResponseType.CANCEL)
-        dialog.add_button("اختيار المجلد", Gtk.ResponseType.OK)
         
-        # Set default folder
-        dialog.set_current_folder(get_default_workspace())
-        dialog.set_keep_above(True)
+        root.destroy()
         
-        selected_path = None
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            selected_path = dialog.get_filename()
-            
-        dialog.destroy()
-        
-        # Flush GTK main loop events
-        while Gtk.events_pending():
-            Gtk.main_iteration_do(False)
-            
-        return jsonify({"path": selected_path})
+        if selected_path:
+            return jsonify({"path": selected_path})
+        else:
+            return jsonify({"path": None})
     except Exception as e:
         return jsonify({"error": f"تعذر فتح مستعرض الملفات: {str(e)}"}), 500
 

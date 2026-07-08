@@ -1,19 +1,23 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import collect_all
+
+pw_datas, pw_binaries, pw_hiddenimports = collect_all('playwright')
+
 block_cipher = None
 
 a = Analysis(
     ['launcher.py'],
     pathex=[],
-    binaries=[],
+    binaries=[] + pw_binaries,
     datas=[
         ('app.py', '.'),
         ('engine.py', '.'),
         ('templates/*', 'templates/'),
         ('static/css/*', 'static/css/'),
         ('static/js/*', 'static/js/')
-    ],
-    hiddenimports=['webview', 'flask', 'engine'],
+    ] + pw_datas,
+    hiddenimports=['webview', 'flask', 'engine', 'sync_dossiers'] + pw_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
