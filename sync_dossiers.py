@@ -146,44 +146,128 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             # --- 4. Download Files ---
             log("[*] Searching for download links...")
             
-            # Strategy: Find any element that triggers ExportToExcel, or any excel icon
-            # We specifically look inside the grid to avoid clicking side-menu links
-            download_links = page.locator('#gridDossiersEnregistres *[onclick*="ExportToExcel"], #gridDossiersEnregistres img[src*="excel"]').all()
-            
-            if len(download_links) == 0:
-                # Fallback: any link in the grid that has text "تحميل" but not "القرارات"
-                download_links = page.locator('#gridDossiersEnregistres a:has-text("تحميل"), #gridDossiersEnregistres input[type="image"]').all()
+            # Let's find headers first
+            headers = []
+            try:
+                header_elements = page.locator('#gridDossiersEnregistres table th, #gridDossiersEnregistres th').all()
+                for h in header_elements:
+                    headers.append(h.text_content().strip())
+            except Exception:
+                pass
                 
-            log(f"[*] Found {len(download_links)} potential download links.")
+            count_col_idx = -1
+            name_col_idx = -1
+            for idx, h in enumerate(headers):
+                h_clean = h.replace('\n', ' ').strip()
+                if "عدد" in h_clean or "العدد" in h_clean or "الملفات" in h_clean:
+                    count_col_idx = idx
+                if "نوع" in h_clean or "السجل" in h_clean or "اسم" in h_clean:
+                    name_col_idx = idx
+            
+            # Now find all rows containing download buttons/links
+            rows = page.locator('#gridDossiersEnregistres table tr, #gridDossiersEnregistres tr').all()
+            
+            download_tasks = []
+            for r in rows:
+                # Find download button/link inside this row
+                link = r.locator('*[onclick*="ExportToExcel"], img[src*="excel"], a:has-text("تحميل"), input[type="image"]').first
+                if link.count() > 0:
+                    # Get all cell texts in this row
+                    cells = r.locator('td').all()
+                    cell_texts = [c.text_content().strip() for c in cells]
+                    
+                    # Extract registry name (for better filename naming)
+                    reg_name = ""
+                    if name_col_idx != -1 and name_col_idx < len(cell_texts):
+                        reg_name = cell_texts[name_col_idx]
+                    else:
+                        # Fallback: look at first text column
+                        for cell_txt in cell_texts:
+                            if cell_txt and not cell_txt.isdigit() and len(cell_txt) > 3:
+                                reg_name = cell_txt
+                                break
+                    
+                    # Extract count value
+                    count_val = None
+                    if count_col_idx != -1 and count_col_idx < len(cell_texts):
+                        count_val = cell_texts[count_col_idx]
+                    else:
+                        # Fallback: look for a cell with a numeric value
+                        for cell_txt in cell_texts:
+                            if cell_txt.isdigit():
+                                count_val = cell_txt
+                                # If it's the year (e.g. 2025/2026), don't treat it as the count
+                                if int(cell_txt) == year:
+                                    continue
+                                break
+                    
+                    download_tasks.append({
+                        'link': link,
+                        'name': reg_name,
+                        'count': count_val
+                    })
+            
+            # If no tasks found with row strategy, fall back to old locator strategy
+            if not download_tasks:
+                fallback_links = page.locator('#gridDossiersEnregistres *[onclick*="ExportToExcel"], #gridDossiersEnregistres img[src*="excel"], #gridDossiersEnregistres a:has-text("تحميل"), #gridDossiersEnregistres input[type="image"]').all()
+                for i, link in enumerate(fallback_links):
+                    download_tasks.append({
+                        'link': link,
+                        'name': f"registry_{i+1}",
+                        'count': None
+                    })
+            
+            log(f"[*] Found {len(download_tasks)} potential registries.")
             
             downloaded_count = 0
-            for i, link in enumerate(download_links):
+            import re
+            
+            def sanitize_filename(name):
+                # Clean up filename for Windows
+                cleaned = re.sub(r'[\\/*?:"<>|]', '_', name)
+                # Remove extra spaces/newlines
+                return " ".join(cleaned.split())
+                
+            for i, task in enumerate(download_tasks):
+                display_index = i + 1  # 1-based index for logs
+                reg_name = sanitize_filename(task['name'] or f"registry_{display_index}")
+                count_str = task['count']
+                
+                # Check if empty (count is 0)
+                is_empty = False
+                if count_str is not None:
+                    count_clean = count_str.strip()
+                    if count_clean == '0' or count_clean == '٠' or count_clean == '':
+                        is_empty = True
+                
+                if is_empty:
+                    log(f"[-] Registry {display_index} ({reg_name}): Skipped (empty - 0 files).")
+                    continue
+                
+                log(f"[*] Registry {display_index} ({reg_name}): Downloading...")
+                
                 try:
-                    # Start waiting for the download with a 15-second timeout (server needs time to generate Excel files)
                     with page.expect_download(timeout=15000) as download_info:
-                        # Perform the action that initiates download
-                        # Some links require forcing the click
-                        link.click(force=True)
+                        task['link'].click(force=True)
                     
                     download = download_info.value
                     
-                    # Save the download to the target directory
-                    # Prepend index to prevent overwriting if all files have the same name (e.g., السجل العام.xlsx)
-                    file_name = download.suggested_filename
-                    if not file_name:
-                        file_name = f"registry_{year}_{i}.xlsx"
+                    suggested = download.suggested_filename
+                    if suggested:
+                        ext = os.path.splitext(suggested)[1] or ".xlsx"
+                        file_name = f"registry_{display_index}_{reg_name}{ext}"
                     else:
-                        file_name = f"registry_{i}_{file_name}"
+                        file_name = f"registry_{display_index}_{reg_name}.xlsx"
                         
                     file_path = os.path.join(target_dir, file_name)
                     download.save_as(file_path)
-                    log(f"[+] Successfully downloaded: {file_name}")
+                    log(f"[+] Registry {display_index} ({reg_name}): Successfully downloaded: {file_name}")
                     downloaded_count += 1
                     
                 except PlaywrightTimeoutError:
-                    log(f"[-] Link {i+1} did not trigger a download.")
+                    log(f"[-] Registry {display_index} ({reg_name}): Did not trigger a download.")
                 except Exception as e:
-                    log(f"[-] Error on link {i+1}: {e}")
+                    log(f"[-] Registry {display_index} ({reg_name}): Error: {e}")
                     
             log(f"\n[+] Operation completed. Downloaded {downloaded_count} files successfully into {target_dir}")
             

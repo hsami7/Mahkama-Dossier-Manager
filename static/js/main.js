@@ -793,25 +793,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Auto Sync
     if (btnAddYear && syncYearsContainer) {
+        const allPossibleYears = ["2026", "2025", "2024"];
+        
+        const updateYearOptions = () => {
+            const selects = Array.from(syncYearsContainer.querySelectorAll('.sync-year-select'));
+            const currentSelections = selects.map(s => s.value);
+            
+            selects.forEach((select, index) => {
+                const currentValue = select.value;
+                const otherSelections = currentSelections.filter((_, i) => i !== index);
+                const availableYears = allPossibleYears.filter(y => !otherSelections.includes(y));
+                
+                select.innerHTML = '';
+                availableYears.forEach(year => {
+                    const opt = document.createElement('option');
+                    opt.value = year;
+                    opt.textContent = year;
+                    if (year === currentValue) {
+                        opt.selected = true;
+                    }
+                    select.appendChild(opt);
+                });
+                
+                if (!availableYears.includes(currentValue) && availableYears.length > 0) {
+                    select.value = availableYears[0];
+                }
+            });
+            
+            if (selects.length >= allPossibleYears.length) {
+                btnAddYear.disabled = true;
+                btnAddYear.style.opacity = '0.5';
+                btnAddYear.style.cursor = 'not-allowed';
+            } else {
+                btnAddYear.disabled = false;
+                btnAddYear.style.opacity = '1';
+                btnAddYear.style.cursor = 'pointer';
+            }
+        };
+
+        const bindSelectChange = (select) => {
+            select.addEventListener('change', updateYearOptions);
+        };
+
+        // Bind initially existing select(s)
+        syncYearsContainer.querySelectorAll('.sync-year-select').forEach(bindSelectChange);
+
         btnAddYear.addEventListener('click', () => {
             const firstRow = syncYearsContainer.querySelector('.sync-year-row');
             if (firstRow) {
                 const newRow = firstRow.cloneNode(true);
-                // add delete button if it doesn't exist
-                if (!newRow.querySelector('.remove-year-btn')) {
-                    const delBtn = document.createElement('button');
+                const select = newRow.querySelector('.sync-year-select');
+                
+                // Add delete button if it doesn't exist
+                let delBtn = newRow.querySelector('.remove-year-btn');
+                if (!delBtn) {
+                    delBtn = document.createElement('button');
                     delBtn.className = 'remove-year-btn';
                     delBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;';
                     delBtn.innerText = 'X';
-                    delBtn.onclick = () => newRow.remove();
                     newRow.appendChild(delBtn);
-                } else {
-                    const delBtn = newRow.querySelector('.remove-year-btn');
-                    delBtn.onclick = () => newRow.remove();
                 }
+                
+                delBtn.onclick = () => {
+                    newRow.remove();
+                    updateYearOptions();
+                };
+                
                 syncYearsContainer.appendChild(newRow);
+                bindSelectChange(select);
+                
+                // Assign first available year to the new select
+                const currentSelects = Array.from(syncYearsContainer.querySelectorAll('.sync-year-select'));
+                const selectedYears = currentSelects.slice(0, -1).map(s => s.value);
+                const firstAvailable = allPossibleYears.find(y => !selectedYears.includes(y));
+                if (firstAvailable) {
+                    select.value = firstAvailable;
+                }
+                
+                updateYearOptions();
             }
         });
+
+        // Run initially to set the button state
+        updateYearOptions();
     }
 
     let pollInterval = null;
@@ -947,6 +1011,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnLogsClear) {
         btnLogsClear.addEventListener('click', () => {
             if (logsConsole) logsConsole.innerHTML = '';
+        });
+    }
+    
+    const btnLogsCopy = document.getElementById('btnLogsCopy');
+    if (btnLogsCopy) {
+        btnLogsCopy.addEventListener('click', () => {
+            if (logsConsole) {
+                const text = logsConsole.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    showAlert('تم نسخ سجل العمليات إلى الحافظة بنجاح! 📋');
+                }).catch(err => {
+                    // Fallback
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showAlert('تم نسخ سجل العمليات إلى الحافظة بنجاح! 📋');
+                    } catch (e) {
+                        showAlert('فشل في نسخ السجل.');
+                    }
+                    document.body.removeChild(textArea);
+                });
+            }
         });
     }
     
