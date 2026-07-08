@@ -94,7 +94,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             
             # --- 2. Navigate to RegistreDossier ---
             log("[*] Navigating to Registries page...")
-            page.goto("http://10.250.1.26/Outils/Productivite/RegistreDossier", wait_until="domcontentloaded", timeout=30000)
+            page.goto("http://10.250.1.26/Outils/Productivite/RegistreDossierResponsable", wait_until="domcontentloaded", timeout=30000)
             try:
                 page.wait_for_load_state("networkidle", timeout=3000)
             except PlaywrightTimeoutError:
