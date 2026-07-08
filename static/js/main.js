@@ -28,6 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSettingsClose = document.getElementById('btnSettingsClose');
     const btnSettingsCancel = document.getElementById('btnSettingsCancel');
     
+    // Logs Modal & Live Logs Elements
+    const logsModal = document.getElementById('logsModal');
+    const btnShowLogs = document.getElementById('btnShowLogs');
+    const btnLogsClose = document.getElementById('btnLogsClose');
+    const btnLogsModalClose = document.getElementById('btnLogsModalClose');
+    const btnLogsClear = document.getElementById('btnLogsClear');
+    const logsConsole = document.getElementById('logsConsole');
+    const liveSyncLogsWrapper = document.getElementById('liveSyncLogsWrapper');
+    const liveSyncLogs = document.getElementById('liveSyncLogs');
+    const btnMinimizeLiveLogs = document.getElementById('btnMinimizeLiveLogs');
+    const loadingOverlayText = document.getElementById('loadingOverlayText');
+    
     // Alert Modal Elements
     const alertModal = document.getElementById('alertModal');
     const alertModalMessage = document.getElementById('alertModalMessage');
@@ -802,6 +814,74 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let pollInterval = null;
+    let lastLogCount = 0;
+
+    function startSyncPolling(uniqueYears, originalText) {
+        lastLogCount = 0;
+        if (liveSyncLogs) {
+            liveSyncLogs.innerHTML = '';
+            liveSyncLogs.style.display = 'block';
+        }
+        if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
+        if (btnMinimizeLiveLogs) btnMinimizeLiveLogs.innerText = '⬇️ إخفاء التفاصيل';
+        
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch('/api/sync/status');
+                const data = await res.json();
+                
+                // Append new logs
+                if (data.logs && data.logs.length > lastLogCount) {
+                    const newLogs = data.logs.slice(lastLogCount);
+                    newLogs.forEach(logLine => {
+                        const div = document.createElement('div');
+                        div.textContent = logLine;
+                        if (logLine.includes('[-]')) {
+                            div.style.color = '#f87171';
+                        } else if (logLine.includes('[+]')) {
+                            div.style.color = '#4ade80';
+                        }
+                        if (liveSyncLogs) liveSyncLogs.appendChild(div);
+                        
+                        // Also append to global history console
+                        const historyDiv = document.createElement('div');
+                        historyDiv.textContent = logLine;
+                        if (logLine.includes('[-]')) historyDiv.style.color = '#f87171';
+                        else if (logLine.includes('[+]')) historyDiv.style.color = '#4ade80';
+                        if (logsConsole) logsConsole.appendChild(historyDiv);
+                    });
+                    lastLogCount = data.logs.length;
+                    if (liveSyncLogs) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
+                    if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
+                }
+                
+                if (!data.active) {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    
+                    const overlay = document.getElementById('loadingOverlay');
+                    
+                    if (data.directory) {
+                        folderPathInput.value = data.directory;
+                        if (loadingOverlayText) loadingOverlayText.innerText = 'جاري قراءة ومعالجة الملفات...';
+                        
+                        await performScan(data.years);
+                    } else {
+                        showAlert('فشلت عملية المزامنة أو لم يتم تحميل أي ملفات.');
+                    }
+                    
+                    if (overlay) overlay.style.display = 'none';
+                    if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
+                    btnAutoSync.disabled = false;
+                    btnAutoSync.innerText = originalText;
+                }
+            } catch (err) {
+                console.error("Error polling sync status:", err);
+            }
+        }, 1000);
+    }
+
     if (btnAutoSync) {
         btnAutoSync.addEventListener('click', async () => {
             const selects = document.querySelectorAll('.sync-year-select');
@@ -815,14 +895,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             btnAutoSync.disabled = true;
             const originalText = btnAutoSync.innerText;
-            btnAutoSync.innerText = 'جاري السحب...';
+            btnAutoSync.innerText = 'جاري المزامنة...';
 
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 overlay.style.display = 'flex';
-                let textNode = overlay.querySelector('p');
-                if (textNode) {
-                    textNode.innerText = 'جاري تسجيل الدخول وسحب السجلات تلقائياً. قد يستغرق هذا دقيقة، يرجى الانتظار...';
+                if (loadingOverlayText) {
+                    loadingOverlayText.innerText = 'جاري المزامنة مع بوابة المحاكم تلقائياً...';
                 }
             }
             
@@ -839,26 +918,54 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlay) overlay.style.display = 'none';
                     btnAutoSync.disabled = false;
                     btnAutoSync.innerText = originalText;
-                } else if (data.success && data.directory) {
-                    // Now run the scan on the downloaded directory
-                    folderPathInput.value = data.directory;
-                    
-                    if (overlay) {
-                        const textNode = overlay.querySelector('p');
-                        if (textNode) textNode.innerText = 'جاري قراءة ومعالجة الملفات...';
-                    }
-                    
-                    // Directly call the scan logic, passing the requested years to filter
-                    await performScan(data.years);
-                    if (overlay) overlay.style.display = 'none';
-                    btnAutoSync.disabled = false;
-                    btnAutoSync.innerText = originalText;
+                } else if (data.success) {
+                    startSyncPolling(uniqueYears, originalText);
                 }
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم لمزامنة السجلات.');
                 if (overlay) overlay.style.display = 'none';
                 btnAutoSync.disabled = false;
                 btnAutoSync.innerText = originalText;
+            }
+        });
+    }
+
+    // Modal Event Bindings for Logs
+    if (btnShowLogs) {
+        btnShowLogs.addEventListener('click', () => {
+            if (logsModal) logsModal.style.display = 'flex';
+            if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
+        });
+    }
+
+    const closeLogsModal = () => {
+        if (logsModal) logsModal.style.display = 'none';
+    };
+    if (btnLogsClose) btnLogsClose.addEventListener('click', closeLogsModal);
+    if (btnLogsModalClose) btnLogsModalClose.addEventListener('click', closeLogsModal);
+    
+    if (btnLogsClear) {
+        btnLogsClear.addEventListener('click', () => {
+            if (logsConsole) logsConsole.innerHTML = '';
+        });
+    }
+    
+    if (logsModal) {
+        logsModal.addEventListener('click', (e) => {
+            if (e.target === logsModal) {
+                logsModal.style.display = 'none';
+            }
+        });
+    }
+
+    if (btnMinimizeLiveLogs && liveSyncLogs) {
+        btnMinimizeLiveLogs.addEventListener('click', () => {
+            if (liveSyncLogs.style.display === 'none') {
+                liveSyncLogs.style.display = 'block';
+                btnMinimizeLiveLogs.innerText = '⬇️ إخفاء التفاصيل';
+            } else {
+                liveSyncLogs.style.display = 'none';
+                btnMinimizeLiveLogs.innerText = '⬆️ عرض التفاصيل';
             }
         });
     }
