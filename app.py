@@ -5,7 +5,19 @@ import engine
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 def get_default_workspace():
-    desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
+    # Use robust method to find real Desktop path on Windows (ignores language)
+    if os.name == 'nt':
+        import ctypes
+        from ctypes import wintypes
+        CSIDL_DESKTOP = 0
+        buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
+        ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_DESKTOP, None, 0, buf)
+        desktop = buf.value
+    else:
+        desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
+        if not os.path.exists(desktop):
+            desktop = os.path.join(os.path.expanduser('~'), 'Bureau') # French Linux fallback
+            
     workspace = os.path.join(desktop, 'ملفات المحاكم')
     if not os.path.exists(workspace):
         try:
