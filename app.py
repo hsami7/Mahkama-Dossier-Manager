@@ -86,32 +86,77 @@ def api_scan():
         "dossiers": dossiers,
         "warnings": warnings
     })
+import threading
+
+sync_thread = None
+sync_logs = []
+sync_active = False
+sync_lock = threading.Lock()
+sync_dir = ""
+sync_target_years = []
+
+def run_sync(years, base_download_dir):
+    global sync_active, sync_logs, sync_dir, sync_target_years
+    with sync_lock:
+        sync_active = True
+        sync_logs.clear()
+        sync_dir = base_download_dir
+        sync_target_years = years
+        
+    def log_cb(msg):
+        with sync_lock:
+            sync_logs.append(msg)
+            
+    try:
+        import sync_dossiers
+        for year in years:
+            try:
+                yr_int = int(year)
+                sync_dossiers.sync_dossiers(yr_int, output_dir=base_download_dir, debug=False, log_callback=log_cb)
+            except Exception as e:
+                log_cb(f"[-] خطأ في مزامنة سنة {year}: {str(e)}")
+    except Exception as e:
+        log_cb(f"[-] خطأ عام: {str(e)}")
+    finally:
+        with sync_lock:
+            sync_active = False
+
 @app.route('/api/sync', methods=['POST'])
 def api_sync():
+    global sync_thread, sync_active
     data = request.get_json() or {}
     years = data.get('years', [])
     
     if not years:
         return jsonify({"error": "يرجى تحديد سنة واحدة على الأقل."}), 400
         
+    with sync_lock:
+        if sync_active:
+            return jsonify({"error": "هناك عملية مزامنة جارية بالفعل."}), 400
+            
     try:
-        import sync_dossiers
         base_download_dir = os.path.join(os.getcwd(), "data", "downloads")
         
-        for year in years:
-            try:
-                yr_int = int(year)
-                sync_dossiers.sync_dossiers(yr_int, output_dir=base_download_dir, debug=False)
-            except ValueError:
-                continue
-                
+        sync_thread = threading.Thread(target=run_sync, args=(years, base_download_dir))
+        sync_thread.daemon = True
+        sync_thread.start()
+        
         return jsonify({
             "success": True,
-            "directory": base_download_dir,
-            "years": years
+            "message": "بدأت عملية المزامنة في الخلفية."
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sync/status', methods=['GET'])
+def api_sync_status():
+    with sync_lock:
+        return jsonify({
+            "active": sync_active,
+            "logs": list(sync_logs),
+            "directory": sync_dir,
+            "years": sync_target_years
+        })
 
 @app.route('/api/settings', methods=['GET', 'POST'])
 def api_settings():
