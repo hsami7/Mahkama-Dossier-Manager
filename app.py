@@ -1,8 +1,35 @@
 import os
 from flask import Flask, jsonify, request, render_template
 import engine
+import urllib.request
+import json
+
+CURRENT_VERSION = "v1.0.5" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+
+@app.route('/api/check-update', methods=['GET'])
+def api_check_update():
+    try:
+        req = urllib.request.Request(
+            'https://api.github.com/repos/hsami7/Mahkama-Dossier-Manager/releases/latest',
+            headers={'User-Agent': 'Mahkama-Dossier-Manager'}
+        )
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read().decode())
+            latest_version = data.get('tag_name')
+            html_url = data.get('html_url')
+            
+            if latest_version and latest_version != CURRENT_VERSION:
+                return jsonify({
+                    "has_update": True,
+                    "latest_version": latest_version,
+                    "download_url": html_url
+                })
+    except Exception:
+        pass # Silently fail if offline or rate-limited
+        
+    return jsonify({"has_update": False})
 
 def get_default_workspace():
     # Use robust method to find real Desktop path on Windows (ignores language)

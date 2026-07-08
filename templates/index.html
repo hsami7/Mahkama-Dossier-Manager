@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-
+    <!-- شريط تحديث التطبيق -->
+    <div id="updateBanner" style="display: none; background-color: #3b82f6; color: white; text-align: center; padding: 10px; font-weight: bold; position: relative; z-index: 10000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <span id="updateBannerText">تحديث جديد متاح (vX.X).</span>
+        <a id="updateBannerLink" href="#" target="_blank" style="color: #fbbf24; text-decoration: underline; margin-right: 10px;">اضغط هنا لتحميل النسخة الجديدة</a>
+        <button id="btnUpdateClose" style="position: absolute; left: 10px; top: 5px; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">&times;</button>
+    </div>
     <!-- الشريط العلوي (Header) -->
     <header class="mahakim-header">
         <div class="header-container">
@@ -234,7 +239,7 @@
 
     <!-- تذييل الصفحة -->
     <footer class="mahakim-footer">
-        <p>Made by <a href="https://github.com/hatimsami" target="_blank" style="color: rgba(255,255,255,0.9); text-decoration: underline; font-weight: bold;">Hatim Sami</a></p>
+        <p>Made by <a href="https://github.com/hatimsami" target="_blank" style="color: black; text-decoration: underline; font-weight: bold;">Hatim Sami</a></p>
     </footer>
 
     <!-- Scroll to top button -->

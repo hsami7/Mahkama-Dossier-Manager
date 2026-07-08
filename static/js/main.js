@@ -873,6 +873,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Update Checker ---
+    async function checkUpdate() {
+        try {
+            const response = await fetch('/api/check-update');
+            const data = await response.json();
+            if (data.has_update && data.latest_version && data.download_url) {
+                const banner = document.getElementById('updateBanner');
+                const bannerText = document.getElementById('updateBannerText');
+                const bannerLink = document.getElementById('updateBannerLink');
+                const btnClose = document.getElementById('btnUpdateClose');
+                
+                if (banner && bannerText && bannerLink) {
+                    bannerText.textContent = `تحديث جديد متاح (${data.latest_version}).`;
+                    bannerLink.href = data.download_url;
+                    banner.style.display = 'block';
+                    
+                    if (btnClose) {
+                        btnClose.addEventListener('click', () => {
+                            banner.style.display = 'none';
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('Error checking for updates:', e);
+        }
+    }
+
     // Initialize
     loadRecentPaths();
+    checkUpdate();
 });
