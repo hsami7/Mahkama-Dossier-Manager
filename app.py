@@ -12,7 +12,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.0" 
+CURRENT_VERSION = "v1.1.1" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -142,7 +142,13 @@ def api_sync():
             return jsonify({"error": "هناك عملية مزامنة جارية بالفعل."}), 400
             
     try:
-        base_download_dir = os.path.join(os.getcwd(), "data", "downloads")
+        directory = data.get('directory')
+        if not directory or not directory.strip():
+            directory = get_default_workspace()
+        else:
+            directory = os.path.abspath(os.path.expanduser(directory.strip()))
+            
+        base_download_dir = directory
         
         sync_thread = threading.Thread(target=run_sync, args=(years, base_download_dir))
         sync_thread.daemon = True

@@ -970,10 +970,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             try {
+                const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
                 const res = await fetch('/api/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ years: uniqueYears })
+                    body: JSON.stringify({ years: uniqueYears, directory: folderPath })
                 });
                 const data = await res.json();
                 

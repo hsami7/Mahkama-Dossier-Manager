@@ -16,8 +16,40 @@ DEFAULT_SETTINGS = {
     "7215": {"limit": 30, "red": 5, "orange": 15}
 }
 
-SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'data', 'settings.json')
-COMPLETED_CASES_FILE = os.path.join(os.path.dirname(__file__), 'data', 'completed_cases.json')
+def get_data_dir():
+    if os.name == 'nt':
+        appdata = os.environ.get('LOCALAPPDATA')
+        if not appdata:
+            appdata = os.environ.get('APPDATA')
+        if not appdata:
+            appdata = os.path.expanduser('~')
+        path = os.path.join(appdata, 'MahkamaDossierManager')
+    else:
+        path = os.path.join(os.path.expanduser('~'), '.config', 'mahkama')
+    
+    os.makedirs(path, exist_ok=True)
+    return path
+
+DATA_DIR = get_data_dir()
+SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+COMPLETED_CASES_FILE = os.path.join(DATA_DIR, 'completed_cases.json')
+
+def migrate_old_data():
+    # If there is old data in the same directory as this script, copy it to the persistent AppData folder
+    try:
+        old_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+        old_settings = os.path.join(old_dir, 'settings.json')
+        old_completed = os.path.join(old_dir, 'completed_cases.json')
+        
+        import shutil
+        if os.path.exists(old_settings) and not os.path.exists(SETTINGS_FILE):
+            shutil.copy2(old_settings, SETTINGS_FILE)
+        if os.path.exists(old_completed) and not os.path.exists(COMPLETED_CASES_FILE):
+            shutil.copy2(old_completed, COMPLETED_CASES_FILE)
+    except Exception:
+        pass
+
+migrate_old_data()
 
 def get_completed_cases(fpath=None):
     """Read completed case codes from global completed_cases.json."""
