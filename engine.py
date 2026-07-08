@@ -296,6 +296,7 @@ def scan_directory(dir_path, target_years=None):
     dossiers = []
     warnings = []
     settings = load_settings()
+    seen_full_codes = set()
     
     # Find all excel files recursively
     files = []
@@ -360,6 +361,10 @@ def scan_directory(dir_path, target_years=None):
             if target_years and y not in target_years:
                 continue
                 
+            if full_code in seen_full_codes:
+                continue
+            seen_full_codes.add(full_code)
+            
             reg_date = parse_excel_date(reg_date_raw)
             
             if reg_date:
