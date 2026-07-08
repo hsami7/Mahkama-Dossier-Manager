@@ -5,7 +5,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.0.7" 
+CURRENT_VERSION = "v1.0.8" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
