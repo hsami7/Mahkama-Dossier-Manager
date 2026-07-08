@@ -11,8 +11,7 @@ a = Analysis(
         ('engine.py', '.'),
         ('templates/*', 'templates/'),
         ('static/css/*', 'static/css/'),
-        ('static/js/*', 'static/js/'),
-        ('static/icons/*', 'static/icons/')
+        ('static/js/*', 'static/js/')
     ],
     hiddenimports=['webview', 'flask', 'engine'],
     hookspath=[],

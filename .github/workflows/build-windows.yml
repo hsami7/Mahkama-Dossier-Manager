@@ -36,13 +36,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Mahkama-Windows-App
-        path: dist/Mahkama Dossier Manager.exe
+        path: "dist/Mahkama Dossier Manager.exe"
         
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
-        files: dist/Mahkama Dossier Manager.exe
+        files: "dist/Mahkama Dossier Manager.exe"
         draft: false
         prerelease: false
         generate_release_notes: true
