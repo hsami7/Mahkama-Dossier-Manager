@@ -12,7 +12,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.3" 
+CURRENT_VERSION = "v1.1.4" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -83,7 +83,7 @@ def api_check_update():
             download_url = None
             for asset in assets:
                 name = asset.get('name', '')
-                if name.endswith('.exe'):
+                if name.endswith('.exe') and 'Setup' not in name:
                     download_url = asset.get('browser_download_url')
                     break
                     
@@ -95,7 +95,7 @@ def api_check_update():
                 global update_thread
                 with update_lock:
                     if update_status["status"] == "idle" or (update_status["status"] == "failed" and update_status["version"] != latest_version):
-                        if download_url and download_url.endswith('.exe'):
+                        if download_url and download_url.endswith('.exe') and 'Setup' not in download_url:
                             update_thread = threading.Thread(target=download_update_worker, args=(download_url, latest_version))
                             update_thread.daemon = True
                             update_thread.start()

@@ -1,0 +1,42 @@
+#define AppName "Mahkama Dossier Manager"
+#define AppVersion "1.1.4"
+#define AppPublisher "Hatim Sami"
+#define AppPublisherURL "https://hatimsami.engineer/"
+#define AppExeName "Mahkama Dossier Manager.exe"
+
+[Setup]
+; Unique AppId to identify this program across updates
+AppId={{9B78A52C-28D4-459D-B642-B3E34E28A466}
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppPublisher={#AppPublisher}
+AppPublisherURL={#AppPublisherURL}
+DefaultDirName={localappdata}\Programs\{#AppName}
+DisableProgramGroupPage=yes
+OutputDir=dist
+OutputBaseFilename=Mahkama_Dossier_Manager_Setup
+SetupIconFile=app_icon.ico
+Compression=lzma
+SolidCompression=yes
+WizardStyle=modern
+DisableDirPage=no
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
+UninstallDisplayIcon={app}\{#AppExeName}
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:"
+
+[Files]
+Source: "dist\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "app_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{autoprograms}\مدير ملفات المحاكم (Mahkama Dossier Manager)"; Filename: "{app}\{#AppExeName}"
+Name: "{autodesktop}\مدير ملفات المحاكم (Mahkama Dossier Manager)"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
