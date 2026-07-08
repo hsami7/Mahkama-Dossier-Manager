@@ -4,6 +4,15 @@ import engine
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
+def get_default_workspace():
+    desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
+    workspace = os.path.join(desktop, 'ملفات المحاكم')
+    if not os.path.exists(workspace):
+        try:
+            os.makedirs(workspace)
+        except Exception:
+            return os.path.expanduser('~')
+    return workspace
 @app.route('/')
 def index():
     # In Phase 1 we serve a basic status check/placeholder,
@@ -87,14 +96,15 @@ def api_settings():
 
 @app.route('/api/browse', methods=['GET'])
 def api_browse():
-    path = request.args.get('path', os.path.expanduser('~'))
+    default_ws = get_default_workspace()
+    path = request.args.get('path', default_ws)
     if not path:
-        path = os.path.expanduser('~')
+        path = default_ws
     else:
         path = os.path.abspath(os.path.expanduser(path))
         
     if not os.path.exists(path) or not os.path.isdir(path):
-        path = os.path.expanduser('~')
+        path = default_ws
         
     try:
         directories = []
@@ -137,7 +147,7 @@ def api_select_folder():
         dialog.add_button("اختيار المجلد", Gtk.ResponseType.OK)
         
         # Set default folder
-        dialog.set_current_folder(os.path.expanduser('~'))
+        dialog.set_current_folder(get_default_workspace())
         dialog.set_keep_above(True)
         
         selected_path = None
