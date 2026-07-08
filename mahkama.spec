@@ -34,10 +34,11 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='Mahkama',
+    name='Mahkama Dossier Manager',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
+
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
