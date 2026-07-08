@@ -781,6 +781,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const btnOpenFolder = document.getElementById('btnOpenFolder');
+    if (btnOpenFolder) {
+        btnOpenFolder.addEventListener('click', async () => {
+            const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
+            try {
+                const res = await fetch('/api/open-workspace', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ directory: folderPath })
+                });
+                const data = await res.json();
+                if (data.error) {
+                    showAlert(data.error);
+                }
+            } catch (err) {
+                showAlert('فشل في فتح المجلد.');
+            }
+        });
+    }
+
     // Scan Event Binding
     btnScan.addEventListener('click', performScan);
     
@@ -1145,7 +1165,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadDefaultWorkspace() {
+        try {
+            const res = await fetch('/api/default-workspace');
+            const data = await res.json();
+            if (data.directory && folderPathInput && !folderPathInput.value.trim()) {
+                folderPathInput.value = data.directory;
+            }
+        } catch (err) {
+            console.error('Error loading default workspace:', err);
+        }
+    }
+
     // Initialize
     loadRecentPaths();
+    loadDefaultWorkspace();
     checkUpdate();
 });

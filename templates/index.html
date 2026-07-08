@@ -84,7 +84,10 @@
                     <p style="color: #64748b; margin-bottom: 15px; font-size: 0.9rem;">قم بتحديد مسار المجلد الذي قمت بتحميل الملفات فيه مسبقاً.</p>
                     
                     <div class="folder-input-wrapper" style="flex-direction: column; gap: 10px;">
-                        <input type="text" id="folderPath" placeholder="مسار المجلد..." list="recentPathsList" style="width: 100%; padding: 8px;">
+                        <div style="display: flex; gap: 8px; width: 100%;">
+                            <input type="text" id="folderPath" placeholder="مسار المجلد..." list="recentPathsList" style="flex: 4; padding: 8px;">
+                            <button class="btn-secondary" id="btnOpenFolder" style="flex: 1; padding: 8px; font-size: 0.9rem;" title="فتح المجلد في مستكشف الملفات">📁 فتح</button>
+                        </div>
                         <datalist id="recentPathsList"></datalist>
                         <div style="display: flex; gap: 10px; width: 100%;">
                             <button class="btn-secondary" id="btnBrowse" style="flex: 1;">استعراض...</button>

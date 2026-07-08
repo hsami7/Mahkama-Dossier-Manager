@@ -12,7 +12,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.4" 
+CURRENT_VERSION = "v1.1.5" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -145,26 +145,39 @@ def api_trigger_update():
         return jsonify({"error": str(e)}), 500
 
 def get_default_workspace():
-    # Use robust method to find real Desktop path on Windows (ignores language)
-    if os.name == 'nt':
-        import ctypes
-        from ctypes import wintypes
-        CSIDL_DESKTOP = 0
-        buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
-        ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_DESKTOP, None, 0, buf)
-        desktop = buf.value
-    else:
-        desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
-        if not os.path.exists(desktop):
-            desktop = os.path.join(os.path.expanduser('~'), 'Bureau') # French Linux fallback
-            
-    workspace = os.path.join(desktop, 'ملفات المحاكم')
+    workspace = os.path.join(engine.get_data_dir(), 'ملفات المحاكم')
     if not os.path.exists(workspace):
         try:
             os.makedirs(workspace)
         except Exception:
             return os.path.expanduser('~')
     return workspace
+
+@app.route('/api/open-workspace', methods=['POST'])
+def api_open_workspace():
+    try:
+        data = request.json or {}
+        directory = data.get('directory', '').strip()
+        if not directory:
+            directory = get_default_workspace()
+            
+        if os.path.exists(directory):
+            if os.name == 'nt':
+                os.startfile(directory)
+            elif sys.platform == 'darwin':
+                import subprocess
+                subprocess.Popen(['open', directory])
+            else:
+                import subprocess
+                subprocess.Popen(['xdg-open', directory])
+            return jsonify({"success": True})
+        return jsonify({"error": "المجلد غير موجود."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+@app.route('/api/default-workspace', methods=['GET'])
+def api_get_default_workspace():
+    return jsonify({"directory": get_default_workspace()})
+
 @app.route('/')
 def index():
     # In Phase 1 we serve a basic status check/placeholder,
