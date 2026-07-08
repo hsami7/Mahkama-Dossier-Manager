@@ -4,3 +4,12 @@ __pycache__/
 .DS_Store
 .continue-here.md
 test_app_integration.py
+
+# AI and Planning files (kept local only)
+.planning/
+GEMINI.md
+.agents/
+.claude/
+.cursor/
+.github/skills/
+.codex/
