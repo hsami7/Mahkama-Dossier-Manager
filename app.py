@@ -1,11 +1,18 @@
 import os
+import sys
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 from flask import Flask, jsonify, request, render_template
 import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.0.8" 
+CURRENT_VERSION = "v1.0.9" 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 

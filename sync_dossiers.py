@@ -8,11 +8,26 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
     target_dir = os.path.join(output_dir, str(year))
     os.makedirs(target_dir, exist_ok=True)
     
+    import sys
+    if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+
     def log(msg):
-        print(msg)
+        msg_str = str(msg)
+        try:
+            print(msg_str)
+        except UnicodeEncodeError:
+            try:
+                # Fallback print replacing non-encodable chars so stdout doesn't crash
+                print(msg_str.encode(sys.stdout.encoding or 'ascii', errors='replace').decode(sys.stdout.encoding or 'ascii'))
+            except Exception:
+                pass
         if log_callback:
             try:
-                log_callback(msg)
+                log_callback(msg_str)
             except Exception:
                 pass
 
