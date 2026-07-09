@@ -209,9 +209,9 @@ def index():
         return render_template('index.html')
     return """
     <html>
-        <head><title>مدير ملفات المحاكم</title></head>
+        <head><title>إدارة ملفات المحاكم</title></head>
         <body style='text-align:center; padding-top:10%; font-family: sans-serif;'>
-            <h1>مدير ملفات المحاكم (Mahkama Dossier Manager)</h1>
+            <h1>إدارة ملفات المحاكم</h1>
             <p>خادم الباك اند يعمل بنجاح. سيتم توفير الواجهة بالكامل في المرحلة الثانية.</p>
         </body>
     </html>
