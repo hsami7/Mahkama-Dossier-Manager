@@ -289,3 +289,35 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         "closed": muglaq,
         "remaining": remaining
     }
+
+
+if __name__ == '__main__':
+    import sys
+    import json
+    if len(sys.argv) < 3:
+        print("Usage: python sync_stats.py <year> <download_dir>")
+        sys.exit(1)
+        
+    try:
+        # Reconfigure stdout/stderr to use UTF-8 encoding
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8')
+        if hasattr(sys.stderr, 'reconfigure'):
+            sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+        
+    year = int(sys.argv[1])
+    download_dir = sys.argv[2]
+    
+    def log_cb(msg):
+        print(msg)
+        sys.stdout.flush()
+        
+    try:
+        res = calculate_expert_stats(year, download_dir, debug=False, log_callback=log_cb)
+        print(f"RESULT:{json.dumps(res)}")
+    except Exception as e:
+        print(f"ERROR:{str(e)}")
+        sys.exit(1)
+
