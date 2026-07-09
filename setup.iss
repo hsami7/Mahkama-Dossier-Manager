@@ -35,8 +35,8 @@ Source: "dist\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "app_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\مدير ملفات المحاكم (Mahkama Dossier Manager)"; Filename: "{app}\{#AppExeName}"
-Name: "{autodesktop}\مدير ملفات المحاكم (Mahkama Dossier Manager)"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\إدارة ملفات المحاكم"; Filename: "{app}\{#AppExeName}"
+Name: "{autodesktop}\إدارة ملفات المحاكم"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
