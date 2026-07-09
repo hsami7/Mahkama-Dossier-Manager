@@ -268,26 +268,46 @@ def run_sync(years, base_download_dir):
             del env["PLAYWRIGHT_BROWSERS_PATH"]
             
         for year in years:
-            log_cb(f"[*] بدء مزامنة سنة {year}...")
-            cmd = [sys.executable, script_path, str(year), '--output-dir', base_download_dir]
-            
-            with sync_lock:
-                if not sync_active:
-                    log_cb("[-] تم إلغاء عملية المزامنة من قبل المستخدم.")
-                    break
-                sync_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
-                
-            for line in iter(sync_process.stdout.readline, ''):
-                line_str = line.strip()
-                if line_str:
-                    log_cb(line_str)
+            max_retries = 3
+            for attempt in range(1, max_retries + 1):
+                with sync_lock:
+                    if not sync_active:
+                        log_cb("[-] تم إلغاء عملية المزامنة من قبل المستخدم.")
+                        break
+                        
+                if attempt > 1:
+                    log_cb(f"[*] إعادة محاولة مزامنة سنة {year} ({attempt}/{max_retries})...")
+                    import time
+                    time.sleep(3)
                     
-            sync_process.stdout.close()
-            sync_process.wait()
-            
-            with sync_lock:
-                sync_process = None
+                log_cb(f"[*] بدء مزامنة سنة {year}...")
+                cmd = [sys.executable, script_path, str(year), '--output-dir', base_download_dir]
                 
+                try:
+                    with sync_lock:
+                        sync_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+                        
+                    for line in iter(sync_process.stdout.readline, ''):
+                        line_str = line.strip()
+                        if line_str:
+                            log_cb(line_str)
+                            
+                    sync_process.stdout.close()
+                    return_code = sync_process.wait()
+                    
+                    with sync_lock:
+                        sync_process = None
+                        
+                    if return_code == 0:
+                        break
+                    else:
+                        raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
+                except Exception as e:
+                    if attempt == max_retries:
+                        raise e
+                    else:
+                        log_cb(f"[-] تنبيه: فشلت المحاولة {attempt} لمزامنة سنة {year} بسبب: {str(e)}. جاري إعادة المحاولة تلقائياً...")
+                        
     except Exception as e:
         log_cb(f"[-] خطأ عام في المزامنة: {str(e)}")
     finally:
@@ -360,47 +380,64 @@ def run_stats_calculation(target_year, base_download_dir):
             
     write_log(f"[*] بدء عملية احتساب إحصائيات سنة: {target_year}")
     try:
-        import subprocess
-        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_stats.py')
-        
-        env = os.environ.copy()
-        if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
-            del env["PLAYWRIGHT_BROWSERS_PATH"]
-            
-        cmd = [sys.executable, script_path, str(target_year), base_download_dir]
-        
-        with stats_lock:
-            if not stats_active:
-                log_cb("[-] تم إلغاء عملية احتساب الإحصائيات من قبل المستخدم.")
-                return
-            stats_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
-        
-        for line in iter(stats_process.stdout.readline, ''):
-            line_str = line.strip()
-            if not line_str:
-                continue
-            if line_str.startswith("RESULT:"):
-                try:
-                    res_json = line_str[7:]
-                    stats_result = json.loads(res_json)
-                except Exception as e:
-                    log_cb(f"[-] خطأ في قراءة النتيجة: {e}")
-            elif line_str.startswith("ERROR:"):
-                log_cb(f"[-] خطأ: {line_str[6:]}")
-            else:
-                log_cb(line_str)
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            with stats_lock:
+                if not stats_active:
+                    log_cb("[-] تم إلغاء عملية احتساب الإحصائيات من قبل المستخدم.")
+                    return
+                    
+            if attempt > 1:
+                log_cb(f"[*] إعادة محاولة احتساب إحصائيات سنة {target_year} ({attempt}/{max_retries})...")
+                import time
+                time.sleep(3)
                 
-        stats_process.stdout.close()
-        return_code = stats_process.wait()
-        
-        with stats_lock:
-            stats_process = None
-            
-        if return_code != 0 and not stats_result:
-            raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
-            
+            try:
+                import subprocess
+                script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_stats.py')
+                
+                env = os.environ.copy()
+                if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
+                    del env["PLAYWRIGHT_BROWSERS_PATH"]
+                    
+                cmd = [sys.executable, script_path, str(target_year), base_download_dir]
+                
+                with stats_lock:
+                    stats_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+                
+                for line in iter(stats_process.stdout.readline, ''):
+                    line_str = line.strip()
+                    if not line_str:
+                        continue
+                    if line_str.startswith("RESULT:"):
+                        try:
+                            res_json = line_str[7:]
+                            stats_result = json.loads(res_json)
+                        except Exception as e:
+                            log_cb(f"[-] خطأ في قراءة النتيجة: {e}")
+                    elif line_str.startswith("ERROR:"):
+                        log_cb(f"[-] خطأ: {line_str[6:]}")
+                    else:
+                        log_cb(line_str)
+                        
+                stats_process.stdout.close()
+                return_code = stats_process.wait()
+                
+                with stats_lock:
+                    stats_process = None
+                    
+                if return_code == 0 or stats_result:
+                    break
+                else:
+                    raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
+                    
+            except Exception as e:
+                if attempt == max_retries:
+                    raise e
+                else:
+                    log_cb(f"[-] تنبيه: فشلت المحاولة {attempt} بسبب: {str(e)}. جاري إعادة المحاولة تلقائياً...")
     except Exception as e:
-        log_cb(f"[-] خطأ في احتساب الإحصائيات: {str(e)}")
+        log_cb(f"[-] فشلت العملية نهائياً بعد {max_retries} محاولات: {str(e)}")
     finally:
         with stats_lock:
             stats_active = False
