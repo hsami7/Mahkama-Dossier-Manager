@@ -48,7 +48,23 @@ if __name__ == '__main__':
                     except Exception:
                         pass
             # Extra safety delay for file locks to release
-            time.sleep(1.0)
+            time.sleep(2.0)
+            
+            # Clean up leftover _MEI* temp directories from PyInstaller
+            import tempfile
+            temp_base = tempfile.gettempdir()
+            try:
+                import shutil as _shutil
+                for entry in os.listdir(temp_base):
+                    if entry.startswith('_MEI'):
+                        mei_path = os.path.join(temp_base, entry)
+                        if os.path.isdir(mei_path):
+                            try:
+                                _shutil.rmtree(mei_path, ignore_errors=True)
+                            except Exception:
+                                pass
+            except Exception:
+                pass
         else:
             # POSIX fallback
             for _ in range(100):
@@ -71,6 +87,15 @@ if __name__ == '__main__':
                 time.sleep(0.5)
             except Exception:
                 time.sleep(0.5)
+        
+        # Clean up the downloaded update file
+        try:
+            import tempfile
+            update_file = os.path.join(tempfile.gettempdir(), 'mahkama_update.exe')
+            if os.path.exists(update_file):
+                os.remove(update_file)
+        except Exception:
+            pass
                 
         # Launch the updated executable
         if copied:
