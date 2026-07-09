@@ -62,6 +62,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentBrowsePath = '';
     let currentTab = 'pending'; // 'pending' or 'completed'
 
+    let operationRunning = false;
+    const btnAbortOperation = document.getElementById('btnAbortOperation');
+    if (btnAbortOperation) {
+        btnAbortOperation.addEventListener('click', async () => {
+            btnAbortOperation.disabled = true;
+            btnAbortOperation.innerText = 'جاري الإلغاء...';
+            if (loadingOverlayText) {
+                loadingOverlayText.innerText = 'جاري إلغاء وإيقاف العملية، يرجى الانتظار...';
+            }
+            try {
+                await fetch('/api/abort', { method: 'POST' });
+            } catch (err) {
+                console.error("Error aborting operation:", err);
+            }
+        });
+    }
+
     // --- LocalStorage Recent Paths ---
     function loadRecentPaths() {
         const paths = JSON.parse(localStorage.getItem('recent_paths') || '[]');
@@ -943,6 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data.active) {
                     clearInterval(pollInterval);
                     pollInterval = null;
+                    operationRunning = false;
                     
                     const overlay = document.getElementById('loadingOverlay');
                     
@@ -968,6 +986,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnAutoSync) {
         btnAutoSync.addEventListener('click', async () => {
+            if (operationRunning) return;
+            
             const selects = document.querySelectorAll('.sync-year-select');
             const years = Array.from(selects).map(s => s.value.trim()).filter(y => y);
             const uniqueYears = [...new Set(years)];
@@ -975,6 +995,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (uniqueYears.length === 0) {
                 showAlert('الرجاء إدخال سنة واحدة على الأقل.');
                 return;
+            }
+            
+            operationRunning = true;
+            if (btnAbortOperation) {
+                btnAbortOperation.disabled = false;
+                btnAbortOperation.innerText = '🛑 إلغاء وإيقاف العملية جارية';
             }
             
             btnAutoSync.disabled = true;
@@ -1003,6 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlay) overlay.style.display = 'none';
                     btnAutoSync.disabled = false;
                     btnAutoSync.innerText = originalText;
+                    operationRunning = false;
                 } else if (data.success) {
                     startSyncPolling(uniqueYears, originalText);
                 }
@@ -1011,6 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (overlay) overlay.style.display = 'none';
                 btnAutoSync.disabled = false;
                 btnAutoSync.innerText = originalText;
+                operationRunning = false;
             }
         });
     }
@@ -1160,6 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data.active) {
                     clearInterval(statsPollInterval);
                     statsPollInterval = null;
+                    operationRunning = false;
                     
                     const overlay = document.getElementById('loadingOverlay');
                     if (overlay) overlay.style.display = 'none';
@@ -1192,12 +1221,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnCalculateStats) {
         btnCalculateStats.addEventListener('click', async () => {
+            if (operationRunning) return;
+            
             const yearSelect = document.getElementById('statsYearSelect');
             const optionSelect = document.getElementById('statsOptionSelect');
             const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
             
             const year = yearSelect ? yearSelect.value : "2026";
             const option = optionSelect ? optionSelect.value : "مكتب الخبرة";
+            
+            operationRunning = true;
+            if (btnAbortOperation) {
+                btnAbortOperation.disabled = false;
+                btnAbortOperation.innerText = '🛑 إلغاء وإيقاف العملية جارية';
+            }
             
             btnCalculateStats.disabled = true;
             const originalText = btnCalculateStats.innerText;
@@ -1224,6 +1261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlay) overlay.style.display = 'none';
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
+                    operationRunning = false;
                 } else if (data.success) {
                     startStatsPolling(year, originalText);
                 }
@@ -1232,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (overlay) overlay.style.display = 'none';
                 btnCalculateStats.disabled = false;
                 btnCalculateStats.innerText = originalText;
+                operationRunning = false;
             }
         });
     }
