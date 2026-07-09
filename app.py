@@ -13,7 +13,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.10" 
+CURRENT_VERSION = "v1.1.11" 
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
@@ -277,6 +277,10 @@ def run_sync(years, base_download_dir):
         if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
             del env["PLAYWRIGHT_BROWSERS_PATH"]
             
+        # Clean PyInstaller environment variables to let the child process find its own extraction directory
+        for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
+            env.pop(var, None)
+            
         for year in years:
             max_retries = 3
             for attempt in range(1, max_retries + 1):
@@ -409,6 +413,10 @@ def run_stats_calculation(target_year, base_download_dir):
                 env = os.environ.copy()
                 if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
                     del env["PLAYWRIGHT_BROWSERS_PATH"]
+                    
+                # Clean PyInstaller environment variables to let the child process find its own extraction directory
+                for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
+                    env.pop(var, None)
                     
                 cmd = [sys.executable, script_path, str(target_year), base_download_dir]
                 
