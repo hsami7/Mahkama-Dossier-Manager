@@ -335,11 +335,36 @@ def run_stats_calculation(target_year, base_download_dir):
             
     write_log(f"[*] بدء عملية احتساب إحصائيات سنة: {target_year}")
     try:
-        import sync_stats
-        res = sync_stats.calculate_expert_stats(int(target_year), download_dir=base_download_dir, debug=False, log_callback=log_cb)
-        with stats_lock:
-            stats_result = res
-        log_cb("[+] تم احتساب الإحصائيات بنجاح.")
+        import subprocess
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_stats.py')
+        
+        env = os.environ.copy()
+        if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
+            del env["PLAYWRIGHT_BROWSERS_PATH"]
+            
+        cmd = [sys.executable, script_path, str(target_year), base_download_dir]
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+        
+        for line in iter(process.stdout.readline, ''):
+            line_str = line.strip()
+            if not line_str:
+                continue
+            if line_str.startswith("RESULT:"):
+                try:
+                    res_json = line_str[7:]
+                    stats_result = json.loads(res_json)
+                except Exception as e:
+                    log_cb(f"[-] خطأ في قراءة النتيجة: {e}")
+            elif line_str.startswith("ERROR:"):
+                log_cb(f"[-] خطأ: {line_str[6:]}")
+            else:
+                log_cb(line_str)
+                
+        process.stdout.close()
+        return_code = process.wait()
+        if return_code != 0 and not stats_result:
+            raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
+            
     except Exception as e:
         log_cb(f"[-] خطأ في احتساب الإحصائيات: {str(e)}")
     finally:
