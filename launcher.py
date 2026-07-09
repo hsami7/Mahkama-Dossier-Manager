@@ -1,5 +1,19 @@
 import os
 import sys
+
+# Crucial environment correction for PyInstaller bundles
+if getattr(sys, 'frozen', False):
+    meipass = getattr(sys, '_MEIPASS', '')
+    if meipass:
+        tcl_path = os.path.join(meipass, 'tcl_data')
+        tk_path = os.path.join(meipass, 'tk_data')
+        
+        # Override system environment variables to prioritize local bundle files
+        if os.path.exists(tcl_path):
+            os.environ['TCL_LIBRARY'] = tcl_path
+        if os.path.exists(tk_path):
+            os.environ['TK_LIBRARY'] = tk_path
+
 import threading
 import socket
 import webview
