@@ -283,7 +283,9 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='مزامنة ملفات السجل العام من بوابة محاكم')
     parser.add_argument('year', type=int, help='السنة المطلوب تحميل سجلاتها (مثال: 2026)')
+    parser.add_argument('--output-dir', type=str, default='data/downloads', help='مجلد الحفظ')
     parser.add_argument('--debug', action='store_true', help='إظهار المتصفح أثناء العمل')
     args = parser.parse_args()
     
-    sync_dossiers(args.year, debug=args.debug)
+    sync_dossiers(args.year, output_dir=args.output_dir, debug=args.debug)
+
