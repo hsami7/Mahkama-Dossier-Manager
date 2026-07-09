@@ -6,7 +6,8 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     except Exception:
         pass
 
-os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
+if getattr(sys, 'frozen', False):
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 from flask import Flask, jsonify, request, render_template
 import engine
 import urllib.request
