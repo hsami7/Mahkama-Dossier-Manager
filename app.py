@@ -13,7 +13,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.12" 
+CURRENT_VERSION = "v1.1.13" 
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
@@ -161,17 +161,25 @@ def api_trigger_update():
                 subprocess.DETACHED_PROCESS |
                 subprocess.CREATE_NEW_PROCESS_GROUP
             )
+            env = os.environ.copy()
+            # Clean PyInstaller env vars to prevent child updater locking parent dlls/resources
+            for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
+                env.pop(var, None)
             subprocess.Popen(
                 [temp_file, '--replace-and-start', sys.executable, str(os.getpid())],
                 creationflags=creation_flags,
-                close_fds=True
+                close_fds=True,
+                env=env
             )
             # Give Flask time to send the response, then exit
             threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
         else:
             # Dev mode: just run it
             import subprocess
-            subprocess.Popen([temp_file])
+            env = os.environ.copy()
+            for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
+                env.pop(var, None)
+            subprocess.Popen([temp_file], env=env)
             
         return jsonify({"success": True})
     except Exception as e:
