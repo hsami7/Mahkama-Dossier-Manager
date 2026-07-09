@@ -219,7 +219,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # Let's clean headers/empty code rows from target_rows to get exact count
     real_registered = 0
     for r in target_rows:
-        code = r.get('B')
+        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
         if code and code != 'الرقم الكامل للملف' and '/' in str(code):
             real_registered += 1
             
@@ -236,7 +236,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     
     # In target year Y file:
     for r in target_rows:
-        code = r.get('B')
+        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
         if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
             continue
         dt_yr = get_row_date_year(r)
@@ -251,7 +251,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # In prior years files:
     for yr, rows in prior_files_rows.items():
         for r in rows:
-            code = r.get('B')
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
             if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
                 continue
             dt_yr = get_row_date_year(r)
@@ -268,7 +268,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     active = registered
     for yr, rows in prior_files_rows.items():
         for r in rows:
-            code = r.get('B')
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
             if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
                 continue
             dt_yr = get_row_date_year(r)
