@@ -68,14 +68,14 @@ if __name__ == '__main__':
             pass
 
         # Try to find the existing window of an old instance and close it
-        window_title = "مدير ملفات المحاكم (Mahkama Dossier Manager)"
+        window_title = "إدارة ملفات المحاكم"
         hwnd = ctypes.windll.user32.FindWindowW(None, window_title)
         if hwnd:
             # Ask user before closing the running instance
             ret = ctypes.windll.user32.MessageBoxW(
                 None, 
                 "هناك نسخة مفتوحة بالفعل من التطبيق. هل ترغب في إغلاقها تلقائياً للمتابعة؟", 
-                "تنبيه - مدير ملفات المحاكم", 
+                "تنبيه - إدارة ملفات المحاكم", 
                 0x24 # MB_YESNO | MB_ICONQUESTION (0x04 | 0x20)
             )
             if ret == 6: # IDYES
@@ -111,7 +111,7 @@ if __name__ == '__main__':
             ctypes.windll.user32.MessageBoxW(
                 None, 
                 "التطبيق قيد التشغيل بالفعل. يرجى إغلاق النسخة المفتوحة أولاً.", 
-                "تنبيه - مدير ملفات المحاكم", 
+                "تنبيه - إدارة ملفات المحاكم", 
                 0x30 # MB_ICONWARNING
             )
             sys.exit(0)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # Create and start the PyWebView window
     url = f"http://127.0.0.1:{port}/"
     webview.create_window(
-        title="مدير ملفات المحاكم (Mahkama Dossier Manager)", 
+        title="إدارة ملفات المحاكم", 
         url=url, 
         width=1200, 
         height=800,
