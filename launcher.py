@@ -47,17 +47,18 @@ if __name__ == '__main__':
                         ctypes.windll.kernel32.CloseHandle(h_process)
                     except Exception:
                         pass
-            # Extra safety delay for file locks to release
-            time.sleep(2.0)
-            
-            # Clean up leftover _MEI* temp directories from PyInstaller
+            # Clean up leftover _MEI* temp directories from PyInstaller, excluding our own
             import tempfile
             temp_base = tempfile.gettempdir()
+            current_mei = getattr(sys, '_MEIPASS', None)
             try:
                 import shutil as _shutil
                 for entry in os.listdir(temp_base):
                     if entry.startswith('_MEI'):
                         mei_path = os.path.join(temp_base, entry)
+                        # Do NOT delete our own extraction directory!
+                        if current_mei and os.path.normpath(mei_path) == os.path.normpath(current_mei):
+                            continue
                         if os.path.isdir(mei_path):
                             try:
                                 _shutil.rmtree(mei_path, ignore_errors=True)
