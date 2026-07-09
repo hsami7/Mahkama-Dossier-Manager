@@ -115,6 +115,12 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                     load_btn = page.locator('#charger, input[value="تحميل لائحة السجلات"]').first
                     if load_btn.count() > 0:
                         load_btn.click()
+                        # Wait 2 seconds for AJAX request to initiate and start updating the DOM
+                        time.sleep(2)
+                        try:
+                            page.wait_for_load_state("networkidle", timeout=10000)
+                        except PlaywrightTimeoutError:
+                            pass
                         try:
                             page.wait_for_selector("#gridDossiersEnregistres table, #gridDossiersEnregistres a", timeout=20000)
                         except PlaywrightTimeoutError:
