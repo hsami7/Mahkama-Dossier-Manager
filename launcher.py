@@ -117,54 +117,80 @@ if __name__ == '__main__':
         except Exception:
             pass
 
-        # Try to find the existing window of an old instance and close it
-        window_title = "إدارة ملفات المحاكم"
-        hwnd = ctypes.windll.user32.FindWindowW(None, window_title)
-        if hwnd:
-            # Ask user before closing the running instance
-            ret = ctypes.windll.user32.MessageBoxW(
-                None, 
-                "هناك نسخة مفتوحة بالفعل من التطبيق. هل ترغب في إغلاقها تلقائياً للمتابعة؟", 
-                "تنبيه - إدارة ملفات المحاكم", 
-                0x24 # MB_YESNO | MB_ICONQUESTION (0x04 | 0x20)
-            )
-            if ret == 6: # IDYES
-                # Get the process ID of the window
-                pid = wintypes.DWORD()
-                ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-                
-                # Send WM_CLOSE (0x0010) gracefully
-                ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
-                
-                # Wait up to 2 seconds for it to exit
-                import time
-                for _ in range(20):
-                    if not ctypes.windll.user32.IsWindow(hwnd):
-                        break
-                    time.sleep(0.1)
-                
-                # If still alive, terminate the process
-                if ctypes.windll.user32.IsWindow(hwnd) and pid.value > 0:
-                    PROCESS_TERMINATE = 0x0001
-                    h_process = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid.value)
-                    if h_process:
-                        ctypes.windll.kernel32.TerminateProcess(h_process, 0)
-                        ctypes.windll.kernel32.CloseHandle(h_process)
-                        time.sleep(0.5) # Wait for OS to clean up mutex
-            else:
-                sys.exit(0)
-
+        # Use mutex as the authoritative single-instance check
         mutex_name = "Global\\MahkamaDossierManager_SingleInstance_Mutex"
         global _single_instance_mutex
         _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
-        if ctypes.windll.kernel32.GetLastError() == 183: # ERROR_ALREADY_EXISTS
-            ctypes.windll.user32.MessageBoxW(
-                None, 
-                "التطبيق قيد التشغيل بالفعل. يرجى إغلاق النسخة المفتوحة أولاً.", 
-                "تنبيه - إدارة ملفات المحاكم", 
-                0x30 # MB_ICONWARNING
-            )
-            sys.exit(0)
+        mutex_already_exists = (ctypes.windll.kernel32.GetLastError() == 183)  # ERROR_ALREADY_EXISTS
+        
+        if mutex_already_exists:
+            # Another instance is confirmed running — find its window and offer to close it
+            window_title = "إدارة ملفات المحاكم"
+            hwnd = ctypes.windll.user32.FindWindowW(None, window_title)
+            
+            if hwnd:
+                # Verify the window belongs to a live process (not a ghost window)
+                pid = wintypes.DWORD()
+                ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                
+                process_alive = False
+                if pid.value > 0:
+                    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+                    h_check = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid.value)
+                    if h_check:
+                        process_alive = True
+                        ctypes.windll.kernel32.CloseHandle(h_check)
+                
+                if process_alive:
+                    # Ask user before closing the running instance
+                    ret = ctypes.windll.user32.MessageBoxW(
+                        None, 
+                        "هناك نسخة مفتوحة بالفعل من التطبيق. هل ترغب في إغلاقها تلقائياً للمتابعة؟", 
+                        "تنبيه - إدارة ملفات المحاكم", 
+                        0x24 # MB_YESNO | MB_ICONQUESTION (0x04 | 0x20)
+                    )
+                    if ret == 6: # IDYES
+                        # Send WM_CLOSE (0x0010) gracefully
+                        ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
+                        
+                        # Wait up to 3 seconds for it to exit
+                        import time
+                        for _ in range(30):
+                            if not ctypes.windll.user32.IsWindow(hwnd):
+                                break
+                            time.sleep(0.1)
+                        
+                        # If still alive, terminate the process
+                        if ctypes.windll.user32.IsWindow(hwnd) and pid.value > 0:
+                            PROCESS_TERMINATE = 0x0001
+                            h_process = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid.value)
+                            if h_process:
+                                ctypes.windll.kernel32.TerminateProcess(h_process, 0)
+                                ctypes.windll.kernel32.CloseHandle(h_process)
+                                time.sleep(0.5) # Wait for OS to clean up mutex
+                        
+                        # Re-acquire the mutex after closing old instance
+                        import time
+                        time.sleep(0.5)
+                        if _single_instance_mutex:
+                            ctypes.windll.kernel32.CloseHandle(_single_instance_mutex)
+                        _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
+                    else:
+                        sys.exit(0)
+                else:
+                    # Ghost window from dead process — close the orphaned mutex and continue
+                    if _single_instance_mutex:
+                        ctypes.windll.kernel32.CloseHandle(_single_instance_mutex)
+                    import time
+                    time.sleep(0.3)
+                    _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
+            else:
+                # Mutex exists but no window found — orphaned mutex, close and re-acquire
+                if _single_instance_mutex:
+                    ctypes.windll.kernel32.CloseHandle(_single_instance_mutex)
+                import time
+                time.sleep(0.3)
+                _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
 
     # When running as compiled executable, set working dir properly
     if getattr(sys, 'frozen', False):
