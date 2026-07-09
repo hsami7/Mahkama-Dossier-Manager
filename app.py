@@ -521,10 +521,13 @@ def api_abort():
             stats_active = False
             if stats_process:
                 try:
-                    stats_process.terminate()
-                    stats_process.kill()
+                    import subprocess as sp
+                    sp.run(['taskkill', '/F', '/T', '/PID', str(stats_process.pid)], capture_output=True)
                 except Exception:
-                    pass
+                    try:
+                        stats_process.kill()
+                    except Exception:
+                        pass
             write_log("[-] تم إلغاء وإيقاف عملية احتساب الإحصائيات بالقوة من قبل المستخدم.")
             aborted_any = True
             
@@ -533,10 +536,13 @@ def api_abort():
             sync_active = False
             if sync_process:
                 try:
-                    sync_process.terminate()
-                    sync_process.kill()
+                    import subprocess as sp
+                    sp.run(['taskkill', '/F', '/T', '/PID', str(sync_process.pid)], capture_output=True)
                 except Exception:
-                    pass
+                    try:
+                        sync_process.kill()
+                    except Exception:
+                        pass
             write_log("[-] تم إلغاء وإيقاف عملية مزامنة السجلات بالقوة من قبل المستخدم.")
             aborted_any = True
             
