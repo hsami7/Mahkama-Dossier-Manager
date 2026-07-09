@@ -155,9 +155,19 @@ def api_trigger_update():
         is_frozen = getattr(sys, 'frozen', False)
         if is_frozen:
             import subprocess
-            subprocess.Popen([temp_file, '--replace-and-start', sys.executable, str(os.getpid())])
-            # Exit after short delay
-            threading.Thread(target=lambda: (time.sleep(0.5), os._exit(0))).start()
+            # Use DETACHED_PROCESS and CREATE_NEW_PROCESS_GROUP so the updater
+            # survives this process exiting and isn't tied to our console/handles
+            creation_flags = (
+                subprocess.DETACHED_PROCESS |
+                subprocess.CREATE_NEW_PROCESS_GROUP
+            )
+            subprocess.Popen(
+                [temp_file, '--replace-and-start', sys.executable, str(os.getpid())],
+                creationflags=creation_flags,
+                close_fds=True
+            )
+            # Give Flask time to send the response, then exit
+            threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
         else:
             # Dev mode: just run it
             import subprocess

@@ -26,24 +26,49 @@ if __name__ == '__main__':
         target_path = sys.argv[2]
         old_pid = int(sys.argv[3])
         
-        # Wait for the old process to exit
+        # Wait for the old process to exit using Windows API (os.kill is unreliable on Windows)
         import time
-        for _ in range(100): # Wait up to 10 seconds
+        if os.name == 'nt':
+            import ctypes
+            SYNCHRONIZE = 0x00100000
+            WAIT_TIMEOUT = 0x00000102
+            h_process = None
             try:
-                os.kill(old_pid, 0)
-                time.sleep(0.1)
-            except OSError:
-                break
+                h_process = ctypes.windll.kernel32.OpenProcess(SYNCHRONIZE, False, old_pid)
+                if h_process:
+                    # Wait up to 15 seconds for old process to exit
+                    ctypes.windll.kernel32.WaitForSingleObject(h_process, 15000)
+                # If we couldn't open the process, it's likely already gone
+            except Exception:
+                pass
+            finally:
+                if h_process:
+                    try:
+                        ctypes.windll.kernel32.CloseHandle(h_process)
+                    except Exception:
+                        pass
+            # Extra safety delay for file locks to release
+            time.sleep(1.0)
+        else:
+            # POSIX fallback
+            for _ in range(100):
+                try:
+                    os.kill(old_pid, 0)
+                    time.sleep(0.1)
+                except OSError:
+                    break
                 
         # Copy this running executable to overwrite the old one
         import shutil
         this_exe = sys.executable
         copied = False
-        for _ in range(20): # Try up to 10 seconds in case of file locks
+        for attempt in range(30):  # Try up to 15 seconds in case of file locks
             try:
                 shutil.copy2(this_exe, target_path)
                 copied = True
                 break
+            except PermissionError:
+                time.sleep(0.5)
             except Exception:
                 time.sleep(0.5)
                 
