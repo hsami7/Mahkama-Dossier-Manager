@@ -12,6 +12,7 @@ def log_msg(msg, log_callback=None):
     msg_str = str(msg)
     try:
         print(msg_str)
+        sys.stdout.flush()
     except Exception:
         pass
     if log_callback:
@@ -310,12 +311,8 @@ if __name__ == '__main__':
     year = int(sys.argv[1])
     download_dir = sys.argv[2]
     
-    def log_cb(msg):
-        print(msg)
-        sys.stdout.flush()
-        
     try:
-        res = calculate_expert_stats(year, download_dir, debug=False, log_callback=log_cb)
+        res = calculate_expert_stats(year, download_dir, debug=False, log_callback=None)
         print(f"RESULT:{json.dumps(res)}")
     except Exception as e:
         print(f"ERROR:{str(e)}")
