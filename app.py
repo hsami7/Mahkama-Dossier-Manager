@@ -14,6 +14,19 @@ import json
 
 CURRENT_VERSION = "v1.1.6" 
 
+def write_log(msg):
+    log_dir = engine.get_data_dir()
+    log_path = os.path.join(log_dir, 'operations.log')
+    import datetime
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    formatted_msg = f"[{timestamp}] {msg}"
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        with open(log_path, 'a', encoding='utf-8') as f:
+            f.write(formatted_msg + '\n')
+    except Exception as e:
+        print(f"Error writing log: {e}")
+
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 import tempfile
@@ -67,6 +80,15 @@ def download_update_worker(download_url, version):
             update_status["status"] = "failed"
             update_status["error"] = str(e)
 
+def parse_version(v_str):
+    if not v_str:
+        return (0, 0, 0)
+    cleaned = v_str.lower().lstrip('v').split('-')[0]
+    try:
+        return tuple(int(x) for x in cleaned.split('.'))
+    except Exception:
+        return (0, 0, 0)
+
 @app.route('/api/check-update', methods=['GET'])
 def api_check_update():
     try:
@@ -90,7 +112,7 @@ def api_check_update():
             if not download_url:
                 download_url = html_url
                 
-            if latest_version and latest_version != CURRENT_VERSION:
+            if latest_version and parse_version(latest_version) > parse_version(CURRENT_VERSION):
                 # Trigger background download if idle
                 global update_thread
                 with update_lock:
@@ -207,6 +229,7 @@ def api_scan():
     directory = os.path.expanduser(directory)
     
     dossiers, warnings = engine.scan_directory(directory, target_years=target_years)
+    write_log(f"[+] تم مسح المجلد: {directory} - عدد الملفات المستخرجة: {len(dossiers)}")
     return jsonify({
         "dossiers": dossiers,
         "warnings": warnings
@@ -226,12 +249,14 @@ def run_sync(years, base_download_dir):
         sync_active = True
         sync_logs.clear()
         sync_dir = base_download_dir
-        sync_target_years = years
+        sync_target_years = list(years)
         
     def log_cb(msg):
         with sync_lock:
             sync_logs.append(msg)
+        write_log(msg)
             
+    write_log(f"[*] بدء عملية المزامنة التلقائية للسنوات: {years}")
     try:
         import sync_dossiers
         for year in years:
@@ -289,6 +314,104 @@ def api_sync_status():
             "years": sync_target_years
         })
 
+stats_thread = None
+stats_logs = []
+stats_active = False
+stats_lock = threading.Lock()
+stats_result = None
+
+def run_stats_calculation(target_year, base_download_dir):
+    global stats_active, stats_logs, stats_result
+    with stats_lock:
+        stats_active = True
+        stats_logs.clear()
+        stats_result = None
+        
+    def log_cb(msg):
+        with stats_lock:
+            stats_logs.append(msg)
+        write_log(msg)
+            
+    write_log(f"[*] بدء عملية احتساب إحصائيات سنة: {target_year}")
+    try:
+        import sync_stats
+        res = sync_stats.calculate_expert_stats(int(target_year), download_dir=base_download_dir, debug=False, log_callback=log_cb)
+        with stats_lock:
+            stats_result = res
+        log_cb("[+] تم احتساب الإحصائيات بنجاح.")
+    except Exception as e:
+        log_cb(f"[-] خطأ في احتساب الإحصائيات: {str(e)}")
+    finally:
+        with stats_lock:
+            stats_active = False
+
+@app.route('/api/calculate-stats', methods=['POST'])
+def api_calculate_stats():
+    global stats_thread, stats_active
+    data = request.get_json() or {}
+    year = data.get('year')
+    option = data.get('option')
+    
+    if not year or not option:
+        return jsonify({"error": "يرجى تحديد الخيار والسنة."}), 400
+        
+    with stats_lock:
+        if stats_active:
+            return jsonify({"error": "هناك عملية احتساب إحصائيات جارية بالفعل."}), 400
+            
+    try:
+        directory = data.get('directory')
+        if not directory or not directory.strip():
+            directory = get_default_workspace()
+        else:
+            directory = os.path.abspath(os.path.expanduser(directory.strip()))
+            
+        base_download_dir = os.path.join(directory, 'stats_downloads')
+        
+        stats_thread = threading.Thread(target=run_stats_calculation, args=(year, base_download_dir))
+        stats_thread.daemon = True
+        stats_thread.start()
+        
+        return jsonify({
+            "success": True,
+            "message": "بدأت عملية احتساب الإحصائيات."
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/calculate-stats/status', methods=['GET'])
+def api_calculate_stats_status():
+    with stats_lock:
+        return jsonify({
+            "active": stats_active,
+            "logs": list(stats_logs),
+            "result": stats_result
+        })
+
+@app.route('/api/logs', methods=['GET'])
+def api_get_logs():
+    log_path = os.path.join(engine.get_data_dir(), 'operations.log')
+    if not os.path.exists(log_path):
+        return jsonify({"logs": []})
+    try:
+        with open(log_path, 'r', encoding='utf-8') as f:
+            lines = [line.strip() for line in f.readlines()]
+        return jsonify({"logs": lines})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/logs/clear', methods=['POST'])
+def api_clear_logs():
+    log_path = os.path.join(engine.get_data_dir(), 'operations.log')
+    try:
+        with open(log_path, 'w', encoding='utf-8') as f:
+            f.write("")
+        write_log("[+] تم مسح سجل العمليات.")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/settings', methods=['GET', 'POST'])
 def api_settings():
     if request.method == 'POST':
@@ -305,6 +428,7 @@ def api_settings():
             except (ValueError, TypeError):
                 pass
         engine.save_settings(cleaned)
+        write_log("[+] تم تحديث وحفظ إعدادات وآجال القضايا.")
         return jsonify({"success": True, "settings": cleaned})
     
     settings = engine.load_settings()
@@ -418,4 +542,6 @@ def api_toggle_complete_bulk():
 
 
 if __name__ == '__main__':
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+        write_log("[+] تم تشغيل التطبيق بنجاح.")
     app.run(host='127.0.0.1', port=5000, debug=True)

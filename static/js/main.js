@@ -1017,9 +1017,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Event Bindings for Logs
     if (btnShowLogs) {
-        btnShowLogs.addEventListener('click', () => {
+        btnShowLogs.addEventListener('click', async () => {
             if (logsModal) logsModal.style.display = 'flex';
-            if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
+            if (logsConsole) {
+                logsConsole.innerHTML = 'جاري تحميل سجل العمليات...';
+                try {
+                    const res = await fetch('/api/logs');
+                    const data = await res.json();
+                    if (data.logs) {
+                        logsConsole.innerHTML = '';
+                        data.logs.forEach(logLine => {
+                            const div = document.createElement('div');
+                            div.textContent = logLine;
+                            if (logLine.includes('[-]')) {
+                                div.style.color = '#f87171';
+                            } else if (logLine.includes('[+]')) {
+                                div.style.color = '#4ade80';
+                            }
+                            logsConsole.appendChild(div);
+                        });
+                        logsConsole.scrollTop = logsConsole.scrollHeight;
+                    }
+                } catch (err) {
+                    logsConsole.innerHTML = '❌ خطأ في تحميل السجل من الخادم.';
+                }
+            }
         });
     }
 
@@ -1030,8 +1052,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnLogsModalClose) btnLogsModalClose.addEventListener('click', closeLogsModal);
     
     if (btnLogsClear) {
-        btnLogsClear.addEventListener('click', () => {
-            if (logsConsole) logsConsole.innerHTML = '';
+        btnLogsClear.addEventListener('click', async () => {
+            if (logsConsole) logsConsole.innerHTML = 'جاري مسح سجل العمليات...';
+            try {
+                await fetch('/api/logs/clear', { method: 'POST' });
+                if (logsConsole) logsConsole.innerHTML = '';
+            } catch (err) {
+                showAlert('فشل في مسح سجل العمليات على الخادم.');
+            }
         });
     }
     
@@ -1080,13 +1108,179 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle Return to Home
-    if (btnReturnHome) {
-        btnReturnHome.addEventListener('click', () => {
-            if (landingSection && dashboardSection) {
-                dashboardSection.style.display = 'none';
-                landingSection.style.display = 'block';
+    // --- Statistics Calculations Handler ---
+    const btnCalculateStats = document.getElementById('btnCalculateStats');
+    const statsResultModal = document.getElementById('statsResultModal');
+    const btnStatsResultClose = document.getElementById('btnStatsResultClose');
+    const btnStatsResultCloseOk = document.getElementById('btnStatsResultCloseOk');
+    const btnStatsCopyReport = document.getElementById('btnStatsCopyReport');
+
+    let statsPollInterval = null;
+    let lastStatsLogCount = 0;
+
+    function startStatsPolling(year, originalText) {
+        lastStatsLogCount = 0;
+        if (liveSyncLogs) {
+            liveSyncLogs.innerHTML = '';
+            liveSyncLogs.style.display = 'block';
+        }
+        if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
+        if (btnMinimizeLiveLogs) btnMinimizeLiveLogs.innerText = '⬇️ إخفاء التفاصيل';
+        
+        statsPollInterval = setInterval(async () => {
+            try {
+                const res = await fetch('/api/calculate-stats/status');
+                const data = await res.json();
+                
+                // Append new logs
+                if (data.logs && data.logs.length > lastStatsLogCount) {
+                    const newLogs = data.logs.slice(lastStatsLogCount);
+                    newLogs.forEach(logLine => {
+                        const div = document.createElement('div');
+                        div.textContent = logLine;
+                        if (logLine.includes('[-]')) {
+                            div.style.color = '#f87171';
+                        } else if (logLine.includes('[+]')) {
+                            div.style.color = '#4ade80';
+                        }
+                        if (liveSyncLogs) liveSyncLogs.appendChild(div);
+                        
+                        // Also append to global history console
+                        const historyDiv = document.createElement('div');
+                        historyDiv.textContent = logLine;
+                        if (logLine.includes('[-]')) historyDiv.style.color = '#f87171';
+                        else if (logLine.includes('[+]')) historyDiv.style.color = '#4ade80';
+                        if (logsConsole) logsConsole.appendChild(historyDiv);
+                    });
+                    lastStatsLogCount = data.logs.length;
+                    if (liveSyncLogs) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
+                    if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
+                }
+                
+                if (!data.active) {
+                    clearInterval(statsPollInterval);
+                    statsPollInterval = null;
+                    
+                    const overlay = document.getElementById('loadingOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                    if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
+                    
+                    btnCalculateStats.disabled = false;
+                    btnCalculateStats.innerText = originalText;
+                    
+                    if (data.result) {
+                        // Populate modal values
+                        document.getElementById('statsYearTitle').textContent = year;
+                        document.querySelectorAll('.statsYearLabel').forEach(el => el.textContent = year);
+                        
+                        document.getElementById('statRegistered').textContent = data.result.registered;
+                        document.getElementById('statActive').textContent = data.result.active;
+                        document.getElementById('statCompleted').textContent = data.result.completed;
+                        document.getElementById('statClosed').textContent = data.result.closed;
+                        document.getElementById('statRemaining').textContent = data.result.remaining;
+                        
+                        if (statsResultModal) statsResultModal.style.display = 'flex';
+                    } else {
+                        showAlert('حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
+                    }
+                }
+            } catch (err) {
+                console.error("Error polling stats status:", err);
             }
+        }, 1000);
+    }
+
+    if (btnCalculateStats) {
+        btnCalculateStats.addEventListener('click', async () => {
+            const yearSelect = document.getElementById('statsYearSelect');
+            const optionSelect = document.getElementById('statsOptionSelect');
+            const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
+            
+            const year = yearSelect ? yearSelect.value : "2026";
+            const option = optionSelect ? optionSelect.value : "مكتب الخبرة";
+            
+            btnCalculateStats.disabled = true;
+            const originalText = btnCalculateStats.innerText;
+            btnCalculateStats.innerText = 'جاري الاحتساب...';
+            
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                if (loadingOverlayText) {
+                    loadingOverlayText.innerText = 'جاري الاتصال وسحب الملفات واحتساب إحصائيات الخبرة...';
+                }
+            }
+            
+            try {
+                const res = await fetch('/api/calculate-stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ year: year, option: option, directory: folderPath })
+                });
+                const data = await res.json();
+                
+                if (data.error) {
+                    showAlert(data.error);
+                    if (overlay) overlay.style.display = 'none';
+                    btnCalculateStats.disabled = false;
+                    btnCalculateStats.innerText = originalText;
+                } else if (data.success) {
+                    startStatsPolling(year, originalText);
+                }
+            } catch (error) {
+                showAlert('حدث خطأ أثناء الاتصال بالخادم لاحتساب الإحصائيات.');
+                if (overlay) overlay.style.display = 'none';
+                btnCalculateStats.disabled = false;
+                btnCalculateStats.innerText = originalText;
+            }
+        });
+    }
+
+    const closeStatsModal = () => {
+        if (statsResultModal) statsResultModal.style.display = 'none';
+    };
+    if (btnStatsResultClose) btnStatsResultClose.addEventListener('click', closeStatsModal);
+    if (btnStatsResultCloseOk) btnStatsResultCloseOk.addEventListener('click', closeStatsModal);
+    
+    if (statsResultModal) {
+        statsResultModal.addEventListener('click', (e) => {
+            if (e.target === statsResultModal) {
+                statsResultModal.style.display = 'none';
+            }
+        });
+    }
+
+    if (btnStatsCopyReport) {
+        btnStatsCopyReport.addEventListener('click', () => {
+            const year = document.getElementById('statsYearTitle').textContent;
+            const reg = document.getElementById('statRegistered').textContent;
+            const act = document.getElementById('statActive').textContent;
+            const comp = document.getElementById('statCompleted').textContent;
+            const cls = document.getElementById('statClosed').textContent;
+            const rem = document.getElementById('statRemaining').textContent;
+            
+            const reportText = `تقرير إحصائيات مكتب الخبرة لسنة ${year}:\n` +
+                               `- المسجل: ${reg}\n` +
+                               `- الرائج: ${act}\n` +
+                               `- المنجز: ${comp}\n` +
+                               `- المغلق: ${cls}\n` +
+                               `- الباقي دون إنجاز: ${rem}`;
+                               
+            navigator.clipboard.writeText(reportText).then(() => {
+                showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح! 📋');
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = reportText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح! 📋');
+                } catch (e) {
+                    showAlert('فشل في نسخ التقرير.');
+                }
+                document.body.removeChild(textArea);
+            });
         });
     }
 
