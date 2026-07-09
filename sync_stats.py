@@ -230,8 +230,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     
     # b) Munjaz (المنجز) & Muglaq (المغلق)
     # For target year Y:
-    # - non-empty Column K in Year Y file (which naturally falls in Y)
-    # - Column K year == Y in prior files (Y-1, Y-2)
+    # - Column K year matches Y, and Column J contains 'منجز' or 'مغلق'
     munjaz = 0
     muglaq = 0
     
@@ -244,9 +243,9 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         if dt_yr is not None:
             # Case is resolved
             status = str(r.get('J') or '').strip()
-            if status.startswith("مغلق"):
+            if "مغلق" in status:
                 muglaq += 1
-            else:
+            elif "منجز" in status:
                 munjaz += 1
                 
     # In prior years files:
@@ -259,9 +258,9 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             if dt_yr == target_year:
                 # Case resolved in target year
                 status = str(r.get('J') or '').strip()
-                if status.startswith("مغلق"):
+                if "مغلق" in status:
                     muglaq += 1
-                else:
+                elif "منجز" in status:
                     munjaz += 1
                     
     # c) Active (الرائج)
