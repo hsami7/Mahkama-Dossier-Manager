@@ -71,28 +71,38 @@ if __name__ == '__main__':
         window_title = "مدير ملفات المحاكم (Mahkama Dossier Manager)"
         hwnd = ctypes.windll.user32.FindWindowW(None, window_title)
         if hwnd:
-            # Get the process ID of the window
-            pid = wintypes.DWORD()
-            ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-            
-            # Send WM_CLOSE (0x0010) gracefully
-            ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
-            
-            # Wait up to 2 seconds for it to exit
-            import time
-            for _ in range(20):
-                if not ctypes.windll.user32.IsWindow(hwnd):
-                    break
-                time.sleep(0.1)
-            
-            # If still alive, terminate the process
-            if ctypes.windll.user32.IsWindow(hwnd) and pid.value > 0:
-                PROCESS_TERMINATE = 0x0001
-                h_process = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid.value)
-                if h_process:
-                    ctypes.windll.kernel32.TerminateProcess(h_process, 0)
-                    ctypes.windll.kernel32.CloseHandle(h_process)
-                    time.sleep(0.5) # Wait for OS to clean up mutex
+            # Ask user before closing the running instance
+            ret = ctypes.windll.user32.MessageBoxW(
+                None, 
+                "هناك نسخة مفتوحة بالفعل من التطبيق. هل ترغب في إغلاقها تلقائياً للمتابعة؟", 
+                "تنبيه - مدير ملفات المحاكم", 
+                0x24 # MB_YESNO | MB_ICONQUESTION (0x04 | 0x20)
+            )
+            if ret == 6: # IDYES
+                # Get the process ID of the window
+                pid = wintypes.DWORD()
+                ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                
+                # Send WM_CLOSE (0x0010) gracefully
+                ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
+                
+                # Wait up to 2 seconds for it to exit
+                import time
+                for _ in range(20):
+                    if not ctypes.windll.user32.IsWindow(hwnd):
+                        break
+                    time.sleep(0.1)
+                
+                # If still alive, terminate the process
+                if ctypes.windll.user32.IsWindow(hwnd) and pid.value > 0:
+                    PROCESS_TERMINATE = 0x0001
+                    h_process = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid.value)
+                    if h_process:
+                        ctypes.windll.kernel32.TerminateProcess(h_process, 0)
+                        ctypes.windll.kernel32.CloseHandle(h_process)
+                        time.sleep(0.5) # Wait for OS to clean up mutex
+            else:
+                sys.exit(0)
 
         mutex_name = "Global\\MahkamaDossierManager_SingleInstance_Mutex"
         global _single_instance_mutex
