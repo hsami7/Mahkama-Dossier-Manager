@@ -514,6 +514,7 @@ def api_clear_logs():
 
 @app.route('/api/abort', methods=['POST'])
 def api_abort():
+    global stats_active, sync_active
     aborted_any = False
     
     with stats_lock:
