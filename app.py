@@ -243,11 +243,12 @@ sync_active = False
 sync_lock = threading.Lock()
 sync_dir = ""
 sync_target_years = []
+sync_process = None
+stats_process = None
 
 def run_sync(years, base_download_dir):
-    global sync_active, sync_logs, sync_dir, sync_target_years
+    global sync_active, sync_logs, sync_dir, sync_target_years, sync_process
     with sync_lock:
-        sync_active = True
         sync_logs.clear()
         sync_dir = base_download_dir
         sync_target_years = list(years)
@@ -259,18 +260,40 @@ def run_sync(years, base_download_dir):
             
     write_log(f"[*] بدء عملية المزامنة التلقائية للسنوات: {years}")
     try:
-        import sync_dossiers
+        import subprocess
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_dossiers.py')
+        
+        env = os.environ.copy()
+        if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
+            del env["PLAYWRIGHT_BROWSERS_PATH"]
+            
         for year in years:
-            try:
-                yr_int = int(year)
-                sync_dossiers.sync_dossiers(yr_int, output_dir=base_download_dir, debug=False, log_callback=log_cb)
-            except Exception as e:
-                log_cb(f"[-] خطأ في مزامنة سنة {year}: {str(e)}")
+            log_cb(f"[*] بدء مزامنة سنة {year}...")
+            cmd = [sys.executable, script_path, str(year), '--output-dir', base_download_dir]
+            
+            with sync_lock:
+                if not sync_active:
+                    log_cb("[-] تم إلغاء عملية المزامنة من قبل المستخدم.")
+                    break
+                sync_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+                
+            for line in iter(sync_process.stdout.readline, ''):
+                line_str = line.strip()
+                if line_str:
+                    log_cb(line_str)
+                    
+            sync_process.stdout.close()
+            sync_process.wait()
+            
+            with sync_lock:
+                sync_process = None
+                
     except Exception as e:
-        log_cb(f"[-] خطأ عام: {str(e)}")
+        log_cb(f"[-] خطأ عام في المزامنة: {str(e)}")
     finally:
         with sync_lock:
             sync_active = False
+            sync_process = None
 
 @app.route('/api/sync', methods=['POST'])
 def api_sync():
@@ -284,6 +307,7 @@ def api_sync():
     with sync_lock:
         if sync_active:
             return jsonify({"error": "هناك عملية مزامنة جارية بالفعل."}), 400
+        sync_active = True
             
     try:
         directory = data.get('directory')
@@ -303,6 +327,8 @@ def api_sync():
             "message": "بدأت عملية المزامنة في الخلفية."
         })
     except Exception as e:
+        with sync_lock:
+            sync_active = False
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/sync/status', methods=['GET'])
@@ -322,9 +348,8 @@ stats_lock = threading.Lock()
 stats_result = None
 
 def run_stats_calculation(target_year, base_download_dir):
-    global stats_active, stats_logs, stats_result
+    global stats_active, stats_logs, stats_result, stats_process
     with stats_lock:
-        stats_active = True
         stats_logs.clear()
         stats_result = None
         
@@ -343,9 +368,14 @@ def run_stats_calculation(target_year, base_download_dir):
             del env["PLAYWRIGHT_BROWSERS_PATH"]
             
         cmd = [sys.executable, script_path, str(target_year), base_download_dir]
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
         
-        for line in iter(process.stdout.readline, ''):
+        with stats_lock:
+            if not stats_active:
+                log_cb("[-] تم إلغاء عملية احتساب الإحصائيات من قبل المستخدم.")
+                return
+            stats_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+        
+        for line in iter(stats_process.stdout.readline, ''):
             line_str = line.strip()
             if not line_str:
                 continue
@@ -360,8 +390,12 @@ def run_stats_calculation(target_year, base_download_dir):
             else:
                 log_cb(line_str)
                 
-        process.stdout.close()
-        return_code = process.wait()
+        stats_process.stdout.close()
+        return_code = stats_process.wait()
+        
+        with stats_lock:
+            stats_process = None
+            
         if return_code != 0 and not stats_result:
             raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
             
@@ -370,6 +404,7 @@ def run_stats_calculation(target_year, base_download_dir):
     finally:
         with stats_lock:
             stats_active = False
+            stats_process = None
 
 @app.route('/api/calculate-stats', methods=['POST'])
 def api_calculate_stats():
@@ -384,6 +419,7 @@ def api_calculate_stats():
     with stats_lock:
         if stats_active:
             return jsonify({"error": "هناك عملية احتساب إحصائيات جارية بالفعل."}), 400
+        stats_active = True
             
     try:
         directory = data.get('directory')
@@ -403,6 +439,8 @@ def api_calculate_stats():
             "message": "بدأت عملية احتساب الإحصائيات."
         })
     except Exception as e:
+        with stats_lock:
+            stats_active = False
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/calculate-stats/status', methods=['GET'])
@@ -436,6 +474,36 @@ def api_clear_logs():
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/abort', methods=['POST'])
+def api_abort():
+    aborted_any = False
+    
+    with stats_lock:
+        if stats_active:
+            stats_active = False
+            if stats_process:
+                try:
+                    stats_process.terminate()
+                    stats_process.kill()
+                except Exception:
+                    pass
+            write_log("[-] تم إلغاء وإيقاف عملية احتساب الإحصائيات بالقوة من قبل المستخدم.")
+            aborted_any = True
+            
+    with sync_lock:
+        if sync_active:
+            sync_active = False
+            if sync_process:
+                try:
+                    sync_process.terminate()
+                    sync_process.kill()
+                except Exception:
+                    pass
+            write_log("[-] تم إلغاء وإيقاف عملية مزامنة السجلات بالقوة من قبل المستخدم.")
+            aborted_any = True
+            
+    return jsonify({"success": True, "aborted": aborted_any})
 
 
 @app.route('/api/settings', methods=['GET', 'POST'])
