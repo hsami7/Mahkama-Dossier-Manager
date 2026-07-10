@@ -189,7 +189,7 @@ if __name__ == '__main__':
             try:
                 window = webview.create_window(**start_kwargs)
                 webview.start(
-                    lambda w: log.debug(f'SECOND_INSTANCE_CB args={w}') or [],
+                    lambda *a, **kw: log.debug(f'FALLBACK_START_CB args={a} kwargs={kw}') or [],
                     debug=False, gui='edge' if os.name == 'nt' else None
                 )
                 log.debug('WEBVIEW_START_RETURNED_FALLBACK')
