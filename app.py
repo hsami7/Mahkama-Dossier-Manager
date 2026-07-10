@@ -13,7 +13,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.1.13" 
+CURRENT_VERSION = "v1.1.14"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
@@ -50,7 +50,6 @@ def download_update_worker(download_url, version):
         temp_dir = tempfile.gettempdir()
         temp_file = os.path.join(temp_dir, 'mahkama_update.exe')
         
-        # Download chunk-by-chunk to calculate progress
         req = urllib.request.Request(
             download_url,
             headers={'User-Agent': 'Mahkama-Dossier-Manager'}
@@ -114,7 +113,6 @@ def api_check_update():
                 download_url = html_url
                 
             if latest_version and parse_version(latest_version) > parse_version(CURRENT_VERSION):
-                # Trigger background download if idle
                 global update_thread
                 with update_lock:
                     if update_status["status"] == "idle" or (update_status["status"] == "failed" and update_status["version"] != latest_version):
@@ -143,26 +141,23 @@ def api_trigger_update():
     global update_status
     with update_lock:
         if update_status["status"] != "ready":
-            return jsonify({"error": "التحديث ليس جاهزاً بعد."}), 400
+            return jsonify({"error": "لا يوجد تحديث جاهز للتحميل."}), 400
             
     try:
         temp_dir = tempfile.gettempdir()
         temp_file = os.path.join(temp_dir, 'mahkama_update.exe')
         
         if not os.path.exists(temp_file):
-            return jsonify({"error": "ملف التحديث غير موجود."}), 404
+            return jsonify({"error": "التحديث لم يتم تحميله بعد."}), 404
             
         is_frozen = getattr(sys, 'frozen', False)
         if is_frozen:
             import subprocess
-            # Use DETACHED_PROCESS and CREATE_NEW_PROCESS_GROUP so the updater
-            # survives this process exiting and isn't tied to our console/handles
             creation_flags = (
                 subprocess.DETACHED_PROCESS |
                 subprocess.CREATE_NEW_PROCESS_GROUP
             )
             env = os.environ.copy()
-            # Clean PyInstaller env vars to prevent child updater locking parent dlls/resources
             for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
                 env.pop(var, None)
             subprocess.Popen(
@@ -171,10 +166,8 @@ def api_trigger_update():
                 close_fds=True,
                 env=env
             )
-            # Give Flask time to send the response, then exit
             threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
         else:
-            # Dev mode: just run it
             import subprocess
             env = os.environ.copy()
             for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
@@ -186,7 +179,7 @@ def api_trigger_update():
         return jsonify({"error": str(e)}), 500
 
 def get_default_workspace():
-    workspace = os.path.join(engine.get_data_dir(), 'ملفات المحاكم')
+    workspace = os.path.join(engine.get_data_dir(), 'مساحة العمل الافتراضية')
     if not os.path.exists(workspace):
         try:
             os.makedirs(workspace)
@@ -201,36 +194,45 @@ def api_open_workspace():
         directory = data.get('directory', '').strip()
         if not directory:
             directory = get_default_workspace()
-            
-        if os.path.exists(directory):
+
+        if not os.path.exists(directory) or not os.path.isdir(directory):
+            return jsonify({'error': 'Directory not found.'}), 404
+
+        try:
             if os.name == 'nt':
                 os.startfile(directory)
             elif sys.platform == 'darwin':
-                import subprocess
                 subprocess.Popen(['open', directory])
             else:
-                import subprocess
                 subprocess.Popen(['xdg-open', directory])
-            return jsonify({"success": True})
-        return jsonify({"error": "المجلد غير موجود."}), 404
+        except OSError as e:
+            err_code = getattr(e, 'winerror', None)
+            if err_code is None:
+                err_code = getattr(e, 'errno', 'unknown')
+            err_msg = str(e) if str(e) else 'OS error code {}'.format(err_code)
+            return jsonify({'error': 'Failed to open folder: {}'.format(err_msg)}), 500
+        except Exception as e:
+            return jsonify({'error': 'Failed to open folder: {}'.format(str(e))}), 500
+
+        return jsonify({'success': True})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/default-workspace', methods=['GET'])
 def api_get_default_workspace():
     return jsonify({"directory": get_default_workspace()})
 
 @app.route('/')
 def index():
-    # In Phase 1 we serve a basic status check/placeholder,
-    # which will be replaced by the beautiful RTL interface in Phase 2
     if os.path.exists(os.path.join(app.template_folder, 'index.html')):
         return render_template('index.html')
     return """
     <html>
-        <head><title>إدارة ملفات المحاكم</title></head>
+        <head><title>مدير ملفات المحاكم</title></head>
         <body style='text-align:center; padding-top:10%; font-family: sans-serif;'>
-            <h1>إدارة ملفات المحاكم</h1>
-            <p>خادم الباك اند يعمل بنجاح. سيتم توفير الواجهة بالكامل في المرحلة الثانية.</p>
+            <h1>مدير ملفات المحاكم</h1>
+            <p>الرجاء تشغيل التطبيق من خلال النافذة الرئيسية. اضغط على زر فتح المجلد لاستعراض الملفات.</p>
         </body>
     </html>
     """
@@ -242,17 +244,17 @@ def api_scan():
     target_years = data.get('target_years')
     
     if not directory:
-        return jsonify({"error": "يرجى تحديد مسار المجلد الصالح."}), 400
+        return jsonify({"error": "مسار المجلد مطلوب."}), 400
         
-    # Resolve home relative paths (like ~)
     directory = os.path.expanduser(directory)
     
     dossiers, warnings = engine.scan_directory(directory, target_years=target_years)
-    write_log(f"[+] تم مسح المجلد: {directory} - عدد الملفات المستخرجة: {len(dossiers)}")
+    write_log(f"[+] تم فحص المجلد: {directory} - عدد الملفات: {len(dossiers)}")
     return jsonify({
         "dossiers": dossiers,
         "warnings": warnings
     })
+
 import threading
 
 sync_thread = None
@@ -276,7 +278,7 @@ def run_sync(years, base_download_dir):
             sync_logs.append(msg)
         write_log(msg)
             
-    write_log(f"[*] بدء عملية المزامنة التلقائية للسنوات: {years}")
+    write_log(f"[*] بدء مزامنة السجلات للسنة: {years}")
     try:
         import subprocess
         script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_dossiers.py')
@@ -285,7 +287,6 @@ def run_sync(years, base_download_dir):
         if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
             del env["PLAYWRIGHT_BROWSERS_PATH"]
             
-        # Clean PyInstaller environment variables to let the child process find its own extraction directory
         for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
             env.pop(var, None)
             
@@ -294,15 +295,15 @@ def run_sync(years, base_download_dir):
             for attempt in range(1, max_retries + 1):
                 with sync_lock:
                     if not sync_active:
-                        log_cb("[-] تم إلغاء عملية المزامنة من قبل المستخدم.")
+                        log_cb("[-] تم إيقاف المزامنة من قبل المستخدم.")
                         break
                         
                 if attempt > 1:
-                    log_cb(f"[*] إعادة محاولة مزامنة سنة {year} ({attempt}/{max_retries})...")
+                    log_cb(f"[*] إعادة المحاولة ({attempt}/{max_retries}) للسنة {year}...")
                     import time
                     time.sleep(3)
                     
-                log_cb(f"[*] بدء مزامنة سنة {year}...")
+                log_cb(f"[*] جاري مزامنة السنة {year}...")
                 cmd = [sys.executable, script_path, str(year), '--output-dir', base_download_dir]
                 
                 try:
@@ -323,15 +324,15 @@ def run_sync(years, base_download_dir):
                     if return_code == 0:
                         break
                     else:
-                        raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
+                        raise Exception(f"خطأ في المزامنة. الرمز: {return_code}")
                 except Exception as e:
                     if attempt == max_retries:
                         raise e
                     else:
-                        log_cb(f"[-] تنبيه: فشلت المحاولة {attempt} لمزامنة سنة {year} بسبب: {str(e)}. جاري إعادة المحاولة تلقائياً...")
+                        log_cb(f"[-] محاولة {attempt} فشلت: {str(e)}. جاري المحاولة التالية...")
                         
     except Exception as e:
-        log_cb(f"[-] خطأ عام في المزامنة: {str(e)}")
+        log_cb(f"[-] خطأ في المزامنة: {str(e)}")
     finally:
         with sync_lock:
             sync_active = False
@@ -344,11 +345,11 @@ def api_sync():
     years = data.get('years', [])
     
     if not years:
-        return jsonify({"error": "يرجى تحديد سنة واحدة على الأقل."}), 400
+        return jsonify({"error": "الرجاء تحديد سنة واحدة على الأقل."}), 400
         
     with sync_lock:
         if sync_active:
-            return jsonify({"error": "هناك عملية مزامنة جارية بالفعل."}), 400
+            return jsonify({"error": "المزامنة جارية بالفعل."}), 400
         sync_active = True
             
     try:
@@ -366,7 +367,7 @@ def api_sync():
         
         return jsonify({
             "success": True,
-            "message": "بدأت عملية المزامنة في الخلفية."
+            "message": "بدأت المزامنة. يمكنك متابعة التقدم من خلال السجل."
         })
     except Exception as e:
         with sync_lock:
@@ -388,6 +389,7 @@ stats_logs = []
 stats_active = False
 stats_lock = threading.Lock()
 stats_result = None
+stats_process = None
 
 def run_stats_calculation(target_year, base_download_dir):
     global stats_active, stats_logs, stats_result, stats_process
@@ -400,17 +402,17 @@ def run_stats_calculation(target_year, base_download_dir):
             stats_logs.append(msg)
         write_log(msg)
             
-    write_log(f"[*] بدء عملية احتساب إحصائيات سنة: {target_year}")
+    write_log(f"[*] بدء حساب إحصائيات السنة: {target_year}")
     try:
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             with stats_lock:
                 if not stats_active:
-                    log_cb("[-] تم إلغاء عملية احتساب الإحصائيات من قبل المستخدم.")
+                    log_cb("[-] تم إيقاف حساب الإحصائيات من قبل المستخدم.")
                     return
                     
             if attempt > 1:
-                log_cb(f"[*] إعادة محاولة احتساب إحصائيات سنة {target_year} ({attempt}/{max_retries})...")
+                log_cb(f"[*] إعادة المحاولة ({attempt}/{max_retries}) للسنة {target_year}...")
                 import time
                 time.sleep(3)
                 
@@ -422,7 +424,6 @@ def run_stats_calculation(target_year, base_download_dir):
                 if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
                     del env["PLAYWRIGHT_BROWSERS_PATH"]
                     
-                # Clean PyInstaller environment variables to let the child process find its own extraction directory
                 for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
                     env.pop(var, None)
                     
@@ -455,15 +456,15 @@ def run_stats_calculation(target_year, base_download_dir):
                 if return_code == 0 or stats_result:
                     break
                 else:
-                    raise Exception(f"فشل تشغيل السكربت كعملية فرعية. رمز الخروج: {return_code}")
+                    raise Exception(f"خطأ في حساب الإحصائيات. الرمز: {return_code}")
                     
             except Exception as e:
                 if attempt == max_retries:
                     raise e
                 else:
-                    log_cb(f"[-] تنبيه: فشلت المحاولة {attempt} بسبب: {str(e)}. جاري إعادة المحاولة تلقائياً...")
+                    log_cb(f"[-] محاولة {attempt} فشلت: {str(e)}. جاري المحاولة التالية...")
     except Exception as e:
-        log_cb(f"[-] فشلت العملية نهائياً بعد {max_retries} محاولات: {str(e)}")
+        log_cb(f"[-] خطأ نهائي في حساب الإحصائيات: {str(e)}")
     finally:
         with stats_lock:
             stats_active = False
@@ -477,11 +478,11 @@ def api_calculate_stats():
     option = data.get('option')
     
     if not year or not option:
-        return jsonify({"error": "يرجى تحديد الخيار والسنة."}), 400
+        return jsonify({"error": "الرجاء تحديد السنة والخيار."}), 400
         
     with stats_lock:
         if stats_active:
-            return jsonify({"error": "هناك عملية احتساب إحصائيات جارية بالفعل."}), 400
+            return jsonify({"error": "حساب الإحصائيات جارٍ بالفعل."}), 400
         stats_active = True
             
     try:
@@ -499,7 +500,7 @@ def api_calculate_stats():
         
         return jsonify({
             "success": True,
-            "message": "بدأت عملية احتساب الإحصائيات."
+            "message": "بدأ حساب الإحصائيات."
         })
     except Exception as e:
         with stats_lock:
@@ -533,7 +534,7 @@ def api_clear_logs():
     try:
         with open(log_path, 'w', encoding='utf-8') as f:
             f.write("")
-        write_log("[+] تم مسح سجل العمليات.")
+        write_log("[+] تم مسح السجل.")
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -555,7 +556,7 @@ def api_abort():
                         stats_process.kill()
                     except Exception:
                         pass
-            write_log("[-] تم إلغاء وإيقاف عملية احتساب الإحصائيات بالقوة من قبل المستخدم.")
+            write_log("[-] تم إيقاف حساب الإحصائيات.")
             aborted_any = True
             
     with sync_lock:
@@ -570,7 +571,7 @@ def api_abort():
                         sync_process.kill()
                     except Exception:
                         pass
-            write_log("[-] تم إلغاء وإيقاف عملية مزامنة السجلات بالقوة من قبل المستخدم.")
+            write_log("[-] تم إيقاف المزامنة.")
             aborted_any = True
             
     return jsonify({"success": True, "aborted": aborted_any})
@@ -592,7 +593,7 @@ def api_settings():
             except (ValueError, TypeError):
                 pass
         engine.save_settings(cleaned)
-        write_log("[+] تم تحديث وحفظ إعدادات وآجال القضايا.")
+        write_log("[+] تم حفظ الإعدادات.")
         return jsonify({"success": True, "settings": cleaned})
     
     settings = engine.load_settings()
@@ -612,7 +613,6 @@ def api_browse():
         
     try:
         directories = []
-        # List only directory contents
         for item in os.scandir(path):
             try:
                 if item.is_dir() and not item.name.startswith('.'):
@@ -639,15 +639,13 @@ def api_select_folder():
         import tkinter as tk
         from tkinter import filedialog
         
-        # Create a hidden root window
         root = tk.Tk()
         root.withdraw()
-        # Keep the dialog on top of the webview window
         root.attributes('-topmost', True)
         
         selected_path = filedialog.askdirectory(
             initialdir=get_default_workspace(),
-            title="اختر مجلد ملفات المحاكم"
+            title="اختر مجلد العمل"
         )
         
         root.destroy()
@@ -657,7 +655,7 @@ def api_select_folder():
         else:
             return jsonify({"path": None})
     except Exception as e:
-        return jsonify({"error": f"تعذر فتح مستعرض الملفات: {str(e)}"}), 500
+        return jsonify({"error": f"خطأ في فتح نافذة اختيار المجلد: {str(e)}"}), 500
 
 @app.route('/api/toggle-complete', methods=['POST'])
 def api_toggle_complete():
@@ -667,29 +665,28 @@ def api_toggle_complete():
     completed = data.get('completed', False)
     
     if not file_path or not full_code:
-        return jsonify({"error": "يرجى تحديد مسار الملف والرقم الكامل."}), 400
+        return jsonify({"error": "مسار الملف والرمز مطلوبان."}), 400
         
     try:
         abs_path = os.path.abspath(file_path)
         success = engine.set_case_completed(abs_path, full_code, completed)
         if success:
             return jsonify({"success": True, "completed": completed})
-        return jsonify({"error": "فشلت عملية تحديث حالة الملف المكتمل."}), 500
+        return jsonify({"error": "فشل تحديث حالة الملف."}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/toggle-complete-bulk', methods=['POST'])
 def api_toggle_complete_bulk():
     data = request.get_json() or {}
-    items = data.get('items', []) # Should be a list of dicts: [{'file_path': x, 'full_code': y}, ...]
+    items = data.get('items', [])
     completed = data.get('completed', False)
     
     if not items:
-        return jsonify({"error": "يرجى تحديد العناصر."}), 400
+        return jsonify({"error": "الرجاء تحديد ملفات."}), 400
         
     try:
         success_count = 0
-        # Group by file_path to reduce zip operations
         from collections import defaultdict
         grouped = defaultdict(list)
         for item in items:
@@ -707,5 +704,5 @@ def api_toggle_complete_bulk():
 
 if __name__ == '__main__':
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
-        write_log("[+] تم تشغيل التطبيق بنجاح.")
+        write_log("[+] تم تشغيل الخادم بنجاح.")
     app.run(host='127.0.0.1', port=5000, debug=True)
