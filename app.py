@@ -7,7 +7,7 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
         pass
 
 if getattr(sys, 'frozen', False):
-    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'ms-playwright')
 from flask import Flask, jsonify, request, render_template
 import engine
 import urllib.request

@@ -187,7 +187,6 @@ if __name__ == '__main__':
         if 'unexpected keyword argument' in str(te):
             log.debug('WEBVIEW_START_FALLBACK_UNSUPPORTED_KWARG')
             try:
-                window = webview.create_window(**start_kwargs)
                 webview.start(
                     lambda *a, **kw: log.debug(f'FALLBACK_START_CB args={a} kwargs={kw}') or [],
                     debug=False, gui='edge' if os.name == 'nt' else None
