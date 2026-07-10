@@ -1,23 +1,27 @@
-import os
-import sys
+import os, sys, time, logging, tempfile, ctypes, shutil, subprocess
 
-# Crucial environment correction for PyInstaller bundles
 if getattr(sys, 'frozen', False):
     meipass = getattr(sys, '_MEIPASS', '')
     if meipass:
-        tcl_path = os.path.join(meipass, 'tcl_data')
-        tk_path = os.path.join(meipass, 'tk_data')
-        
-        # Override system environment variables to prioritize local bundle files
-        if os.path.exists(tcl_path):
-            os.environ['TCL_LIBRARY'] = tcl_path
-        if os.path.exists(tk_path):
-            os.environ['TK_LIBRARY'] = tk_path
+        if os.path.exists(os.path.join(meipass, 'tcl_data')):
+            os.environ['TCL_LIBRARY'] = os.path.join(meipass, 'tcl_data')
+        if os.path.exists(os.path.join(meipass, 'tk_data')):
+            os.environ['TK_LIBRARY'] = os.path.join(meipass, 'tk_data')
 
-import threading
-import socket
-import webview
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+import threading, socket, urllib.request, webview
 from app import app
+
+LOG_PATH = os.path.join(os.path.expanduser('~'), '.mahkama', 'launcher_full.log')
+os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+logging.basicConfig(
+    filename=LOG_PATH, level=logging.DEBUG,
+    format='%(asctime)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S', encoding='utf-8'
+)
+log = logging.getLogger('mahkama')
+log.debug('LOGGER_INITIALIZED')
 
 def get_free_port():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,206 +30,184 @@ def get_free_port():
     s.close()
     return port
 
+def wait_for_flask(port, timeout=15):
+    deadline = time.time() + timeout
+    last = None
+    while time.time() < deadline:
+        try:
+            r = urllib.request.urlopen(f'http://127.0.0.1:{port}/', timeout=0.5)
+            if r.status < 500:
+                return True
+        except Exception as e:
+            last = e
+        time.sleep(0.2)
+    raise RuntimeError(f'Flask not ready in {timeout}s: {last}')
+
 def start_server(port):
-    # Disable werkzeug logging
-    import logging
-    log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
-    
+    flask_log = logging.getLogger('werkzeug')
+    try:
+        flask_log.setLevel(logging.ERROR)
+    except Exception:
+        pass
     app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
-    # Handle self-updater replace-and-start command
+    if len(sys.argv) > 1 and any(s in sys.argv[1] for s in ('sync_dossiers.py', 'sync_stats.py')):
+        script = sys.argv[1]
+        log.debug(f'SUBPROCESS_RUN_SCRIPT: {script}')
+        sys.argv = sys.argv[1:]
+        import runpy
+        try:
+            runpy.run_path(script, run_name='__main__')
+        except Exception as e:
+            log.error(f'SUBPROCESS_RUN_SCRIPT_ERROR: {e}')
+            print(f"Error running script {script}: {e}", file=sys.stderr)
+            sys.exit(1)
+        sys.exit(0)
+
     if len(sys.argv) >= 4 and sys.argv[1] == '--replace-and-start':
         target_path = sys.argv[2]
         old_pid = int(sys.argv[3])
-        
-        # Wait for the old process to exit using Windows API (os.kill is unreliable on Windows)
-        import time
+        log.debug(f'SELF_UPDATE_START old_pid={old_pid} target={target_path}')
         if os.name == 'nt':
-            import ctypes
             SYNCHRONIZE = 0x00100000
-            WAIT_TIMEOUT = 0x00000102
-            h_process = None
+            h = None
             try:
-                h_process = ctypes.windll.kernel32.OpenProcess(SYNCHRONIZE, False, old_pid)
-                if h_process:
-                    # Wait up to 15 seconds for old process to exit
-                    ctypes.windll.kernel32.WaitForSingleObject(h_process, 15000)
-                # If we couldn't open the process, it's likely already gone
-            except Exception:
-                pass
+                h = ctypes.windll.kernel32.OpenProcess(SYNCHRONIZE, False, old_pid)
+                if h:
+                    ctypes.windll.kernel32.WaitForSingleObject(h, 15000)
+            except Exception as e:
+                log.debug(f'SELF_UPDATE_WAIT_FAILED: {e}')
             finally:
-                if h_process:
+                if h:
                     try:
-                        ctypes.windll.kernel32.CloseHandle(h_process)
+                        ctypes.windll.kernel32.CloseHandle(h)
                     except Exception:
                         pass
-            # Clean up leftover _MEI* temp directories from PyInstaller, excluding our own
-            import tempfile
-            temp_base = tempfile.gettempdir()
-            current_mei = getattr(sys, '_MEIPASS', None)
-            try:
-                import shutil as _shutil
-                for entry in os.listdir(temp_base):
-                    if entry.startswith('_MEI'):
-                        mei_path = os.path.join(temp_base, entry)
-                        # Do NOT delete our own extraction directory!
-                        if current_mei and os.path.normpath(mei_path) == os.path.normpath(current_mei):
-                            continue
-                        if os.path.isdir(mei_path):
-                            try:
-                                _shutil.rmtree(mei_path, ignore_errors=True)
-                            except Exception:
-                                pass
-            except Exception:
-                pass
         else:
-            # POSIX fallback
             for _ in range(100):
                 try:
                     os.kill(old_pid, 0)
                     time.sleep(0.1)
                 except OSError:
                     break
-                
-        # Copy this running executable to overwrite the old one
-        import shutil
-        this_exe = sys.executable
-        copied = False
-        for attempt in range(30):  # Try up to 15 seconds in case of file locks
+        for _ in range(30):
             try:
-                shutil.copy2(this_exe, target_path)
-                copied = True
+                shutil.copy2(sys.executable, target_path)
                 break
-            except PermissionError:
-                time.sleep(0.5)
             except Exception:
                 time.sleep(0.5)
-        
-        # Clean up the downloaded update file
         try:
-            import tempfile
-            update_file = os.path.join(tempfile.gettempdir(), 'mahkama_update.exe')
-            if os.path.exists(update_file):
-                os.remove(update_file)
+            p = os.path.join(tempfile.gettempdir(), 'mahkama_update.exe')
+            if os.path.exists(p):
+                os.remove(p)
         except Exception:
             pass
-                
-        # Launch the updated executable
-        if copied:
-            import subprocess
-            try:
-                subprocess.Popen([target_path])
-            except Exception:
-                pass
+        try:
+            log.debug(f'SELF_UPDATE_LAUNCH target={target_path}')
+            subprocess.Popen([target_path])
+        except Exception as e:
+            log.debug(f'SELF_UPDATE_LAUNCH_FAILED: {e}')
         sys.exit(0)
 
-    # Single instance check and Taskbar grouping (Windows only)
     if os.name == 'nt':
-        import ctypes
-        from ctypes import wintypes
-        
-        # Set explicit AppUserModelID to group taskbar icons and shortcuts correctly
         try:
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("HatimSami.MahkamaDossierManager")
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('HatimSami.MahkamaDossierManager')
         except Exception:
             pass
 
-        # Use mutex as the authoritative single-instance check
-        mutex_name = "Global\\MahkamaDossierManager_SingleInstance_Mutex"
-        global _single_instance_mutex
-        _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
-        mutex_already_exists = (ctypes.windll.kernel32.GetLastError() == 183)  # ERROR_ALREADY_EXISTS
-        
-        if mutex_already_exists:
-            # Another instance is confirmed running — find its window and offer to close it
-            window_title = "إدارة ملفات المحاكم"
-            hwnd = ctypes.windll.user32.FindWindowW(None, window_title)
-            
-            if hwnd:
-                # Verify the window belongs to a live process (not a ghost window)
-                pid = wintypes.DWORD()
-                ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-                
-                process_alive = False
-                if pid.value > 0:
-                    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-                    h_check = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid.value)
-                    if h_check:
-                        process_alive = True
-                        ctypes.windll.kernel32.CloseHandle(h_check)
-                
-                if process_alive:
-                    # Ask user before closing the running instance
-                    ret = ctypes.windll.user32.MessageBoxW(
-                        None, 
-                        "هناك نسخة مفتوحة بالفعل من التطبيق. هل ترغب في إغلاقها تلقائياً للمتابعة؟", 
-                        "تنبيه - إدارة ملفات المحاكم", 
-                        0x24 # MB_YESNO | MB_ICONQUESTION (0x04 | 0x20)
-                    )
-                    if ret == 6: # IDYES
-                        # Send WM_CLOSE (0x0010) gracefully
-                        ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
-                        
-                        # Wait up to 3 seconds for it to exit
-                        import time
-                        for _ in range(30):
-                            if not ctypes.windll.user32.IsWindow(hwnd):
-                                break
-                            time.sleep(0.1)
-                        
-                        # If still alive, terminate the process
-                        if ctypes.windll.user32.IsWindow(hwnd) and pid.value > 0:
-                            PROCESS_TERMINATE = 0x0001
-                            h_process = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid.value)
-                            if h_process:
-                                ctypes.windll.kernel32.TerminateProcess(h_process, 0)
-                                ctypes.windll.kernel32.CloseHandle(h_process)
-                                time.sleep(0.5) # Wait for OS to clean up mutex
-                        
-                        # Re-acquire the mutex after closing old instance
-                        import time
-                        time.sleep(0.5)
-                        if _single_instance_mutex:
-                            ctypes.windll.kernel32.CloseHandle(_single_instance_mutex)
-                        _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
-                    else:
-                        sys.exit(0)
-                else:
-                    # Ghost window from dead process — close the orphaned mutex and continue
-                    if _single_instance_mutex:
-                        ctypes.windll.kernel32.CloseHandle(_single_instance_mutex)
-                    import time
-                    time.sleep(0.3)
-                    _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
-            else:
-                # Mutex exists but no window found — orphaned mutex, close and re-acquire
-                if _single_instance_mutex:
-                    ctypes.windll.kernel32.CloseHandle(_single_instance_mutex)
-                import time
-                time.sleep(0.3)
-                _single_instance_mutex = ctypes.windll.kernel32.CreateMutexW(None, True, mutex_name)
+    log.debug(f'PROCESS_START pid={os.getpid()} ppid={os.getppid()} frozen={getattr(sys, "frozen", False)} exe={sys.executable}')
+    log.debug(f'ARGS={sys.argv}')
 
-    # When running as compiled executable, set working dir properly
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
-        
+        log.debug(f'CHDIR_MEIPASS={sys._MEIPASS}')
+
     port = get_free_port()
-    
-    # Start the Flask app in a background thread
-    t = threading.Thread(target=start_server, args=(port,))
-    t.daemon = True
+    log.debug(f'FLASK_PORT={port}')
+    t = threading.Thread(target=start_server, args=(port,), daemon=True)
     t.start()
-    
-    # Create and start the PyWebView window
-    url = f"http://127.0.0.1:{port}/"
-    webview.create_window(
-        title="إدارة ملفات المحاكم", 
-        url=url, 
-        width=1200, 
-        height=800,
-        text_select=True
-    )
-    
-    webview.start()
+
+    try:
+        wait_for_flask(port, timeout=15)
+    except Exception as e:
+        log.debug(f'FLASK_START_FAILED: {e}')
+        print(f'ERROR: Flask did not start: {e}')
+        sys.exit(1)
+
+    url = f'http://127.0.0.1:{port}/'
+    start_kwargs = dict(title='مدير ملفات المحاكم', url=url, width=1200, height=800, text_select=True)
+    log.debug(f'WEBVIEW_KWARGS={start_kwargs}')
+
+    window = None
+
+    def navigate_to(route):
+        if not window:
+            log.debug('NAVIGATE_SKIP no_window')
+            return
+        try:
+            if route and (route.startswith('http://') or route.startswith('/') or route.startswith('https://')):
+                log.debug(f'NAVIGATE load_url route={route}')
+                window.load_url(route)
+            elif route:
+                js = ("(()=>{let tries=0;while(tries<20&&!(window.location&&window.location.href)){tries++;new Promise(r=>setTimeout(r,50)).then(()=>{});}window.location.href='" + route.replace("'", "\\'") + "';})()")
+                log.debug(f'NAVIGATE evaluate_js route={route}')
+                window.evaluate_js(js)
+        except Exception as e:
+            log.debug(f'NAVIGATE_ERROR route={route} err={e}')
+            print(f'navigation error: {e}')
+
+    def on_second_instance(args):
+        log.debug(f'SECOND_INSTANCE_BLOCKED args={args}')
+        try:
+            if window:
+                window.show()
+                window.restore()
+        except Exception:
+            pass
+        return []
+
+    def on_new_window(window_id, url):
+        log.debug(f'NEW_WINDOW_BLOCKED window_id={window_id} url={url}')
+        return None
+
+    try:
+        window = webview.create_window(**start_kwargs)
+        log.debug('WEBVIEW_CREATED')
+        webview.start(
+            debug=False,
+            gui='edge' if os.name == 'nt' else None,
+            http_server=False,
+            second_instance=on_second_instance,
+            on_new_window=on_new_window,
+            user_agent='MahkamaDossierManager/1.0'
+        )
+        log.debug('WEBVIEW_START_RETURNED')
+    except TypeError as te:
+        if 'unexpected keyword argument' in str(te):
+            log.debug('WEBVIEW_START_FALLBACK_UNSUPPORTED_KWARG')
+            try:
+                window = webview.create_window(**start_kwargs)
+                webview.start(
+                    lambda w: log.debug(f'SECOND_INSTANCE_CB args={w}') or [],
+                    debug=False, gui='edge' if os.name == 'nt' else None
+                )
+                log.debug('WEBVIEW_START_RETURNED_FALLBACK')
+            except Exception as e2:
+                log.debug(f'WEBVIEW_START_FAILED_FALLBACK: {e2}')
+                print(f'ERROR: webview fallback failed: {e2}')
+                sys.exit(1)
+        else:
+            raise
+    except Exception as e:
+        log.debug(f'WEBVIEW_START_FAILED: {e}')
+        print(f'ERROR: failed to start webview: {e}')
+        try:
+            log.debug('WEBVIEW_FALLBACK_START')
+            window = webview.create_window(**start_kwargs)
+            webview.start(debug=False)
+            log.debug('WEBVIEW_FALLBACK_RETURNED')
+        except Exception as e2:
+            log.debug(f'WEBVIEW_FALLBACK_FAILED: {e2}')
+            print(f'ERROR: webview fallback also failed: {e2}')
+            sys.exit(1)
