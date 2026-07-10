@@ -52,6 +52,18 @@ def start_server(port):
     app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == '--install-browsers':
+        print("Installing Playwright Chromium browser... please wait.")
+        try:
+            import playwright.__main__
+            sys.argv = ["playwright", "install", "chromium"]
+            playwright.__main__.main()
+            print("Successfully installed Playwright Chromium browser!")
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error installing browsers: {e}")
+            sys.exit(1)
+
     if len(sys.argv) > 1 and any(s in sys.argv[1] for s in ('sync_dossiers.py', 'sync_stats.py')):
         script = sys.argv[1]
         log.debug(f'SUBPROCESS_RUN_SCRIPT: {script}')

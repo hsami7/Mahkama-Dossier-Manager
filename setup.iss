@@ -39,4 +39,5 @@ Name: "{autoprograms}\إدارة ملفات المحاكم"; Filename: "{app}\{#
 Name: "{autodesktop}\إدارة ملفات المحاكم"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
+Filename: "{app}\{#AppExeName}"; Parameters: "--install-browsers"; StatusMsg: "جاري تثبيت متصفح كروميوم اللازم لمزامنة القضايا (يرجى الانتظار)..."; Flags: runhidden
 Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
