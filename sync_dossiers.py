@@ -54,11 +54,33 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             '--safebrowsing-disable-download-protection'
         ]
         
-        browser = p.chromium.launch(
-            headless=not debug, 
-            slow_mo=500 if debug else 0,
-            args=chromium_args
-        )
+        try:
+            browser = p.chromium.launch(
+                headless=not debug, 
+                slow_mo=500 if debug else 0,
+                args=chromium_args
+            )
+        except Exception as e:
+            if "Executable doesn't exist" in str(e) or "Looks like Playwright was just installed" in str(e) or "playwright install" in str(e):
+                log("[*] Chromium browser not found. Installing, please wait... (This may take a few minutes)")
+                try:
+                    import sys
+                    import playwright.__main__
+                    orig_argv = sys.argv
+                    sys.argv = ["playwright", "install", "chromium"]
+                    playwright.__main__.main()
+                    sys.argv = orig_argv
+                    log("[+] Chromium browser installed successfully! Retrying launch...")
+                    browser = p.chromium.launch(
+                        headless=not debug, 
+                        slow_mo=500 if debug else 0,
+                        args=chromium_args
+                    )
+                except Exception as install_err:
+                    log(f"[-] Browser installation failed: {install_err}")
+                    raise e
+            else:
+                raise e
         context = browser.new_context(accept_downloads=True, ignore_https_errors=True)
         page = context.new_page()
         

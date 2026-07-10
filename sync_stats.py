@@ -61,11 +61,33 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             '--safebrowsing-disable-download-protection'
         ]
         
-        browser = p.chromium.launch(
-            headless=not debug,
-            slow_mo=500 if debug else 0,
-            args=chromium_args
-        )
+        try:
+            browser = p.chromium.launch(
+                headless=not debug,
+                slow_mo=500 if debug else 0,
+                args=chromium_args
+            )
+        except Exception as e:
+            if "Executable doesn't exist" in str(e) or "Looks like Playwright was just installed" in str(e) or "playwright install" in str(e):
+                log_msg("[*] Chromium browser not found. Installing, please wait... (This may take a few minutes)", log_callback)
+                try:
+                    import sys
+                    import playwright.__main__
+                    orig_argv = sys.argv
+                    sys.argv = ["playwright", "install", "chromium"]
+                    playwright.__main__.main()
+                    sys.argv = orig_argv
+                    log_msg("[+] Chromium browser installed successfully! Retrying launch...", log_callback)
+                    browser = p.chromium.launch(
+                        headless=not debug,
+                        slow_mo=500 if debug else 0,
+                        args=chromium_args
+                    )
+                except Exception as install_err:
+                    log_msg(f"[-] Browser installation failed: {install_err}", log_callback)
+                    raise e
+            else:
+                raise e
         context = browser.new_context(accept_downloads=True, ignore_https_errors=True)
         page = context.new_page()
         
@@ -283,17 +305,48 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # Formula: Active - (Munjaz + Muglaq)
     remaining = active - (munjaz + muglaq)
     
+    # Find oldest date in oldest year file
+    oldest_year = min(files.keys())
+    oldest_rows = prior_files_rows.get(oldest_year, []) if oldest_year != target_year else target_rows
+    oldest_dates = []
+    for r in oldest_rows:
+        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+        if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+            continue
+        d_val = r.get('D')
+        dt = parse_excel_date(d_val)
+        if dt:
+            oldest_dates.append(dt)
+            
+    start_date_str = min(oldest_dates).strftime('%d-%m-%Y') if oldest_dates else f"01-01-{oldest_year}"
+    
+    # Find newest date in target year file
+    newest_dates = []
+    for r in target_rows:
+        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+        if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+            continue
+        d_val = r.get('D')
+        dt = parse_excel_date(d_val)
+        if dt:
+            newest_dates.append(dt)
+            
+    end_date_str = max(newest_dates).strftime('%d-%m-%Y') if newest_dates else f"31-12-{target_year}"
+
     log_msg(f"[+] Total Active (الرائج): {active}", log_callback)
     log_msg(f"[+] Total Completed (المنجز): {munjaz}", log_callback)
     log_msg(f"[+] Total Closed (المغلق): {muglaq}", log_callback)
     log_msg(f"[+] Total Remaining (الباقي): {remaining}", log_callback)
+    log_msg(f"[+] Date Range: {start_date_str} to {end_date_str}", log_callback)
     
     return {
         "registered": registered,
         "active": active,
         "completed": munjaz,
         "closed": muglaq,
-        "remaining": remaining
+        "remaining": remaining,
+        "start_date": start_date_str,
+        "end_date": end_date_str
     }
 
 
