@@ -13,11 +13,13 @@ a = Analysis(
     datas=[
         ('app.py', '.'),
         ('engine.py', '.'),
+        ('sync_dossiers.py', '.'),
+        ('sync_stats.py', '.'),
         ('templates/*', 'templates/'),
         ('static/css/*', 'static/css/'),
         ('static/js/*', 'static/js/')
     ] + pw_datas,
-    hiddenimports=['webview', 'flask', 'engine', 'sync_dossiers'] + pw_hiddenimports,
+    hiddenimports=['webview', 'flask', 'engine', 'sync_dossiers', 'sync_stats'] + pw_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
