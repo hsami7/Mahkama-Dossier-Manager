@@ -18,11 +18,11 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
     def log(msg):
         msg_str = str(msg)
         try:
-            print(msg_str)
+            print(msg_str, flush=True)
         except UnicodeEncodeError:
             try:
                 # Fallback print replacing non-encodable chars so stdout doesn't crash
-                print(msg_str.encode(sys.stdout.encoding or 'ascii', errors='replace').decode(sys.stdout.encoding or 'ascii'))
+                print(msg_str.encode(sys.stdout.encoding or 'ascii', errors='replace').decode(sys.stdout.encoding or 'ascii'), flush=True)
             except Exception:
                 pass
         if log_callback:

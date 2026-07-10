@@ -284,6 +284,7 @@ def run_sync(years, base_download_dir):
         script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_dossiers.py')
         
         env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
         if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
             del env["PLAYWRIGHT_BROWSERS_PATH"]
             
@@ -421,6 +422,7 @@ def run_stats_calculation(target_year, base_download_dir):
                 script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_stats.py')
                 
                 env = os.environ.copy()
+                env["PYTHONUNBUFFERED"] = "1"
                 if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
                     del env["PLAYWRIGHT_BROWSERS_PATH"]
                     
