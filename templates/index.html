@@ -362,6 +362,35 @@
     <!-- Scroll to top button -->
     <button id="scrollToTopBtn" title="العودة للأعلى" style="display: none; position: fixed; bottom: 20px; left: 20px; z-index: 99; border: none; outline: none; background-color: var(--mahakim-primary); color: white; cursor: pointer; padding: 12px 16px; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: opacity 0.3s;">⬆️</button>
 
+    <!-- Print Container (Only visible during printing) -->
+    <div id="printContainer" style="display: none;"></div>
+
+    <style>
+        #printContainer {
+            display: none;
+        }
+        @media print {
+            body > * {
+                display: none !important;
+            }
+            #printContainer, #printContainer * {
+                display: block !important;
+            }
+            #printContainer {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                direction: rtl;
+                text-align: right;
+                padding: 30px;
+                color: #000;
+                background: white;
+            }
+        }
+    </style>
+
     <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(1, 99999) | random }}"></script>
 </body>
 </html>

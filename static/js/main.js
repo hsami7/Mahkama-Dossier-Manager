@@ -1358,120 +1358,56 @@ document.addEventListener('DOMContentLoaded', () => {
             const cls = document.getElementById('statClosed').textContent;
             const rem = document.getElementById('statRemaining').textContent;
 
-            const printWindow = window.open('', '_blank', 'width=800,height=800');
-            printWindow.document.write(`
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>تقرير إحصائيات شعبة الخبرة</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-            text-align: right;
-            padding: 40px;
-            color: #333;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-        }
-        .logo-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            line-height: 1.6;
-        }
-        .report-title {
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 40px;
-            margin-bottom: 40px;
-            color: #000;
-            text-decoration: underline;
-        }
-        table {
-            width: 80%;
-            margin: 0 auto;
-            border-collapse: collapse;
-            font-size: 1.25rem;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 14px 20px;
-            text-align: center;
-        }
-        th {
-            background-color: #f3f4f6;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 60px;
-            text-align: left;
-            font-size: 1.1rem;
-            padding-left: 50px;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo-title">
+            const printContainer = document.getElementById('printContainer');
+            if (printContainer) {
+                printContainer.innerHTML = `
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px;">
+        <div class="logo-title" style="font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
             المملكة المغربية<br>
             وزارة العدل<br>
             إدارة ملفات المحاكم
         </div>
     </div>
-    <div class="report-title">
+    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 40px; margin-bottom: 40px; color: #000; text-decoration: underline;">
         نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
     </div>
-    <table>
+    <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th>الحالة</th>
-                <th>العدد</th>
+                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold;">العدد</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td><strong>المسجل</strong></td>
-                <td>${reg}</td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>المسجل</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${reg}</td>
             </tr>
             <tr>
-                <td><strong>الرائج</strong></td>
-                <td>${act}</td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>الرائج</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${act}</td>
             </tr>
             <tr>
-                <td><strong>المنجز</strong></td>
-                <td>${comp}</td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>المنجز</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${comp}</td>
             </tr>
             <tr>
-                <td><strong>المغلق (تم صرف النظر عنه)</strong></td>
-                <td>${cls}</td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${cls}</td>
             </tr>
             <tr>
-                <td><strong>الباقي دون إنجاز</strong></td>
-                <td>${rem}</td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>الباقي دون إنجاز</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${rem}</td>
             </tr>
         </tbody>
     </table>
-    <div class="footer">
+    <div class="footer" style="margin-top: 60px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
         حرر في: ${new Date().toLocaleDateString('ar-MA')}
     </div>
-    <script>
-        window.onload = function() {
-            window.print();
-            setTimeout(function() { window.close(); }, 500);
-        };
-    </script>
-</body>
-</html>
-            `);
-            printWindow.document.close();
+                `;
+                window.print();
+                printContainer.innerHTML = '';
+            }
         });
     }
 
