@@ -56,12 +56,21 @@ if __name__ == '__main__':
         script = sys.argv[1]
         log.debug(f'SUBPROCESS_RUN_SCRIPT: {script}')
         sys.argv = sys.argv[1:]
-        import runpy
         try:
-            runpy.run_path(script, run_name='__main__')
+            with open(script, 'r', encoding='utf-8') as f:
+                code = f.read()
+            globs = {
+                '__name__': '__main__',
+                '__file__': script,
+                '__package__': None,
+                '__doc__': None,
+            }
+            exec(compile(code, script, 'exec'), globs)
         except Exception as e:
-            log.error(f'SUBPROCESS_RUN_SCRIPT_ERROR: {e}')
-            print(f"Error running script {script}: {e}", file=sys.stderr)
+            import traceback
+            tb = traceback.format_exc()
+            log.error(f'SUBPROCESS_RUN_SCRIPT_ERROR: {e}\n{tb}')
+            print(f"Error running script {script}: {e}\n{tb}", file=sys.stderr)
             sys.exit(1)
         sys.exit(0)
 
