@@ -466,6 +466,12 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTab = 'pending';
         tabPending.classList.add('active');
         tabCompleted.classList.remove('active');
+        // Clear filters on tab switch
+        tableSearch.value = '';
+        filterCategory.value = 'all';
+        filterUrgency.value = 'all';
+        filterDaysMin.value = '';
+        filterDaysMax.value = '';
         filterAndRenderDossiers();
     });
 
@@ -473,6 +479,12 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTab = 'completed';
         tabCompleted.classList.add('active');
         tabPending.classList.remove('active');
+        // Clear filters on tab switch
+        tableSearch.value = '';
+        filterCategory.value = 'all';
+        filterUrgency.value = 'all';
+        filterDaysMin.value = '';
+        filterDaysMax.value = '';
         filterAndRenderDossiers();
     });
 
@@ -820,6 +832,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Scan Event Binding
     btnScan.addEventListener('click', performScan);
+    
+    if (btnReturnHome) {
+        btnReturnHome.addEventListener('click', () => {
+            if (landingSection && dashboardSection) {
+                landingSection.style.display = 'block';
+                dashboardSection.style.display = 'none';
+            }
+        });
+    }
     
     // Allow scan on Enter key
     folderPathInput.addEventListener('keypress', (e) => {
