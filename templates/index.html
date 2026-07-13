@@ -387,11 +387,15 @@
     <button id="scrollToTopBtn" title="العودة للأعلى" style="display: none; position: fixed; bottom: 20px; left: 20px; z-index: 99; border: none; outline: none; background-color: var(--mahakim-primary); color: white; cursor: pointer; padding: 12px 16px; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: opacity 0.3s;">⬆️</button>
 
     <!-- Print Container (Only visible during printing) -->
-    <div id="printContainer" style="display: none;"></div>
+    <div id="printContainer"></div>
 
     <style>
         #printContainer {
-            display: none;
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 100%;
+            display: block;
         }
         @media print {
             @page {

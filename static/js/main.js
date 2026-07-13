@@ -1430,6 +1430,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                `- المغلق: ${cls}\n` +
                                `- الباقي دون إنجاز: ${rem}`;
                                
+            // Log the copy event
+            fetch('/api/log-client-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `نسخ التقرير الإحصائي للحافظة: ${year.trim()}` })
+            }).catch(() => {});
+
             navigator.clipboard.writeText(reportText).then(() => {
                 showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح! 📋');
             }).catch(err => {
@@ -1540,10 +1547,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
             if (isDownloadOnly && typeof html2pdf !== 'undefined') {
-                printContainer.style.display = 'block';
-                printContainer.style.position = 'absolute';
-                printContainer.style.left = '-9999px';
-                
                 const opt = {
                     margin:       15,
                     filename:     pdfTitle.trim() + '.pdf',
@@ -1552,14 +1555,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
 
+                // Log the download event
+                fetch('/api/log-client-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `تحميل تقرير إحصائي كملف PDF: ${pdfTitle.trim()}` })
+                }).catch(() => {});
+
                 html2pdf().set(opt).from(printContainer).save().then(() => {
-                    printContainer.style.display = 'none';
-                    printContainer.style.position = '';
-                    printContainer.style.left = '';
                     printContainer.innerHTML = '';
                     document.title = originalTitle;
                 });
             } else {
+                // Log the print event
+                fetch('/api/log-client-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `طباعة تقرير إحصائي: ${pdfTitle.trim()}` })
+                }).catch(() => {});
+
                 window.print();
                 printContainer.innerHTML = '';
                 document.title = originalTitle;

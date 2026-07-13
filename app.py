@@ -556,6 +556,15 @@ def api_clear_logs():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/log-client-event', methods=['POST'])
+def api_log_client_event():
+    data = request.get_json() or {}
+    message = data.get('message')
+    if message:
+        write_log(f"[Client Event] {message}")
+        return jsonify({"success": True})
+    return jsonify({"error": "No message provided"}), 400
+
 @app.route('/api/abort', methods=['POST'])
 def api_abort():
     global stats_active, sync_active
