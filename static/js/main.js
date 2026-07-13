@@ -1360,12 +1360,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const printContainer = document.getElementById('printContainer');
             if (printContainer) {
+                const logoCircleImg = document.querySelector('.logo-circle img');
+                const logoBase64 = logoCircleImg ? logoCircleImg.src : '';
                 printContainer.innerHTML = `
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px;">
-        <div class="logo-title" style="font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
+    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px;">
+        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 1.5; font-family: 'Ebrima', sans-serif;">
+            ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>
+            ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>
+            ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
+        </div>
+        <div class="middle-header" style="text-align: center; padding: 0 20px;">
+            ${logoBase64 ? `<img src="${logoBase64}" style="height: 70px; width: auto; object-fit: contain;">` : ''}
+        </div>
+        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
             المملكة المغربية<br>
             وزارة العدل<br>
-            إدارة ملفات المحاكم
+            محكمة الاستئناف الادارية فاس
         </div>
     </div>
     <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 40px; margin-bottom: 40px; color: #000; text-decoration: underline;">
