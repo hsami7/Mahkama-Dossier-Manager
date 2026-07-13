@@ -259,16 +259,26 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             for r in rows:
                 all_rows.append(r)
                 
+        # First filter by the start and end dates
+        filtered_rows = []
+        for r in all_rows:
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                continue
+            reg_date = parse_excel_date(r.get('D'))
+            res_date = parse_excel_date(r.get('K'))
+            
+            in_reg = (reg_date and start_date <= reg_date <= end_date)
+            in_res = (res_date and start_date <= res_date <= end_date)
+            if in_reg or in_res:
+                filtered_rows.append(r)
+                
         registered = 0
         active = 0
         munjaz = 0
         muglaq = 0
         
-        for r in all_rows:
-            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
-            if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
-                continue
-            
+        for r in filtered_rows:
             reg_date = parse_excel_date(r.get('D'))
             res_date = parse_excel_date(r.get('K'))
             status = str(r.get('J') or '').strip()
@@ -285,10 +295,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             if res_date and start_date <= res_date <= end_date and "مغلق" in status:
                 muglaq += 1
                 
-            # Active in period
-            if reg_date and reg_date <= end_date and (res_date is None or res_date >= start_date):
-                active += 1
-                
+        active = len(filtered_rows)
         remaining = active - (munjaz + muglaq)
         start_date_str = start_date.strftime('%d/%m/%Y')
         end_date_str = end_date.strftime('%d/%m/%Y')
