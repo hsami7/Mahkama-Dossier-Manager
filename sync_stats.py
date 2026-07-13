@@ -259,15 +259,18 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             for r in rows:
                 all_rows.append(r)
                 
-        # First filter by the start and end dates of registration
+        # First filter by the start and end dates (registration or status date)
         filtered_rows = []
         for r in all_rows:
             code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
             if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
                 continue
             reg_date = parse_excel_date(r.get('D'))
+            res_date = parse_excel_date(r.get('K'))
             
-            if reg_date and start_date <= reg_date <= end_date:
+            in_reg = (reg_date and start_date <= reg_date <= end_date)
+            in_res = (res_date and start_date <= res_date <= end_date)
+            if in_reg or in_res:
                 filtered_rows.append(r)
                 
         registered = 0
