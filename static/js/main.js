@@ -1283,11 +1283,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rangeMode === 'custom') {
                 const startDateInput = document.getElementById('statsStartDateInput');
                 const endDateInput = document.getElementById('statsEndDateInput');
-                start_date = startDateInput ? startDateInput.value : '';
-                end_date = endDateInput ? endDateInput.value : '';
+                const rawStart = startDateInput ? startDateInput.value.trim() : '';
+                const rawEnd = endDateInput ? endDateInput.value.trim() : '';
+                
+                const parseDMY = (str) => {
+                    if (!str) return null;
+                    const parts = str.split('/');
+                    if (parts.length !== 3) return null;
+                    const day = parts[0].trim().padStart(2, '0');
+                    const month = parts[1].trim().padStart(2, '0');
+                    const year = parts[2].trim();
+                    if (day.length !== 2 || month.length !== 2 || year.length !== 4) return null;
+                    return `${year}-${month}-${day}`;
+                };
+                
+                start_date = parseDMY(rawStart);
+                end_date = parseDMY(rawEnd);
                 
                 if (!start_date || !end_date) {
-                    showAlert('يرجى تحديد تاريخ البدء وتاريخ الانتهاء.');
+                    showAlert('يرجى إدخال التاريخ بالصيغة الصحيحة (يوم/شهر/سنة) مثال: 01/01/2026');
                     return;
                 }
                 
