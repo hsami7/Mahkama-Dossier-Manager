@@ -202,7 +202,23 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             
     return downloaded_files, registered_count_target
 
-def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None):
+def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None):
+    if start_date is None:
+        start_date = os.environ.get("START_DATE")
+    if end_date is None:
+        end_date = os.environ.get("END_DATE")
+
+    if isinstance(start_date, str) and start_date.strip():
+        start_date = datetime.strptime(start_date.strip(), '%Y-%m-%d')
+    else:
+        start_date = None
+        
+    if isinstance(end_date, str) and end_date.strip():
+        end_date = datetime.strptime(end_date.strip(), '%Y-%m-%d')
+        target_year = end_date.year
+    else:
+        end_date = None
+
     # Step 1: Download files
     files, registered = download_stats_files(target_year, download_dir, debug, log_callback)
     
@@ -230,107 +246,143 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # 4. Closed (المغلق)
     # 5. Remaining (الباقي)
     
-    # Helper to parse dates
-    def get_row_date_year(row):
-        k_val = row.get('K') # Column K
-        dt = parse_excel_date(k_val)
-        return dt.year if dt else None
+    if start_date and end_date:
+        # Collect all rows from all years loaded
+        all_rows = []
+        for r in target_rows:
+            all_rows.append(r)
+        for yr, rows in prior_files_rows.items():
+            for r in rows:
+                all_rows.append(r)
+                
+        registered = 0
+        active = 0
+        munjaz = 0
+        muglaq = 0
         
-    # a) المسجل
-    # We already got this from the website grid, or let's double check if we can fall back to row count of target_year
-    # Let's clean headers/empty code rows from target_rows to get exact count
-    real_registered = 0
-    for r in target_rows:
-        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
-        if code and code != 'الرقم الكامل للملف' and '/' in str(code):
-            real_registered += 1
+        for r in all_rows:
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                continue
             
-    if registered == 0:
-        registered = real_registered
-        
-    log_msg(f"[+] Total Registered (المسجل): {registered}", log_callback)
-    
-    # b) Munjaz (المنجز) & Muglaq (المغلق)
-    # For target year Y:
-    # - Column K year matches Y, and Column J contains 'منجز' or 'مغلق'
-    munjaz = 0
-    muglaq = 0
-    
-    # In target year Y file:
-    for r in target_rows:
-        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
-        if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
-            continue
-        dt_yr = get_row_date_year(r)
-        if dt_yr is not None:
-            # Case is resolved
+            reg_date = parse_excel_date(r.get('D'))
+            res_date = parse_excel_date(r.get('K'))
             status = str(r.get('J') or '').strip()
-            if "مغلق" in status:
-                muglaq += 1
-            elif "منجز" in status:
+            
+            # Registered in period
+            if reg_date and start_date <= reg_date <= end_date:
+                registered += 1
+                
+            # Completed in period
+            if res_date and start_date <= res_date <= end_date and "منجز" in status:
                 munjaz += 1
                 
-    # In prior years files:
-    for yr, rows in prior_files_rows.items():
-        for r in rows:
+            # Closed in period
+            if res_date and start_date <= res_date <= end_date and "مغلق" in status:
+                muglaq += 1
+                
+            # Active in period
+            if reg_date and reg_date <= end_date and (res_date is None or res_date >= start_date):
+                active += 1
+                
+        remaining = active - (munjaz + muglaq)
+        start_date_str = start_date.strftime('%d-%m-%Y')
+        end_date_str = end_date.strftime('%d-%m-%Y')
+    else:
+        # Helper to parse dates
+        def get_row_date_year(row):
+            k_val = row.get('K') # Column K
+            dt = parse_excel_date(k_val)
+            return dt.year if dt else None
+            
+        # a) المسجل
+        real_registered = 0
+        for r in target_rows:
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            if code and code != 'الرقم الكامل للملف' and '/' in str(code):
+                real_registered += 1
+                
+        if registered == 0:
+            registered = real_registered
+            
+        # b) Munjaz (المنجز) & Muglaq (المغلق)
+        munjaz = 0
+        muglaq = 0
+        
+        # In target year Y file:
+        for r in target_rows:
             code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
             if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
                 continue
             dt_yr = get_row_date_year(r)
-            if dt_yr == target_year:
-                # Case resolved in target year
+            if dt_yr is not None:
+                # Case is resolved
                 status = str(r.get('J') or '').strip()
                 if "مغلق" in status:
                     muglaq += 1
                 elif "منجز" in status:
                     munjaz += 1
                     
-    # c) Active (الرائج)
-    # Formula: prior files with empty K + prior files resolved in Year Y + total registered in Year Y
-    active = registered
-    for yr, rows in prior_files_rows.items():
-        for r in rows:
+        # In prior years files:
+        for yr, rows in prior_files_rows.items():
+            for r in rows:
+                code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+                if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                    continue
+                dt_yr = get_row_date_year(r)
+                if dt_yr == target_year:
+                    # Case resolved in target year
+                    status = str(r.get('J') or '').strip()
+                    if "مغلق" in status:
+                        muglaq += 1
+                    elif "منجز" in status:
+                        munjaz += 1
+                        
+        # c) Active (الرائج)
+        active = registered
+        for yr, rows in prior_files_rows.items():
+            for r in rows:
+                code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+                if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                    continue
+                dt_yr = get_row_date_year(r)
+                if dt_yr is None:
+                    # Still unresolved
+                    active += 1
+                elif dt_yr == target_year:
+                    # Resolved in target year (so it was active in target year)
+                    active += 1
+                    
+        # d) Remaining (الباقي)
+        remaining = active - (munjaz + muglaq)
+        
+        # Find oldest date in target year file
+        oldest_dates = []
+        for r in target_rows:
             code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
             if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
                 continue
-            dt_yr = get_row_date_year(r)
-            if dt_yr is None:
-                # Still unresolved
-                active += 1
-            elif dt_yr == target_year:
-                # Resolved in target year (so it was active in target year)
-                active += 1
+            d_val = r.get('D')
+            dt = parse_excel_date(d_val)
+            if dt:
+                oldest_dates.append(dt)
                 
-    # d) Remaining (الباقي)
-    # Formula: Active - (Munjaz + Muglaq)
-    remaining = active - (munjaz + muglaq)
-    
-    # Find oldest date in target year file
-    oldest_dates = []
-    for r in target_rows:
-        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
-        if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
-            continue
-        d_val = r.get('D')
-        dt = parse_excel_date(d_val)
-        if dt:
-            oldest_dates.append(dt)
-            
-    start_date_str = min(oldest_dates).strftime('%d-%m-%Y') if oldest_dates else f"01-01-{target_year}"
-    
-    # Find newest date in target year file
-    newest_dates = []
-    for r in target_rows:
-        code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
-        if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
-            continue
-        d_val = r.get('D')
-        dt = parse_excel_date(d_val)
-        if dt:
-            newest_dates.append(dt)
-            
-    end_date_str = max(newest_dates).strftime('%d-%m-%Y') if newest_dates else f"31-12-{target_year}"
+        start_date_str = min(oldest_dates).strftime('%d-%m-%Y') if oldest_dates else f"01-01-{target_year}"
+        
+        # Find newest date in target year file
+        newest_dates = []
+        for r in target_rows:
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                continue
+            d_val = r.get('D')
+            dt = parse_excel_date(d_val)
+            if dt:
+                newest_dates.append(dt)
+                
+        end_date_str = max(newest_dates).strftime('%d-%m-%Y') if newest_dates else f"31-12-{target_year}"
 
+    log_msg(f"[+] Total Registered (المسجل): {registered}", log_callback)
     log_msg(f"[+] Total Active (الرائج): {active}", log_callback)
     log_msg(f"[+] Total Completed (المنجز): {munjaz}", log_callback)
     log_msg(f"[+] Total Closed (المغلق): {muglaq}", log_callback)
@@ -346,6 +398,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         "start_date": start_date_str,
         "end_date": end_date_str
     }
+
 
 
 if __name__ == '__main__':
