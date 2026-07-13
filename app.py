@@ -47,8 +47,8 @@ def download_update_worker(download_url, version):
         update_status["error"] = None
         
     try:
-        temp_dir = tempfile.gettempdir()
-        temp_file = os.path.join(temp_dir, 'mahkama_update.exe')
+        app_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else tempfile.gettempdir()
+        temp_file = os.path.join(app_dir, 'mdm_next.exe')
         
         req = urllib.request.Request(
             download_url,
@@ -142,10 +142,9 @@ def api_trigger_update():
     with update_lock:
         if update_status["status"] != "ready":
             return jsonify({"error": "لا يوجد تحديث جاهز للتحميل."}), 400
-            
     try:
-        temp_dir = tempfile.gettempdir()
-        temp_file = os.path.join(temp_dir, 'mahkama_update.exe')
+        app_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else tempfile.gettempdir()
+        temp_file = os.path.join(app_dir, 'mdm_next.exe')
         
         if not os.path.exists(temp_file):
             return jsonify({"error": "التحديث لم يتم تحميله بعد."}), 404

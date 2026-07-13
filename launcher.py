@@ -119,7 +119,7 @@ if __name__ == '__main__':
             except Exception:
                 time.sleep(0.5)
         try:
-            p = os.path.join(tempfile.gettempdir(), 'mahkama_update.exe')
+            p = os.path.join(os.path.dirname(sys.executable), 'mdm_next.exe')
             if os.path.exists(p):
                 os.remove(p)
         except Exception:
@@ -141,6 +141,12 @@ if __name__ == '__main__':
     log.debug(f'ARGS={sys.argv}')
 
     if getattr(sys, 'frozen', False):
+        try:
+            update_helper = os.path.join(os.path.dirname(sys.executable), 'mdm_next.exe')
+            if os.path.exists(update_helper):
+                os.remove(update_helper)
+        except Exception:
+            pass
         os.chdir(sys._MEIPASS)
         log.debug(f'CHDIR_MEIPASS={sys._MEIPASS}')
 
