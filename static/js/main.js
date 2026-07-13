@@ -1377,7 +1377,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.title = pdfTitle.trim();
 
                 const logoCircleImg = document.querySelector('.logo-circle img');
-                const logoBase64 = logoCircleImg ? logoCircleImg.src : '';
                 printContainer.innerHTML = `
     <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px;">
         <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
@@ -1386,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             محكمة الاستئناف الادارية فاس
         </div>
         <div class="middle-header" style="text-align: center; padding: 0 20px;">
-            ${logoBase64 ? `<img src="${logoBase64}" style="height: 70px; width: auto; object-fit: contain;">` : ''}
+            <img src="/static/img/Picture1.png" style="height: 80px; width: auto; object-fit: contain;">
         </div>
         <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 1.5; font-family: 'Ebrima', sans-serif;">
             ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>
@@ -1400,8 +1399,8 @@ document.addEventListener('DOMContentLoaded', () => {
     <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold;">الحالة</th>
-                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold;">العدد</th>
+                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 25%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 75%;">العدد</th>
             </tr>
         </thead>
         <tbody>
