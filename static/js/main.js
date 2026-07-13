@@ -1164,10 +1164,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnStatsResultCloseOk = document.getElementById('btnStatsResultCloseOk');
     const btnStatsCopyReport = document.getElementById('btnStatsCopyReport');
 
+    // Toggle range selection UI
+    const statsRangeRadios = document.querySelectorAll('input[name="statsRange"]');
+    const statsYearWrapper = document.getElementById('statsYearWrapper');
+    const statsCustomDateWrapper = document.getElementById('statsCustomDateWrapper');
+
+    if (statsRangeRadios) {
+        statsRangeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'year') {
+                    if (statsYearWrapper) statsYearWrapper.style.display = 'block';
+                    if (statsCustomDateWrapper) statsCustomDateWrapper.style.display = 'none';
+                } else {
+                    if (statsYearWrapper) statsYearWrapper.style.display = 'none';
+                    if (statsCustomDateWrapper) statsCustomDateWrapper.style.display = 'flex';
+                }
+            });
+        });
+    }
+
     let statsPollInterval = null;
     let lastStatsLogCount = 0;
 
-    function startStatsPolling(year, originalText) {
+    function startStatsPolling(yearOrRangeText, originalText) {
         lastStatsLogCount = 0;
         if (liveSyncLogs) {
             liveSyncLogs.innerHTML = '';
@@ -1220,8 +1239,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (data.result) {
                         // Populate modal values
-                        document.getElementById('statsYearTitle').textContent = year;
-                        document.querySelectorAll('.statsYearLabel').forEach(el => el.textContent = year);
+                        document.getElementById('statsYearTitle').textContent = yearOrRangeText;
+                        document.querySelectorAll('.statsYearLabel').forEach(el => el.textContent = yearOrRangeText);
                         
                         document.getElementById('statRegistered').textContent = data.result.registered;
                         document.getElementById('statActive').textContent = data.result.active;
@@ -1247,12 +1266,37 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCalculateStats.addEventListener('click', async () => {
             if (operationRunning) return;
             
+            const statsRangeRadio = document.querySelector('input[name="statsRange"]:checked');
+            const rangeMode = statsRangeRadio ? statsRangeRadio.value : 'year';
+            
             const yearSelect = document.getElementById('statsYearSelect');
             const optionSelect = document.getElementById('statsOptionSelect');
             const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
             
-            const year = yearSelect ? yearSelect.value : "2026";
+            let year = yearSelect ? yearSelect.value : "2026";
             const option = optionSelect ? optionSelect.value : "مكتب الخبرة";
+            
+            let start_date = null;
+            let end_date = null;
+            let displayTitle = year;
+            
+            if (rangeMode === 'custom') {
+                const startDateInput = document.getElementById('statsStartDateInput');
+                const endDateInput = document.getElementById('statsEndDateInput');
+                start_date = startDateInput ? startDateInput.value : '';
+                end_date = endDateInput ? endDateInput.value : '';
+                
+                if (!start_date || !end_date) {
+                    showAlert('يرجى تحديد تاريخ البدء وتاريخ الانتهاء.');
+                    return;
+                }
+                
+                try {
+                    year = end_date.split('-')[0];
+                } catch(e) {}
+                
+                displayTitle = 'فترة مخصصة';
+            }
             
             operationRunning = true;
             if (btnAbortOperation) {
@@ -1276,7 +1320,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/calculate-stats', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ year: year, option: option, directory: folderPath })
+                    body: JSON.stringify({ 
+                        year: year, 
+                        option: option, 
+                        directory: folderPath,
+                        start_date: start_date,
+                        end_date: end_date
+                    })
                 });
                 const data = await res.json();
                 
@@ -1287,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnCalculateStats.innerText = originalText;
                     operationRunning = false;
                 } else if (data.success) {
-                    startStatsPolling(year, originalText);
+                    startStatsPolling(displayTitle, originalText);
                 }
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم لاحتساب الإحصائيات.');

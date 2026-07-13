@@ -114,12 +114,33 @@
                         <select id="statsOptionSelect" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; width: 80%; text-align: center; font-size: 1.1rem; background: white; margin-bottom: 15px;">
                             <option value="مكتب الخبرة" selected>مكتب الخبرة</option>
                         </select>
-                        <label style="font-weight: bold; color: var(--mahakim-primary); display: block; margin-bottom: 10px;">اختر السنة المطلوبة:</label>
-                        <select id="statsYearSelect" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; width: 80%; text-align: center; font-size: 1.1rem; background: white;">
-                            <option value="2026" selected>2026</option>
-                            <option value="2025">2025</option>
-                            <option value="2024">2024</option>
-                        </select>
+                        <label style="font-weight: bold; color: var(--mahakim-primary); display: block; margin-bottom: 10px;">نطاق البحث:</label>
+                        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 15px;">
+                            <label style="cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" name="statsRange" value="year" checked style="width: 16px; height: 16px;"> سنة كاملة
+                            </label>
+                            <label style="cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" name="statsRange" value="custom" style="width: 16px; height: 16px;"> فترة مخصصة
+                            </label>
+                        </div>
+                        <div id="statsYearWrapper" style="display: block; margin-bottom: 15px;">
+                            <label style="font-weight: bold; color: var(--mahakim-primary); display: block; margin-bottom: 10px;">اختر السنة المطلوبة:</label>
+                            <select id="statsYearSelect" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; width: 80%; text-align: center; font-size: 1.1rem; background: white;">
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+                        <div id="statsCustomDateWrapper" style="display: none; margin-bottom: 15px; flex-direction: column; gap: 10px; align-items: center;">
+                            <div style="width: 80%; display: flex; flex-direction: column; gap: 5px;">
+                                <label style="font-weight: bold; color: var(--mahakim-primary); font-size: 0.9rem; text-align: right;">تاريخ البدء:</label>
+                                <input type="date" id="statsStartDateInput" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; text-align: center; font-size: 1.1rem; background: white;">
+                            </div>
+                            <div style="width: 80%; display: flex; flex-direction: column; gap: 5px;">
+                                <label style="font-weight: bold; color: var(--mahakim-primary); font-size: 0.9rem; text-align: right;">تاريخ الانتهاء:</label>
+                                <input type="date" id="statsEndDateInput" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; text-align: center; font-size: 1.1rem; background: white;">
+                            </div>
+                        </div>
                     </div>
                     <button class="btn-mahakim" id="btnCalculateStats" style="width: 100%;">بدء العمل</button>
                 </div>
