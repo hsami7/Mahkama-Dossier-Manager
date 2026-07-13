@@ -286,8 +286,8 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
                 active += 1
                 
         remaining = active - (munjaz + muglaq)
-        start_date_str = start_date.strftime('%d-%m-%Y')
-        end_date_str = end_date.strftime('%d-%m-%Y')
+        start_date_str = start_date.strftime('%d/%m/%Y')
+        end_date_str = end_date.strftime('%d/%m/%Y')
     else:
         # Helper to parse dates
         def get_row_date_year(row):
@@ -367,7 +367,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             if dt:
                 oldest_dates.append(dt)
                 
-        start_date_str = min(oldest_dates).strftime('%d-%m-%Y') if oldest_dates else f"01-01-{target_year}"
+        start_date_str = min(oldest_dates).strftime('%d/%m/%Y') if oldest_dates else f"01/01/{target_year}"
         
         # Find newest date in target year file
         newest_dates = []
@@ -380,7 +380,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             if dt:
                 newest_dates.append(dt)
                 
-        end_date_str = max(newest_dates).strftime('%d-%m-%Y') if newest_dates else f"31-12-{target_year}"
+        end_date_str = max(newest_dates).strftime('%d/%m/%Y') if newest_dates else f"31/12/{target_year}"
 
     log_msg(f"[+] Total Registered (المسجل): {registered}", log_callback)
     log_msg(f"[+] Total Active (الرائج): {active}", log_callback)
