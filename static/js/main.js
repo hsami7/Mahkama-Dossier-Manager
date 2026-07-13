@@ -1399,8 +1399,8 @@ document.addEventListener('DOMContentLoaded', () => {
     <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 35%;">الحالة</th>
-                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 65%;">العدد</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 40%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 60%;">العدد</th>
             </tr>
         </thead>
         <tbody>
