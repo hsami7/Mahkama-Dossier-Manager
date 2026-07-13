@@ -1399,29 +1399,29 @@ document.addEventListener('DOMContentLoaded', () => {
     <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 25%;">الحالة</th>
-                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 75%;">العدد</th>
+                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 20%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 80%;">العدد</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>المسجل</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المسجل</strong></td>
                 <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${reg}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>الرائج</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الرائج</strong></td>
                 <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${act}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>المنجز</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المنجز</strong></td>
                 <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${comp}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
                 <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${cls}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;"><strong>الباقي دون إنجاز</strong></td>
+                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي دون إنجاز</strong></td>
                 <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${rem}</td>
             </tr>
         </tbody>
