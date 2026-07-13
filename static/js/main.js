@@ -1360,6 +1360,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const printContainer = document.getElementById('printContainer');
             if (printContainer) {
+                const optionSelect = document.getElementById('statsOptionSelect');
+                const selectedOption = optionSelect ? optionSelect.value : '';
+                const yearSelect = document.getElementById('statsYearSelect');
+                const selectedYear = yearSelect ? yearSelect.value : '';
+
+                let pdfTitle = 'إدارة ملفات المحاكم _';
+                if (selectedOption) {
+                    pdfTitle += ` ${selectedOption}`;
+                }
+                if (selectedYear) {
+                    pdfTitle += ` ${selectedYear}`;
+                }
+
+                const originalTitle = document.title;
+                document.title = pdfTitle.trim();
+
                 const logoCircleImg = document.querySelector('.logo-circle img');
                 const logoBase64 = logoCircleImg ? logoCircleImg.src : '';
                 printContainer.innerHTML = `
@@ -1417,6 +1433,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 window.print();
                 printContainer.innerHTML = '';
+                document.title = originalTitle;
             }
         });
     }
