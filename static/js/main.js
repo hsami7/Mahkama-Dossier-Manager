@@ -1449,36 +1449,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const btnStatsPrintReport = document.getElementById('btnStatsPrintReport');
-    if (btnStatsPrintReport) {
-        btnStatsPrintReport.addEventListener('click', () => {
-            const startDate = document.getElementById('statsStartDate').textContent;
-            const endDate = document.getElementById('statsEndDate').textContent;
-            const reg = document.getElementById('statRegistered').textContent;
-            const act = document.getElementById('statActive').textContent;
-            const comp = document.getElementById('statCompleted').textContent;
-            const cls = document.getElementById('statClosed').textContent;
-            const rem = document.getElementById('statRemaining').textContent;
+    const btnStatsDownloadPDF = document.getElementById('btnStatsDownloadPDF');
+    
+    const triggerPrint = () => {
+        const startDate = document.getElementById('statsStartDate').textContent;
+        const endDate = document.getElementById('statsEndDate').textContent;
+        const reg = document.getElementById('statRegistered').textContent;
+        const act = document.getElementById('statActive').textContent;
+        const comp = document.getElementById('statCompleted').textContent;
+        const cls = document.getElementById('statClosed').textContent;
+        const rem = document.getElementById('statRemaining').textContent;
 
-            const printContainer = document.getElementById('printContainer');
-            if (printContainer) {
-                const optionSelect = document.getElementById('statsOptionSelect');
-                const selectedOption = optionSelect ? optionSelect.value : '';
-                const yearSelect = document.getElementById('statsYearSelect');
-                const selectedYear = yearSelect ? yearSelect.value : '';
+        const printContainer = document.getElementById('printContainer');
+        if (printContainer) {
+            const optionSelect = document.getElementById('statsOptionSelect');
+            const selectedOption = optionSelect ? optionSelect.value : '';
+            const yearSelect = document.getElementById('statsYearSelect');
+            const selectedYear = yearSelect ? yearSelect.value : '';
 
-                let pdfTitle = 'إدارة ملفات المحاكم _';
-                if (selectedOption) {
-                    pdfTitle += ` ${selectedOption}`;
-                }
-                if (selectedYear) {
-                    pdfTitle += ` ${selectedYear}`;
-                }
+            let pdfTitle = 'إدارة ملفات المحاكم _';
+            if (selectedOption) {
+                pdfTitle += ` ${selectedOption}`;
+            }
+            if (selectedYear) {
+                pdfTitle += ` ${selectedYear}`;
+            }
 
-                const originalTitle = document.title;
-                document.title = pdfTitle.trim();
+            const originalTitle = document.title;
+            document.title = pdfTitle.trim();
 
-                const logoCircleImg = document.querySelector('.logo-circle img');
-                printContainer.innerHTML = `
+            const logoCircleImg = document.querySelector('.logo-circle img');
+            printContainer.innerHTML = `
     <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
         <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
             المملكة المغربية<br>
@@ -1500,8 +1501,8 @@ document.addEventListener('DOMContentLoaded', () => {
     <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 40%;">الحالة</th>
-                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 60%;">العدد</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 35%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 65%;">العدد</th>
             </tr>
         </thead>
         <tbody>
@@ -1537,11 +1538,17 @@ document.addEventListener('DOMContentLoaded', () => {
         })()}
     </div>
                 `;
-                window.print();
-                printContainer.innerHTML = '';
-                document.title = originalTitle;
-            }
-        });
+            window.print();
+            printContainer.innerHTML = '';
+            document.title = originalTitle;
+        }
+    };
+
+    if (btnStatsPrintReport) {
+        btnStatsPrintReport.addEventListener('click', triggerPrint);
+    }
+    if (btnStatsDownloadPDF) {
+        btnStatsDownloadPDF.addEventListener('click', triggerPrint);
     }
 
     // --- Update Checker ---
