@@ -391,7 +391,7 @@ stats_lock = threading.Lock()
 stats_result = None
 stats_process = None
 
-def run_stats_calculation(target_year, base_download_dir):
+def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None):
     global stats_active, stats_logs, stats_result, stats_process
     with stats_lock:
         stats_logs.clear()
@@ -402,7 +402,7 @@ def run_stats_calculation(target_year, base_download_dir):
             stats_logs.append(msg)
         write_log(msg)
             
-    write_log(f"[*] بدء حساب إحصائيات السنة: {target_year}")
+    write_log(f"[*] بدء حساب إحصائيات الفترة: {start_date} إلى {end_date}" if start_date and end_date else f"[*] بدء حساب إحصائيات السنة: {target_year}")
     try:
         max_retries = 3
         for attempt in range(1, max_retries + 1):
@@ -422,6 +422,10 @@ def run_stats_calculation(target_year, base_download_dir):
                 
                 env = os.environ.copy()
                 env["PYTHONUNBUFFERED"] = "1"
+                if start_date:
+                    env["START_DATE"] = start_date
+                if end_date:
+                    env["END_DATE"] = end_date
                 if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
                     del env["PLAYWRIGHT_BROWSERS_PATH"]
                     
@@ -477,9 +481,17 @@ def api_calculate_stats():
     data = request.get_json() or {}
     year = data.get('year')
     option = data.get('option')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
     
+    if not year and end_date:
+        try:
+            year = int(end_date.split('-')[0])
+        except Exception:
+            pass
+            
     if not year or not option:
-        return jsonify({"error": "الرجاء تحديد السنة والخيار."}), 400
+        return jsonify({"error": "الرجاء تحديد السنة أو الفترة والخيار."}), 400
         
     with stats_lock:
         if stats_active:
@@ -495,7 +507,11 @@ def api_calculate_stats():
             
         base_download_dir = os.path.join(directory, 'stats_downloads')
         
-        stats_thread = threading.Thread(target=run_stats_calculation, args=(year, base_download_dir))
+        stats_thread = threading.Thread(
+            target=run_stats_calculation, 
+            args=(year, base_download_dir),
+            kwargs={"start_date": start_date, "end_date": end_date}
+        )
         stats_thread.daemon = True
         stats_thread.start()
         
