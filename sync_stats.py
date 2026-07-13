@@ -46,9 +46,8 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
     os.makedirs(output_dir, exist_ok=True)
     
     if start_date and end_date:
-        start_year = start_date.year
         end_year = end_date.year
-        years_to_download = [y for y in [2024, 2025, 2026] if start_year <= y <= end_year]
+        years_to_download = [y for y in [2024, 2025, 2026] if y <= end_year]
     else:
         years_to_download = [y for y in [2024, 2025, 2026] if y <= target_year]
     
