@@ -1195,6 +1195,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Auto-insert slashes for dd/mm/yyyy mask
+    const applyDateMask = (input) => {
+        if (!input) return;
+        input.addEventListener('input', (e) => {
+            if (e.inputType === 'deleteContentBackward') return;
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 8) value = value.substring(0, 8);
+            
+            let formattedValue = '';
+            if (value.length > 0) {
+                formattedValue += value.substring(0, 2);
+            }
+            if (value.length > 2) {
+                formattedValue += '/' + value.substring(2, 4);
+            }
+            if (value.length > 4) {
+                formattedValue += '/' + value.substring(4, 8);
+            }
+            input.value = formattedValue;
+        });
+    };
+
+    applyDateMask(document.getElementById('statsStartDateInput'));
+    applyDateMask(document.getElementById('statsEndDateInput'));
+
     let statsPollInterval = null;
     let lastStatsLogCount = 0;
 
