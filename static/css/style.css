@@ -393,15 +393,25 @@ input[type="text"]:focus, select:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+}
+
+.modal-header h3 {
+    padding-right: 35px;
 }
 
 .btn-close-modal {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
     background: transparent;
     border: none;
     color: #ffffff;
     font-size: 1.8rem;
     cursor: pointer;
     transition: opacity 0.2s;
+    line-height: 1;
 }
 
 .btn-close-modal:hover {
