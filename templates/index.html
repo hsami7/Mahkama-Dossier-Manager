@@ -370,6 +370,9 @@
             display: none;
         }
         @media print {
+            @page {
+                size: landscape;
+            }
             body > * {
                 display: none !important;
             }
