@@ -305,11 +305,9 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # Formula: Active - (Munjaz + Muglaq)
     remaining = active - (munjaz + muglaq)
     
-    # Find oldest date in oldest year file
-    oldest_year = min(files.keys())
-    oldest_rows = prior_files_rows.get(oldest_year, []) if oldest_year != target_year else target_rows
+    # Find oldest date in target year file
     oldest_dates = []
-    for r in oldest_rows:
+    for r in target_rows:
         code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
         if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
             continue
@@ -318,7 +316,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         if dt:
             oldest_dates.append(dt)
             
-    start_date_str = min(oldest_dates).strftime('%d-%m-%Y') if oldest_dates else f"01-01-{oldest_year}"
+    start_date_str = min(oldest_dates).strftime('%d-%m-%Y') if oldest_dates else f"01-01-{target_year}"
     
     # Find newest date in target year file
     newest_dates = []
