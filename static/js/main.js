@@ -1378,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const logoCircleImg = document.querySelector('.logo-circle img');
                 printContainer.innerHTML = `
-    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px;">
+    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
         <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
             المملكة المغربية<br>
             وزارة العدل<br>
@@ -1393,40 +1393,40 @@ document.addEventListener('DOMContentLoaded', () => {
             ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
         </div>
     </div>
-    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 40px; margin-bottom: 40px; color: #000; text-decoration: underline;">
+    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 20px; margin-bottom: 20px; color: #000; text-decoration: underline;">
         نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
     </div>
     <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 20%;">الحالة</th>
-                <th style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 80%;">العدد</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 35%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 65%;">العدد</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المسجل</strong></td>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${reg}</td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المسجل</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${reg}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الرائج</strong></td>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${act}</td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الرائج</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${act}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المنجز</strong></td>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${comp}</td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المنجز</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${comp}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${cls}</td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${cls}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي دون إنجاز</strong></td>
-                <td style="border: 1px solid #000; padding: 14px 20px; text-align: center;">${rem}</td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي دون إنجاز</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${rem}</td>
             </tr>
         </tbody>
     </table>
-    <div class="footer" style="margin-top: 60px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
+    <div class="footer" style="margin-top: 25px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
         حرر في: ${new Date().toLocaleDateString('ar-MA')}
     </div>
                 `;
