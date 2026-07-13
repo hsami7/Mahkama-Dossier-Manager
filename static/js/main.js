@@ -1471,14 +1471,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (printContainer) {
             const optionSelect = document.getElementById('statsOptionSelect');
             const selectedOption = optionSelect ? optionSelect.value : '';
-            const yearSelect = document.getElementById('statsYearSelect');
-            const selectedYear = yearSelect ? yearSelect.value : '';
+            const statsYearTitle = document.getElementById('statsYearTitle');
+            const selectedYear = statsYearTitle ? statsYearTitle.textContent.trim() : '';
 
             let pdfTitle = 'إدارة ملفات المحاكم _';
             if (selectedOption) {
                 pdfTitle += ` ${selectedOption}`;
             }
-            if (selectedYear) {
+            if (selectedYear === 'فترة مخصصة' || selectedYear === 'فترة') {
+                const startFormatted = startDate.replace(/\//g, '-');
+                const endFormatted = endDate.replace(/\//g, '-');
+                pdfTitle += ` من ${startFormatted} إلى ${endFormatted}`;
+            } else if (selectedYear) {
                 pdfTitle += ` ${selectedYear}`;
             }
 
@@ -1547,6 +1551,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
 
             if (isDownloadOnly && typeof html2pdf !== 'undefined') {
+                const overlay = document.getElementById('loadingOverlay');
+                const loadingOverlayText = document.getElementById('loadingOverlayText');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                    if (loadingOverlayText) {
+                        loadingOverlayText.innerText = 'جاري إنشاء وتحميل ملف الـ PDF...';
+                    }
+                }
+
+                // Temporarily bring printContainer into viewport behind overlay to prevent blank PDF
+                printContainer.style.position = 'fixed';
+                printContainer.style.top = '0';
+                printContainer.style.left = '0';
+                printContainer.style.width = '800px';
+                printContainer.style.zIndex = '9998';
+                printContainer.style.background = 'white';
+                printContainer.style.padding = '40px';
+                printContainer.style.direction = 'rtl';
+                printContainer.style.textAlign = 'right';
+
                 const opt = {
                     margin:       15,
                     filename:     pdfTitle.trim() + '.pdf',
@@ -1563,8 +1587,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }).catch(() => {});
 
                 html2pdf().set(opt).from(printContainer).save().then(() => {
+                    // Reset styling
+                    printContainer.style.position = '';
+                    printContainer.style.top = '';
+                    printContainer.style.left = '';
+                    printContainer.style.width = '';
+                    printContainer.style.zIndex = '';
+                    printContainer.style.background = '';
+                    printContainer.style.padding = '';
+                    printContainer.style.direction = '';
+                    printContainer.style.textAlign = '';
+                    
                     printContainer.innerHTML = '';
                     document.title = originalTitle;
+                    if (overlay) overlay.style.display = 'none';
                 });
             } else {
                 // Log the print event
