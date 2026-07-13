@@ -1451,7 +1451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnStatsPrintReport = document.getElementById('btnStatsPrintReport');
     const btnStatsDownloadPDF = document.getElementById('btnStatsDownloadPDF');
     
-    const triggerPrint = () => {
+    const triggerPrint = (isDownloadOnly = false) => {
         const startDate = document.getElementById('statsStartDate').textContent;
         const endDate = document.getElementById('statsEndDate').textContent;
         const reg = document.getElementById('statRegistered').textContent;
@@ -1538,17 +1538,40 @@ document.addEventListener('DOMContentLoaded', () => {
         })()}
     </div>
                 `;
-            window.print();
-            printContainer.innerHTML = '';
-            document.title = originalTitle;
+
+            if (isDownloadOnly && typeof html2pdf !== 'undefined') {
+                printContainer.style.display = 'block';
+                printContainer.style.position = 'absolute';
+                printContainer.style.left = '-9999px';
+                
+                const opt = {
+                    margin:       15,
+                    filename:     pdfTitle.trim() + '.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true, logging: false },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(printContainer).save().then(() => {
+                    printContainer.style.display = 'none';
+                    printContainer.style.position = '';
+                    printContainer.style.left = '';
+                    printContainer.innerHTML = '';
+                    document.title = originalTitle;
+                });
+            } else {
+                window.print();
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
+            }
         }
     };
 
     if (btnStatsPrintReport) {
-        btnStatsPrintReport.addEventListener('click', triggerPrint);
+        btnStatsPrintReport.addEventListener('click', () => triggerPrint(false));
     }
     if (btnStatsDownloadPDF) {
-        btnStatsDownloadPDF.addEventListener('click', triggerPrint);
+        btnStatsDownloadPDF.addEventListener('click', () => triggerPrint(true));
     }
 
     // --- Update Checker ---
