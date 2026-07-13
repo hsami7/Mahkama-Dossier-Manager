@@ -1560,48 +1560,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Temporarily bring printContainer into viewport behind overlay to prevent blank PDF
-                printContainer.style.position = 'fixed';
-                printContainer.style.top = '0';
-                printContainer.style.left = '0';
-                printContainer.style.width = '800px';
-                printContainer.style.zIndex = '9998';
-                printContainer.style.background = 'white';
-                printContainer.style.padding = '40px';
-                printContainer.style.direction = 'rtl';
-                printContainer.style.textAlign = 'right';
+                // Create a temporary clone div in the body so html2canvas can render it
+                const tempDiv = document.createElement('div');
+                tempDiv.id = 'pdfTempClone';
+                tempDiv.style.cssText = 'position:fixed;top:0;left:0;width:800px;z-index:9998;background:white;padding:40px;direction:rtl;text-align:right;font-family:Arial,sans-serif;';
+                tempDiv.innerHTML = printContainer.innerHTML;
+                document.body.appendChild(tempDiv);
 
-                const opt = {
-                    margin:       15,
-                    filename:     pdfTitle.trim() + '.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true, logging: false },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
+                // Small delay to let the browser paint the clone
+                setTimeout(() => {
+                    const opt = {
+                        margin:       15,
+                        filename:     pdfTitle.trim() + '.pdf',
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2, useCORS: true, logging: false },
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
 
-                // Log the download event
-                fetch('/api/log-client-event', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: `تحميل تقرير إحصائي كملف PDF: ${pdfTitle.trim()}` })
-                }).catch(() => {});
+                    // Log the download event
+                    fetch('/api/log-client-event', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: `تحميل تقرير إحصائي كملف PDF: ${pdfTitle.trim()}` })
+                    }).catch(() => {});
 
-                html2pdf().set(opt).from(printContainer).save().then(() => {
-                    // Reset styling
-                    printContainer.style.position = '';
-                    printContainer.style.top = '';
-                    printContainer.style.left = '';
-                    printContainer.style.width = '';
-                    printContainer.style.zIndex = '';
-                    printContainer.style.background = '';
-                    printContainer.style.padding = '';
-                    printContainer.style.direction = '';
-                    printContainer.style.textAlign = '';
-                    
-                    printContainer.innerHTML = '';
-                    document.title = originalTitle;
-                    if (overlay) overlay.style.display = 'none';
-                });
+                    html2pdf().set(opt).from(tempDiv).save().then(() => {
+                        tempDiv.remove();
+                        printContainer.innerHTML = '';
+                        document.title = originalTitle;
+                        if (overlay) overlay.style.display = 'none';
+                    }).catch(() => {
+                        tempDiv.remove();
+                        printContainer.innerHTML = '';
+                        document.title = originalTitle;
+                        if (overlay) overlay.style.display = 'none';
+                    });
+                }, 500);
             } else {
                 // Log the print event
                 fetch('/api/log-client-event', {
