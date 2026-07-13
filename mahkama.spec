@@ -17,7 +17,8 @@ a = Analysis(
         ('sync_stats.py', '.'),
         ('templates/*', 'templates/'),
         ('static/css/*', 'static/css/'),
-        ('static/js/*', 'static/js/')
+        ('static/js/*', 'static/js/'),
+        ('static/img/*', 'static/img/')
     ] + pw_datas,
     hiddenimports=['webview', 'flask', 'engine', 'sync_dossiers', 'sync_stats'] + pw_hiddenimports,
     hookspath=[],
