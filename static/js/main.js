@@ -1183,6 +1183,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Initialize flatpickr date pickers with dd/mm/yyyy formatting
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#statsStartDateInput", {
+            dateFormat: "d/m/Y",
+            allowInput: true
+        });
+        flatpickr("#statsEndDateInput", {
+            dateFormat: "d/m/Y",
+            allowInput: true
+        });
+    }
+
     let statsPollInterval = null;
     let lastStatsLogCount = 0;
 
