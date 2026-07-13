@@ -42,11 +42,15 @@ def parse_excel_date(date_val):
     except ValueError:
         return None
 
-def download_stats_files(target_year, output_dir="data/stats_downloads", debug=False, log_callback=None):
+def download_stats_files(target_year, output_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None):
     os.makedirs(output_dir, exist_ok=True)
     
-    # We need to download files for target_year down to 2024
-    years_to_download = [y for y in [2024, 2025, 2026] if y <= target_year]
+    if start_date and end_date:
+        start_year = start_date.year
+        end_year = end_date.year
+        years_to_download = [y for y in [2024, 2025, 2026] if start_year <= y <= end_year]
+    else:
+        years_to_download = [y for y in [2024, 2025, 2026] if y <= target_year]
     
     downloaded_files = {}
     registered_count_target = 0
@@ -220,7 +224,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         end_date = None
 
     # Step 1: Download files
-    files, registered = download_stats_files(target_year, download_dir, debug, log_callback)
+    files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date)
     
     if not files.get(target_year):
         raise Exception(f"تعذر تحميل ملف سنة {target_year} للحساب.")
