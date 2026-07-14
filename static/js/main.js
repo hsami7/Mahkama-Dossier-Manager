@@ -1508,7 +1508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 20px; margin-bottom: 20px; color: #000; text-decoration: underline;">
         نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
     </div>
-    <table style="width: 80%; margin: 0 auto; border-collapse: collapse; font-size: 1.25rem;">
+    <table style="width: 80%; margin: 120px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
                 <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 35%;">الحالة</th>
