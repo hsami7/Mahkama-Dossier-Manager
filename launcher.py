@@ -206,29 +206,39 @@ if __name__ == '__main__':
             if os.name == 'nt':
                 try:
                     import ctypes
-                    # Get native HWND from pywebview window
-                    hwnd = window.native.Handle
+                    import time
+                    # Give the window a moment to fully appear
+                    time.sleep(0.8)
                     
-                    # DWMWA_CAPTION_COLOR = 35
-                    # R=1E, G=3A, B=8A -> COLORREF is 0x008A3A1E
-                    caption_color = 0x008A3A1E
-                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                        hwnd,
-                        35,
-                        ctypes.byref(ctypes.c_int(caption_color)),
-                        ctypes.sizeof(ctypes.c_int)
-                    )
+                    # FindWindowW is more reliable than window.native.Handle in pywebview/edge mode
+                    # (window.native.Handle returns a .NET IntPtr, not a plain Python int)
+                    hwnd = ctypes.windll.user32.FindWindowW(None, 'إدارة ملفات المحاكم')
+                    if not hwnd:
+                        # Fallback: try converting native handle
+                        try:
+                            hwnd = int(window.native.Handle)
+                        except Exception:
+                            hwnd = 0
                     
-                    # DWMWA_TEXT_COLOR = 36
-                    # White text -> 0x00FFFFFF
-                    text_color = 0x00FFFFFF
-                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                        hwnd,
-                        36,
-                        ctypes.byref(ctypes.c_int(text_color)),
-                        ctypes.sizeof(ctypes.c_int)
-                    )
-                    log.debug('TITLEBAR_COLOR_APPLIED')
+                    if hwnd:
+                        # DWMWA_CAPTION_COLOR = 35
+                        # #1E3A8A -> COLORREF (0x00BBGGRR) = 0x008A3A1E
+                        caption_color = ctypes.c_int(0x008A3A1E)
+                        ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                            hwnd, 35,
+                            ctypes.byref(caption_color),
+                            ctypes.sizeof(caption_color)
+                        )
+                        # DWMWA_TEXT_COLOR = 36 — white
+                        text_color = ctypes.c_int(0x00FFFFFF)
+                        ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                            hwnd, 36,
+                            ctypes.byref(text_color),
+                            ctypes.sizeof(text_color)
+                        )
+                        log.debug(f'TITLEBAR_COLOR_APPLIED hwnd={hwnd}')
+                    else:
+                        log.debug('TITLEBAR_COLOR_SKIP: hwnd=0')
                 except Exception as ex:
                     log.debug(f'TITLEBAR_COLOR_FAILED: {ex}')
 

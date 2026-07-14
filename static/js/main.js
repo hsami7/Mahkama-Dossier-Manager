@@ -1939,27 +1939,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
             const filename = `تقرير_القضايا_${tabLabel.replace(/\s+/g, '_')}_${stamp}.xls`;
 
-            // Use server-side endpoint to trigger download — blob URLs don't work in pywebview/WebView2
+            // In pywebview/WebView2 neither blob URLs nor HTTP file responses trigger downloads.
+            // Flask writes the file directly to the user's Downloads folder and returns the path.
             fetch('/api/export-excel', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: excelTemplate, filename })
             })
-            .then(res => {
-                if (!res.ok) throw new Error('Export failed');
-                return res.blob();
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`);
+                } else {
+                    showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
+                }
             })
-            .then(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-            })
-            .catch(err => showAlert('فشل تصدير الملف: ' + err.message));
+            .catch(err => showAlert('❌ فشل تصدير الملف: ' + err.message));
         });
     }
     // --- Update Checker ---

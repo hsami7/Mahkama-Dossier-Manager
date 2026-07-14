@@ -730,8 +730,9 @@ def api_toggle_complete_bulk():
 
 @app.route('/api/export-excel', methods=['POST'])
 def api_export_excel():
-    """Receive Excel HTML content and return it as a downloadable .xls file.
-    This is needed because pywebview/WebView2 cannot handle blob URL downloads.
+    """Save Excel HTML content directly to the user's Downloads folder.
+    pywebview/WebView2 cannot handle blob URL downloads or HTTP file responses,
+    so we write the file on the server side and notify the user of the path.
     """
     try:
         data = request.get_json() or {}
@@ -740,16 +741,18 @@ def api_export_excel():
         if not html_content:
             return jsonify({'error': 'No content provided'}), 400
 
-        # Return the HTML as an application/vnd.ms-excel response
-        response = Response(
-            html_content.encode('utf-8-sig'),  # BOM for Excel RTL support
-            mimetype='application/vnd.ms-excel',
-            headers={
-                'Content-Disposition': f'attachment; filename="{filename}"',
-                'Content-Type': 'application/vnd.ms-excel; charset=utf-8',
-            }
-        )
-        return response
+        # Save directly to user's Downloads folder.
+        # pywebview/WebView2 cannot trigger file downloads via HTTP headers or blob URLs,
+        # so we write the file on the server side and return the path.
+        downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
+        os.makedirs(downloads_dir, exist_ok=True)
+        file_path = os.path.join(downloads_dir, filename)
+
+        # UTF-8 BOM (utf-8-sig) ensures Excel opens Arabic/RTL content correctly
+        with open(file_path, 'w', encoding='utf-8-sig') as f:
+            f.write(html_content)
+
+        return jsonify({'success': True, 'path': file_path})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
