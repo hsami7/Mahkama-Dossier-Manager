@@ -1,27 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Lato:wght@300;400;700&family=Tajawal:wght@300;400;500;700&display=swap');
+
 :root {
-    /* Brand Colors */
-    --mahakim-primary: #003566;
-    --mahakim-primary-hover: #002244;
-    --mahakim-accent: #ffbc2b;
-    --mahakim-accent-hover: #e0a31d;
-    --mahakim-text: #495057;
-    --mahakim-text-secondary: #6c757d;
+    /* Brand Colors - Trust & Authority (Navy & Gold) */
+    --mahakim-primary: #1E3A8A;
+    --mahakim-primary-hover: #1E40AF;
+    --mahakim-accent: #B45309;
+    --mahakim-accent-hover: #D97706;
+    --mahakim-text: #0F172A;
+    --mahakim-text-secondary: #475569;
     
     /* Surface / Backgrounds */
-    --mahakim-bg-ground: #eff3f8;
+    --mahakim-bg-ground: #F8FAFC;
     --mahakim-bg-surface: #ffffff;
-    --mahakim-border: #dfe7ef;
+    --mahakim-border: #E2E8F0;
     
     /* Fonts */
-    --mahakim-font-family: 'Roboto', 'DroidArabicKufi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --mahakim-font-family: 'Lato', 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mahakim-heading-font: 'EB Garamond', 'Tajawal', Georgia, serif;
     
     /* Urgency Row Colors */
-    --urgency-red-bg: rgba(220, 53, 69, 0.08);
-    --urgency-red-border: rgba(220, 53, 69, 0.2);
-    --urgency-orange-bg: rgba(255, 193, 7, 0.12);
-    --urgency-orange-border: rgba(255, 193, 7, 0.25);
-    --urgency-green-bg: rgba(40, 167, 69, 0.08);
-    --urgency-green-border: rgba(40, 167, 69, 0.15);
+    --urgency-red-bg: rgba(239, 68, 68, 0.06);
+    --urgency-red-border: rgba(239, 68, 68, 0.15);
+    --urgency-orange-bg: rgba(245, 158, 11, 0.08);
+    --urgency-orange-border: rgba(245, 158, 11, 0.2);
+    --urgency-green-bg: rgba(16, 185, 129, 0.06);
+    --urgency-green-border: rgba(16, 185, 129, 0.15);
 }
 
 /* Base Body Setup */
@@ -38,15 +41,16 @@ body {
     background-color: var(--mahakim-bg-ground);
     color: var(--mahakim-text);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Header Styling */
 .mahakim-header {
     background-color: var(--mahakim-primary);
     color: #ffffff;
-    padding: 15px 30px;
+    padding: 20px 40px;
     border-bottom: 4px solid var(--mahakim-accent);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
 }
 
 .header-container {
@@ -56,73 +60,114 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 20px;
 }
 
 .logo-area {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .logo-circle {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background-color: var(--mahakim-accent);
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background-color: #ffffff;
+    border: 2px solid var(--mahakim-accent);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.logo-circle:hover {
+    transform: rotate(5deg) scale(1.05);
 }
 
 .title-sub {
-    font-size: 0.8rem;
-    font-weight: bold;
+    font-family: var(--mahakim-heading-font);
+    font-size: 0.9rem;
+    font-weight: 700;
     color: #ffffff;
-    line-height: 1.2;
-    border-right: 2px solid rgba(255, 255, 255, 0.3);
-    padding-right: 10px;
+    line-height: 1.3;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+    padding-right: 12px;
 }
 
 .header-title {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-family: var(--mahakim-heading-font);
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
 }
 
 /* Main Layout */
 .mahakim-main {
     max-width: 1400px;
-    margin: 30px auto;
-    padding: 0 15px;
+    margin: 40px auto;
+    padding: 0 20px;
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 30px;
 }
 
 /* Card Styling */
 .section-card {
     background-color: var(--mahakim-bg-surface);
     border: 1px solid var(--mahakim-border);
-    border-radius: 8px;
-    padding: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.3s ease;
+}
+
+.section-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
 .section-card h2 {
-    font-size: 1.25rem;
+    font-family: var(--mahakim-heading-font);
+    font-size: 1.5rem;
     color: var(--mahakim-primary);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     border-bottom: 2px solid var(--mahakim-border);
-    padding-bottom: 8px;
+    padding-bottom: 10px;
 }
 
 .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--mahakim-text-secondary);
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+/* Landing Cards (Grid System) */
+.landing-card {
+    background: var(--mahakim-bg-surface) !important;
+    border: 1px solid var(--mahakim-border) !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.landing-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--mahakim-accent) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.landing-card h3 {
+    font-family: var(--mahakim-heading-font);
+    font-size: 1.3rem;
+    color: var(--mahakim-primary);
+    margin-top: 10px;
+    margin-bottom: 12px;
 }
 
 /* Inputs & Form Elements */
@@ -142,23 +187,27 @@ body {
 }
 
 .input-group label {
-    font-weight: bold;
+    font-weight: 600;
     font-size: 0.95rem;
+    color: var(--mahakim-text);
 }
 
 input[type="text"], select {
     width: 100%;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border: 1.5px solid var(--mahakim-border);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 1rem;
     background-color: #ffffff;
-    transition: border-color 0.2s;
+    color: var(--mahakim-text);
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
 }
 
 input[type="text"]:focus, select:focus {
     outline: none;
     border-color: var(--mahakim-primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
 }
 
 /* Button Styling */
@@ -166,64 +215,76 @@ input[type="text"]:focus, select:focus {
     background-color: var(--mahakim-primary);
     color: #ffffff;
     border: 1.5px solid var(--mahakim-primary);
-    border-radius: 6px;
-    padding: 10px 24px;
+    border-radius: 8px;
+    padding: 12px 28px;
     font-size: 1rem;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-mahakim:hover {
     background-color: var(--mahakim-primary-hover);
     border-color: var(--mahakim-primary-hover);
+    box-shadow: 0 4px 6px rgba(30, 58, 138, 0.15);
 }
 
 .btn-settings-trigger {
     background-color: var(--mahakim-accent);
-    color: var(--mahakim-primary);
+    color: #ffffff;
     border-color: var(--mahakim-accent);
 }
 
 .btn-settings-trigger:hover {
     background-color: var(--mahakim-accent-hover);
     border-color: var(--mahakim-accent-hover);
-    color: var(--mahakim-primary);
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(180, 83, 9, 0.15);
 }
 
 .btn-secondary {
-    background-color: #f1f3f5;
-    color: #495057;
-    border: 1.5px solid #dee2e6;
-    border-radius: 6px;
-    padding: 10px 24px;
+    background-color: #F1F5F9;
+    color: #334155;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 12px 28px;
     font-size: 1rem;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-secondary:hover {
-    background-color: #e9ecef;
+    background-color: #E2E8F0;
 }
 
 /* Warnings and Alerts */
 .warnings-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .warning-alert {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-    padding: 12px 20px;
-    border-radius: 6px;
+    background-color: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FCD34D;
+    padding: 16px 24px;
+    border-radius: 8px;
     font-size: 0.95rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 /* Table Card Layout */
@@ -231,11 +292,11 @@ input[type="text"]:focus, select:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     border-bottom: 2px solid var(--mahakim-border);
-    padding-bottom: 10px;
+    padding-bottom: 15px;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 20px;
 }
 
 .table-header h2 {
@@ -247,42 +308,55 @@ input[type="text"]:focus, select:focus {
 .table-controls {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .dossier-count {
-    background-color: #f1f3f5;
-    padding: 6px 12px;
+    background-color: #F1F5F9;
+    padding: 8px 16px;
     border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--mahakim-primary);
+    border: 1px solid var(--mahakim-border);
 }
 
 .table-wrapper {
     overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--mahakim-border);
+    background: #ffffff;
 }
 
 /* Dossiers Table */
 .dossiers-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 0;
     font-size: 0.95rem;
 }
 
 .dossiers-table th {
-    background-color: #f8f9fa;
+    background-color: #F8FAFC;
     border-bottom: 2px solid var(--mahakim-border);
-    padding: 12px;
-    font-weight: bold;
+    padding: 16px;
+    font-weight: 600;
     text-align: right;
     color: var(--mahakim-primary);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
 }
 
 .dossiers-table td {
-    padding: 12px;
+    padding: 16px;
     border-bottom: 1px solid var(--mahakim-border);
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+}
+
+.dossiers-table tbody tr:hover {
+    background-color: #F8FAFC;
 }
 
 /* Urgency Color-coded Row Styles */
@@ -309,38 +383,44 @@ input[type="text"]:focus, select:focus {
 
 /* Urgency Badges */
 .badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 9999px;
     font-size: 0.8rem;
-    font-weight: bold;
+    font-weight: 600;
     text-align: center;
+    border: 1px solid transparent;
 }
 
 .badge-red {
-    background-color: #dc3545;
-    color: #ffffff;
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border-color: #FCA5A5;
 }
 
 .badge-orange {
-    background-color: #ffc107;
-    color: #212529;
+    background-color: #FEF3C7;
+    color: #92400E;
+    border-color: #FCD34D;
 }
 
 .badge-green {
-    background-color: #28a745;
-    color: #ffffff;
+    background-color: #D1FAE5;
+    color: #065F46;
+    border-color: #6EE7B7;
 }
 
 /* Skeleton Loading Animation */
 @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.8; }
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.9; }
 }
 
 .skeleton-row td {
-    background-color: #e9ecef;
-    height: 45px;
+    background-color: #F1F5F9;
+    height: 55px;
     animation: pulse 1.5s infinite ease-in-out;
 }
 
@@ -350,7 +430,7 @@ input[type="text"]:focus, select:focus {
     color: var(--mahakim-text-secondary);
     animation: none !important;
     background-color: transparent !important;
-    padding: 40px !important;
+    padding: 60px !important;
 }
 
 /* Modal Overlay & Card */
@@ -360,40 +440,42 @@ input[type="text"]:focus, select:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(15, 23, 42, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
 }
 
 .mahakim-modal {
     background-color: var(--mahakim-bg-surface);
-    border-radius: 8px;
+    border-radius: 16px;
     width: 90%;
     max-width: 800px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid var(--mahakim-border);
 }
 
 @keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
+    from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
     background-color: var(--mahakim-primary);
     color: #ffffff;
-    padding: 20px;
+    padding: 24px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
+    border-bottom: 2px solid var(--mahakim-accent);
 }
 
 .modal-header h3 {
@@ -522,27 +604,37 @@ input[type="text"]:focus, select:focus {
 }
 
 .tab-btn {
-    background-color: #f1f3f5;
-    color: var(--mahakim-text);
-    border: 1.5px solid #dee2e6;
-    border-radius: 6px;
+    background-color: #F1F5F9;
+    color: var(--mahakim-text-secondary);
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
     padding: 10px 24px;
     font-size: 0.95rem;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .tab-btn:hover {
-    background-color: #e9ecef;
+    background-color: #E2E8F0;
+    color: var(--mahakim-text);
 }
 
 .tab-btn.active {
     background-color: var(--mahakim-primary);
     color: #ffffff;
     border-color: var(--mahakim-primary);
+    box-shadow: 0 4px 6px rgba(30, 58, 138, 0.15);
 }
+
+/* Conditional visibility for search icon based on sibling input state */
+#tableSearch[style*="display: block"] ~ #searchIcon,
+#tableSearch[style*="display: inline"] ~ #searchIcon,
+#tableSearch[style*="display: inline-block"] ~ #searchIcon {
+    display: block !important;
+}
+
 
