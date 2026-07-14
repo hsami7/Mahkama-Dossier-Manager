@@ -1550,7 +1550,14 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
                 `;
 
-            if (isDownloadOnly && typeof html2pdf !== 'undefined') {
+            if (isDownloadOnly) {
+                // Log the download event
+                fetch('/api/log-client-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `تحميل تقرير إحصائي كملف PDF: ${pdfTitle.trim()}` })
+                }).catch(() => {});
+
                 const overlay = document.getElementById('loadingOverlay');
                 const loadingOverlayText = document.getElementById('loadingOverlayText');
                 if (overlay) {
@@ -1560,42 +1567,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Create a temporary clone div in the body so html2canvas can render it
-                const tempDiv = document.createElement('div');
-                tempDiv.id = 'pdfTempClone';
-                tempDiv.style.cssText = 'position:fixed;top:0;left:0;width:800px;z-index:9998;background:white;padding:40px;direction:rtl;text-align:right;font-family:Arial,sans-serif;';
-                tempDiv.innerHTML = printContainer.innerHTML;
-                document.body.appendChild(tempDiv);
+                // Send request to server-side endpoint
+                fetch('/api/download-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        startDate,
+                        endDate,
+                        reg,
+                        act,
+                        comp,
+                        cls,
+                        rem,
+                        pdfTitle: pdfTitle.trim()
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (overlay) overlay.style.display = 'none';
+                    if (data.success) {
+                        showAlert(`تم إنشاء تقرير HTML وفتحه بنجاح في متصفحك الافتراضي! 🚀\n\nتم حفظ الملف في: ${data.path}\n\nيمكنك الآن حفظه كـ PDF عبر خيار الطباعة (Ctrl+P) بالمتصفح.`);
+                    } else {
+                        showAlert(`فشل في إنشاء التقرير: ${data.error}`);
+                    }
+                })
+                .catch(err => {
+                    if (overlay) overlay.style.display = 'none';
+                    showAlert(`حدث خطأ أثناء الاتصال بالخادم: ${err}`);
+                });
 
-                // Small delay to let the browser paint the clone
-                setTimeout(() => {
-                    const opt = {
-                        margin:       15,
-                        filename:     pdfTitle.trim() + '.pdf',
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, logging: false },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
-
-                    // Log the download event
-                    fetch('/api/log-client-event', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: `تحميل تقرير إحصائي كملف PDF: ${pdfTitle.trim()}` })
-                    }).catch(() => {});
-
-                    html2pdf().set(opt).from(tempDiv).save().then(() => {
-                        tempDiv.remove();
-                        printContainer.innerHTML = '';
-                        document.title = originalTitle;
-                        if (overlay) overlay.style.display = 'none';
-                    }).catch(() => {
-                        tempDiv.remove();
-                        printContainer.innerHTML = '';
-                        document.title = originalTitle;
-                        if (overlay) overlay.style.display = 'none';
-                    });
-                }, 500);
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
             } else {
                 // Log the print event
                 fetch('/api/log-client-event', {
