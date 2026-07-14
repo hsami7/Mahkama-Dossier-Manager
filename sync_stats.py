@@ -277,6 +277,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         munjaz = 0
         muglaq = 0
         
+        durations = []
         for r in filtered_rows:
             reg_date = parse_excel_date(r.get('D'))
             res_date = parse_excel_date(r.get('K'))
@@ -293,9 +294,16 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             # Closed in period
             if res_date and start_date <= res_date <= end_date and "مغلق" in status:
                 muglaq += 1
+
+            # Duration for resolved dossiers
+            if reg_date and res_date and start_date <= res_date <= end_date and ("منجز" in status or "مغلق" in status):
+                diff = (res_date - reg_date).days
+                if diff >= 0:
+                    durations.append(diff)
                 
         active = len(filtered_rows)
         remaining = active - (munjaz + muglaq)
+        avg_duration = round(sum(durations) / len(durations)) if durations else 0
         start_date_str = start_date.strftime('%d/%m/%Y')
         end_date_str = end_date.strftime('%d/%m/%Y')
     else:
@@ -392,11 +400,43 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
                 
         end_date_str = max(newest_dates).strftime('%d/%m/%Y') if newest_dates else f"31/12/{target_year}"
 
+        # Calculate average duration for target year
+        durations = []
+        for r in target_rows:
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                continue
+            reg_date = parse_excel_date(r.get('D'))
+            res_date = parse_excel_date(r.get('K'))
+            status = str(r.get('J') or '').strip()
+            if reg_date and res_date and ("منجز" in status or "مغلق" in status):
+                diff = (res_date - reg_date).days
+                if diff >= 0:
+                    durations.append(diff)
+                    
+        for yr, rows in prior_files_rows.items():
+            for r in rows:
+                code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+                if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
+                    continue
+                dt_yr = get_row_date_year(r)
+                if dt_yr == target_year:
+                    reg_date = parse_excel_date(r.get('D'))
+                    res_date = parse_excel_date(r.get('K'))
+                    status = str(r.get('J') or '').strip()
+                    if reg_date and res_date and ("منجز" in status or "مغلق" in status):
+                        diff = (res_date - reg_date).days
+                        if diff >= 0:
+                            durations.append(diff)
+                            
+        avg_duration = round(sum(durations) / len(durations)) if durations else 0
+
     log_msg(f"[+] Total Registered (المسجل): {registered}", log_callback)
     log_msg(f"[+] Total Active (الرائج): {active}", log_callback)
     log_msg(f"[+] Total Completed (المنجز): {munjaz}", log_callback)
     log_msg(f"[+] Total Closed (المغلق): {muglaq}", log_callback)
     log_msg(f"[+] Total Remaining (الباقي): {remaining}", log_callback)
+    log_msg(f"[+] Average Duration (متوسط المدة): {avg_duration} days", log_callback)
     log_msg(f"[+] Date Range: {start_date_str} to {end_date_str}", log_callback)
     
     return {
@@ -405,6 +445,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         "completed": munjaz,
         "closed": muglaq,
         "remaining": remaining,
+        "avg_duration": avg_duration,
         "start_date": start_date_str,
         "end_date": end_date_str
     }

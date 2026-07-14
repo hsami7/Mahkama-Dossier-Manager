@@ -1284,6 +1284,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('statCompleted').textContent = data.result.completed;
                         document.getElementById('statClosed').textContent = data.result.closed;
                         document.getElementById('statRemaining').textContent = data.result.remaining;
+                        const avgDays = data.result.avg_duration !== undefined ? data.result.avg_duration : 0;
+                        const avgTimeEl = document.getElementById('statAverageTime');
+                        if (avgTimeEl) {
+                            avgTimeEl.textContent = avgDays + ' يوم';
+                        }
                         
                         document.getElementById('statsStartDate').textContent = data.result.start_date || '--';
                         document.getElementById('statsEndDate').textContent = data.result.end_date || '--';
@@ -1422,13 +1427,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const comp = document.getElementById('statCompleted').textContent;
             const cls = document.getElementById('statClosed').textContent;
             const rem = document.getElementById('statRemaining').textContent;
+            const avgTime = document.getElementById('statAverageTime') ? document.getElementById('statAverageTime').textContent : '0 يوم';
             
             const reportText = `تقرير إحصائيات مكتب الخبرة لسنة ${year}:\n` +
                                `- المسجل: ${reg}\n` +
                                `- الرائج: ${act}\n` +
                                `- المنجز: ${comp}\n` +
                                `- المغلق: ${cls}\n` +
-                               `- الباقي دون إنجاز: ${rem}`;
+                               `- الباقي دون إنجاز: ${rem}\n` +
+                               `- متوسط مدة الإنجاز: ${avgTime}`;
                                
             // Log the copy event
             fetch('/api/log-client-event', {
@@ -1465,6 +1472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const comp = document.getElementById('statCompleted').textContent;
         const cls = document.getElementById('statClosed').textContent;
         const rem = document.getElementById('statRemaining').textContent;
+        const avgTime = document.getElementById('statAverageTime') ? document.getElementById('statAverageTime').textContent : '0 يوم';
 
         const printContainer = document.getElementById('printContainer');
         if (printContainer) {
@@ -1535,6 +1543,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
                 <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي دون إنجاز</strong></td>
                 <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${rem}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #e9d5ff; color: #581c87;"><strong>متوسط مدة الإنجاز</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #faf5ff; font-weight: bold; color: #581c87;">${avgTime}</td>
             </tr>
         </tbody>
     </table>
