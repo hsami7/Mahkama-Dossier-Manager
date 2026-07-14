@@ -943,10 +943,12 @@ document.addEventListener('DOMContentLoaded', () => {
         lastLogCount = 0;
         if (liveSyncLogs) {
             liveSyncLogs.innerHTML = '';
-            liveSyncLogs.style.display = 'block';
+            liveSyncLogs.style.display = 'none';
         }
         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
-        if (btnMinimizeLiveLogs) btnMinimizeLiveLogs.innerText = '⬇️ إخفاء التفاصيل';
+        if (btnMinimizeLiveLogs) {
+            btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
+        }
         
         pollInterval = setInterval(async () => {
             try {
@@ -1149,10 +1151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btnMinimizeLiveLogs.addEventListener('click', () => {
             if (liveSyncLogs.style.display === 'none') {
                 liveSyncLogs.style.display = 'block';
-                btnMinimizeLiveLogs.innerText = '⬇️ إخفاء التفاصيل';
+                btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m17 14-5-5-5 5"/></svg> إخفاء التفاصيل`;
             } else {
                 liveSyncLogs.style.display = 'none';
-                btnMinimizeLiveLogs.innerText = '⬆️ عرض التفاصيل';
+                btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
             }
         });
     }
@@ -1227,10 +1229,12 @@ document.addEventListener('DOMContentLoaded', () => {
         lastStatsLogCount = 0;
         if (liveSyncLogs) {
             liveSyncLogs.innerHTML = '';
-            liveSyncLogs.style.display = 'block';
+            liveSyncLogs.style.display = 'none';
         }
         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
-        if (btnMinimizeLiveLogs) btnMinimizeLiveLogs.innerText = '⬇️ إخفاء التفاصيل';
+        if (btnMinimizeLiveLogs) {
+            btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
+        }
         
         statsPollInterval = setInterval(async () => {
             try {
