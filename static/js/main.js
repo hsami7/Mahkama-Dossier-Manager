@@ -71,6 +71,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingOverlayText) {
                 loadingOverlayText.innerText = 'جاري إلغاء وإيقاف العملية، يرجى الانتظار...';
             }
+
+            // Instantly cancel any active polling loops
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            if (statsPollInterval) {
+                clearInterval(statsPollInterval);
+                statsPollInterval = null;
+            }
+
+            // Reset frontend state & hide overlays immediately
+            operationRunning = false;
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+            if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
+
+            // Reset triggers to original text & enabled status
+            const btnAutoSync = document.getElementById('btnAutoSync');
+            if (btnAutoSync) {
+                btnAutoSync.disabled = false;
+                btnAutoSync.innerText = 'سحب السجلات الآن';
+            }
+            const btnCalculateStats = document.getElementById('btnCalculateStats');
+            if (btnCalculateStats) {
+                btnCalculateStats.disabled = false;
+                btnCalculateStats.innerText = 'بدء العمل';
+            }
+
             try {
                 await fetch('/api/abort', { method: 'POST' });
             } catch (err) {
