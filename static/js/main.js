@@ -1472,7 +1472,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const comp = document.getElementById('statCompleted').textContent;
         const cls = document.getElementById('statClosed').textContent;
         const rem = document.getElementById('statRemaining').textContent;
-        const avgTime = document.getElementById('statAverageTime') ? document.getElementById('statAverageTime').textContent : '0 يوم';
 
         const printContainer = document.getElementById('printContainer');
         if (printContainer) {
@@ -1543,10 +1542,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
                 <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي دون إنجاز</strong></td>
                 <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${rem}</td>
-            </tr>
-            <tr>
-                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #e9d5ff; color: #581c87;"><strong>متوسط مدة الإنجاز</strong></td>
-                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #faf5ff; font-weight: bold; color: #581c87;">${avgTime}</td>
             </tr>
         </tbody>
     </table>
