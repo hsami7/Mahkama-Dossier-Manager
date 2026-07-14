@@ -1490,8 +1490,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const logoCircleImg = document.querySelector('.logo-circle img');
             printContainer.innerHTML = `
-    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
-        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 1.6;">
+    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 50px; padding-bottom: 12px; margin-bottom: 20px;">
+        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
             المملكة المغربية<br>
             وزارة العدل<br>
             محكمة الاستئناف الادارية فاس
@@ -1499,13 +1499,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="middle-header" style="text-align: center; padding: 0 20px;">
             <img src="/static/img/Picture1.png" style="height: 80px; width: auto; object-fit: contain;">
         </div>
-        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 1.5; font-family: 'Ebrima', sans-serif;">
+        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 2.1; font-family: 'Ebrima', sans-serif;">
             ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>
             ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>
             ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
         </div>
     </div>
-    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 20px; margin-bottom: 20px; color: #000; text-decoration: underline;">
+    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 60px; margin-bottom: 20px; color: #000; text-decoration: underline;">
         نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
     </div>
     <table style="width: 80%; margin: 120px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
@@ -1556,9 +1556,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ message: `طباعة تقرير إحصائي: ${pdfTitle.trim()}` })
             }).catch(() => {});
 
-            window.print();
-            printContainer.innerHTML = '';
-            document.title = originalTitle;
+            // Wait for the logo image to finish loading so it appears in the print view
+            const printImg = printContainer.querySelector('img');
+            const doPrint = () => {
+                window.print();
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
+            };
+
+            if (printImg && !printImg.complete) {
+                printImg.onload = doPrint;
+                printImg.onerror = doPrint;
+            } else {
+                setTimeout(doPrint, 250);
+            }
         }
     };
 
