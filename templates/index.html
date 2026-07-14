@@ -210,11 +210,21 @@
         <!-- لوحة التحكم وجدول الملفات الرئيسي -->
         <section class="section-card dossiers-table-card" id="dashboardSection" style="display: none;">
             <!-- Breadcrumb Navigation -->
-            <div class="breadcrumb-nav" style="margin-bottom: 20px; border-bottom: 1px solid var(--mahakim-border); padding-bottom: 12px;">
+            <div class="breadcrumb-nav" style="margin-bottom: 20px; border-bottom: 1px solid var(--mahakim-border); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-breadcrumb" id="btnReturnHome">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     العودة لخيارات جلب السجلات
                 </button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-mahakim" id="btnPrintTableAuto" title="طباعة الجلب التلقائي (الذكي)" style="background: linear-gradient(135deg, #1e40af, #3b82f6); border-color: #1e40af; padding: 8px 16px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px; box-shadow: 0 2px 8px rgba(59,130,246,0.3); transition: all 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect width="12" height="8" x="6" y="14" rx="1" ry="1"/></svg>
+                        طباعة الجلب التلقائي
+                    </button>
+                    <button class="btn-mahakim" id="btnPrintTableManual" title="طباعة الرفع اليدوي" style="background: linear-gradient(135deg, #065f46, #10b981); border-color: #065f46; padding: 8px 16px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px; box-shadow: 0 2px 8px rgba(16,185,129,0.3); transition: all 0.2s;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect width="12" height="8" x="6" y="14" rx="1" ry="1"/></svg>
+                        طباعة الرفع اليدوي
+                    </button>
+                </div>
             </div>
 
             <div class="table-header" style="border-bottom: 2px solid var(--mahakim-border); padding-bottom: 15px; margin-bottom: 20px;">
@@ -281,15 +291,14 @@
                 <table class="dossiers-table" id="dossiersTable">
                     <thead>
                         <tr>
-                            <th>رقم الملف</th>
                             <th>الرمز الكامل للملف</th>
-                            <th>الفئة</th>
-                            <th>حالة الملف</th>
+                            <th>المستشار المقرر</th>
+                            <th>درجة الاستعجال</th>
+                            <th>الأيام المتبقية</th>
                             <th>تاريخ التسجيل</th>
                             <th>تاريخ انتهاء الأجل</th>
-                            <th>الأيام المتبقية</th>
-                            <th>درجة الاستعجال</th>
-                            <th>المقرر (القاضي)</th>
+                            <th>حالة الملف</th>
+                            <th>الفئة</th>
                             <th>المستأنف</th>
                             <th>المستأنف عليه</th>
                             <th>نوع القضية</th>
@@ -298,11 +307,11 @@
                     <tbody id="dossiersTableBody">
                         <!-- هيكل الجدول الفارغ الافتراضي (Skeleton Loading Placeholder) -->
                         <tr class="skeleton-row">
-                            <td colspan="12" class="skeleton-placeholder">يرجى إدخال مسار المجلد لبدء المعالجة</td>
+                            <td colspan="11" class="skeleton-placeholder">يرجى إدخال مسار المجلد لبدء المعالجة</td>
                         </tr>
-                        <tr class="skeleton-row"><td colspan="12"></td></tr>
-                        <tr class="skeleton-row"><td colspan="12"></td></tr>
-                        <tr class="skeleton-row"><td colspan="12"></td></tr>
+                        <tr class="skeleton-row"><td colspan="11"></td></tr>
+                        <tr class="skeleton-row"><td colspan="11"></td></tr>
+                        <tr class="skeleton-row"><td colspan="11"></td></tr>
                     </tbody>
                 </table>
             </div>

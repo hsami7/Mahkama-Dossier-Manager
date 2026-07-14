@@ -79,6 +79,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Helper: reset operation UI before starting a new run
+    function resetOperationUI(overlayText) {
+        operationRunning = true;
+        if (liveSyncLogs) {
+            liveSyncLogs.innerHTML = '';
+            liveSyncLogs.style.display = 'none';
+        }
+        if (liveSyncLogsWrapper) {
+            liveSyncLogsWrapper.style.display = 'none';
+        }
+        lastLogCount = 0;
+        if (btnAbortOperation) {
+            btnAbortOperation.disabled = false;
+            btnAbortOperation.innerText = 'إلغاء وإيقاف العملية الجارية';
+        }
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            if (loadingOverlayText) loadingOverlayText.innerText = overlayText;
+        }
+    }
+
     // --- LocalStorage Recent Paths ---
     function loadRecentPaths() {
         const paths = JSON.parse(localStorage.getItem('recent_paths') || '[]');
@@ -145,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dossiers.length === 0) {
             const tr = document.createElement('tr');
             const td = document.createElement('td');
-            td.colSpan = 12;
+            td.colSpan = 11;
             td.style.textAlign = 'center';
             td.style.padding = '30px';
             td.style.color = '#6c757d';
@@ -176,20 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (dos.color === 'orange') badgeClass = 'badge-orange';
 
             tr.innerHTML = `
-                <td><strong>${dos.number}</strong></td>
                 <td><span class="badge ${badgeClass}">${dos.full_code}</span></td>
-                <td>${dos.category}</td>
+                <td>${dos.judge || 'غير معين'}</td>
+                <td>${dos.urgency_text}</td>
+                <td><span dir="ltr" style="display: inline-block;">${dos.days_remaining === 9999 ? 'غير محدد' : dos.days_remaining}</span></td>
+                <td>${dos.reg_date}</td>
+                <td>${dos.expiry_date}</td>
                 <td>
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; margin: 0;">
                         <input type="checkbox" class="toggle-complete-checkbox" data-filepath="${dos.file_path}" data-fullcode="${dos.full_code}" ${dos.completed ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px;">
-                        <span style="font-weight: bold; color: ${dos.completed ? 'var(--mahakim-text-secondary)' : 'var(--mahakim-primary)'};">${dos.completed ? '✔️ مكتمل' : '⏳ معلق'}</span>
+                        <span style="font-weight: bold; color: ${dos.completed ? 'var(--mahakim-text-secondary)' : 'var(--mahakim-primary)'}">${dos.completed ? '✔️ مكتمل' : '⏳ معلق'}</span>
                     </label>
                 </td>
-                <td>${dos.reg_date}</td>
-                <td>${dos.expiry_date}</td>
-                <td><span dir="ltr" style="display: inline-block;">${dos.days_remaining === 9999 ? 'غير محدد' : dos.days_remaining}</span></td>
-                <td>${dos.urgency_text}</td>
-                <td>${dos.judge || 'غير معين'}</td>
+                <td>${dos.category}</td>
                 <td style="max-width: 200px;" title="${dos.appellant || ''}"><div class="truncate-text">${dos.appellant || '-'}</div></td>
                 <td style="max-width: 200px;" title="${dos.appellee || ''}"><div class="truncate-text">${dos.appellee || '-'}</div></td>
                 <td>${dos.case_type || '-'}</td>
@@ -1020,23 +1041,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            operationRunning = true;
-            if (btnAbortOperation) {
-                btnAbortOperation.disabled = false;
-                btnAbortOperation.innerText = '🛑 إلغاء وإيقاف العملية جارية';
-            }
-            
             btnAutoSync.disabled = true;
             const originalText = btnAutoSync.innerText;
             btnAutoSync.innerText = 'جاري المزامنة...';
 
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.style.display = 'flex';
-                if (loadingOverlayText) {
-                    loadingOverlayText.innerText = 'جاري المزامنة مع بوابة المحاكم تلقائياً...';
-                }
-            }
+            resetOperationUI('جاري المزامنة مع بوابة المحاكم تلقائياً...');
             
             try {
                 const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
@@ -1358,23 +1367,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayTitle = 'فترة مخصصة';
             }
             
-            operationRunning = true;
-            if (btnAbortOperation) {
-                btnAbortOperation.disabled = false;
-                btnAbortOperation.innerText = '🛑 إلغاء وإيقاف العملية جارية';
-            }
-            
             btnCalculateStats.disabled = true;
             const originalText = btnCalculateStats.innerText;
             btnCalculateStats.innerText = 'جاري الاحتساب...';
             
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.style.display = 'flex';
-                if (loadingOverlayText) {
-                    loadingOverlayText.innerText = 'جاري الاتصال وسحب الملفات واحتساب إحصائيات الخبرة...';
-                }
-            }
+            resetOperationUI('جاري الاتصال وسحب الملفات واحتساب إحصائيات الخبرة...');
             
             try {
                 const res = await fetch('/api/calculate-stats', {
@@ -1587,6 +1584,182 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnStatsPrintReport) {
         btnStatsPrintReport.addEventListener('click', () => triggerPrint());
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Smart Table Print — prints only the currently filtered rows
+    // (respects active tab + all search/filter state)
+    // ui-ux-pro-max placement: summary stats block BETWEEN letterhead
+    // and table — gives reader instant context before scanning rows.
+    // ─────────────────────────────────────────────────────────────
+    function triggerTablePrint(printLabel) {
+        const rows = Array.from(dossiersTableBody.querySelectorAll('tr:not(.skeleton-row)'));
+        if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) {
+            showAlert('\u0644\u0627 \u062a\u0648\u062c\u062f \u0628\u064a\u0627\u0646\u0627\u062a \u0644\u0637\u0628\u0627\u0639\u062a\u0647\u0627. \u0642\u0645 \u0628\u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0633\u062c\u0644\u0627\u062a \u0623\u0648 \u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0641\u0644\u0627\u062a\u0631 \u0623\u0648\u0644\u0627\u064b.');
+            return;
+        }
+
+        // Count rows per urgency colour (from row class)
+        let redCount = 0, orangeCount = 0, greenCount = 0, completedCount = 0;
+        rows.forEach(row => {
+            if (row.classList.contains('row-red'))       redCount++;
+            else if (row.classList.contains('row-orange')) orangeCount++;
+            else if (row.classList.contains('row-green'))  greenCount++;
+            else if (row.classList.contains('row-completed')) completedCount++;
+        });
+        const totalPrinted = rows.length;
+
+        const now = new Date();
+        const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+        const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u0645\u0646\u062c\u0632\u0629';
+
+        // Build table rows for print using currently rendered cell text content
+        // Column order: الرمز الكامل | المستشار المقرر | درجة الاستعجال | الأيام المتبقية | تاريخ التسجيل | تاريخ انتهاء الأجل
+        // Rendered cell indices (after reorder): 0=full_code, 1=judge, 2=urgency, 3=days, 4=reg_date, 5=expiry_date
+        let tableRowsHtml = '';
+        rows.forEach((row, idx) => {
+            const cells = row.querySelectorAll('td');
+            if (!cells || cells.length < 6) return;
+
+            const fullCode = cells[0] ? cells[0].innerText.trim() : '-';
+            const judge    = cells[1] ? cells[1].innerText.trim() : '-';
+            const urgency  = cells[2] ? cells[2].innerText.trim() : '-';
+            const days     = cells[3] ? cells[3].innerText.trim() : '-';
+            const regDate  = cells[4] ? cells[4].innerText.trim() : '-';
+            const expDate  = cells[5] ? cells[5].innerText.trim() : '-';
+
+            let urgColor = '#16a34a';
+            if (row.classList.contains('row-red'))    urgColor = '#dc2626';
+            if (row.classList.contains('row-orange')) urgColor = '#d97706';
+
+            let rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+            if (row.classList.contains('row-red'))       rowBg = '#fff1f2';
+            if (row.classList.contains('row-orange'))    rowBg = '#fffbeb';
+            if (row.classList.contains('row-green'))     rowBg = '#f0fdf4';
+            if (row.classList.contains('row-completed')) rowBg = '#f1f5f9';
+
+            tableRowsHtml += `
+                <tr style="background:${rowBg};">
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;font-weight:700;text-align:center;">${fullCode}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${judge}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;color:${urgColor};font-weight:700;">${urgency}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;direction:ltr;">${days}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${regDate}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${expDate}</td>
+                </tr>`;
+        });
+
+        // Build urgency summary badges for the stats block (ui-ux-pro-max: between header & table)
+        let urgencySummary = '';
+        if (currentTab === 'pending') {
+            urgencySummary = `
+                <span style="display:inline-flex;align-items:center;gap:5px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:4px 12px;font-weight:700;color:#dc2626;">
+                    \u2022 \u0639\u0627\u062c\u0644 \u062c\u062f\u0627\u064b: ${redCount}
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:5px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:4px 12px;font-weight:700;color:#d97706;">
+                    \u2022 \u0645\u062a\u0648\u0633\u0637: ${orangeCount}
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:4px 12px;font-weight:700;color:#16a34a;">
+                    \u2022 \u0622\u0645\u0646: ${greenCount}
+                </span>`;
+        } else {
+            urgencySummary = `<span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:4px 12px;font-weight:700;color:#475569;">\u2022 \u0645\u0646\u062c\u0632: ${completedCount}</span>`;
+        }
+
+        const printContainer = document.getElementById('printContainer');
+        if (!printContainer) return;
+
+        const originalTitle = document.title;
+        document.title = `\u0625\u062f\u0627\u0631\u0629 \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u0643\u0645 - ${printLabel} - ${tabLabel} - ${dateStr}`;
+
+        printContainer.innerHTML = `
+            <div style="direction:rtl;font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:28px 36px;color:#0f172a;background:#fff;">
+
+                <!-- Letterhead -->
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:10px;margin-bottom:16px;">
+                    <div style="text-align:right;font-size:0.88rem;font-weight:700;line-height:1.9;">
+                        \u0627\u0644\u0645\u0645\u0644\u0643\u0629 \u0627\u0644\u0645\u063a\u0631\u0628\u064a\u0629<br>
+                        \u0648\u0632\u0627\u0631\u0629 \u0627\u0644\u0639\u062f\u0644<br>
+                        \u0645\u062d\u0643\u0645\u0629 \u0627\u0644\u0627\u0633\u062a\u0626\u0646\u0627\u0641 \u0627\u0644\u0627\u062f\u0627\u0631\u064a\u0629 \u0641\u0627\u0633
+                    </div>
+                    <div style="text-align:center;padding:0 16px;">
+                        <img src="/static/img/Picture1.png" style="height:62px;width:auto;object-fit:contain;">
+                    </div>
+                    <div style="text-align:left;font-size:0.75rem;font-weight:700;line-height:1.9;font-family:'Ebrima',sans-serif;direction:ltr;">
+                        \u2b35\u2d30\u2d33\u2d4d\u2d37\u2d49\u2d4f \u2d4f \u2d4d\u2d4e\u2d56\u2d54\u2d49\u2d31<br>
+                        \u2b35\u2d30\u2d4e\u2d30\u2d61\u2d59\u2d4f \u2d4f \u2d4b\u2d44\u2d37\u2d4d\u2d4f<br>
+                        \u2b35\u2d30\u2d59\u2d4f\u2d31\u2d39\u2d30\u2d62\u2d4f \u2d4f \u2d61\u2d30\u2d4d\u2d30\u2d59 \u2b35\u2d30\u2d4e\u2d59\u2d59\u2d53\u2d33\u2d53\u2d54\u2d4f \u2d37\u2d49 \u2d3c\u2d30\u2d59
+                    </div>
+                </div>
+
+                <!-- Report title -->
+                <div style="text-align:center;margin-bottom:14px;">
+                    <h2 style="font-size:1.1rem;font-weight:700;color:#1e3a8a;margin:0 0 3px 0;text-decoration:underline;">${printLabel} &mdash; ${tabLabel}</h2>
+                    <div style="font-size:0.82rem;color:#64748b;">\u062d\u0631\u0631 \u0641\u064a: ${dateStr}</div>
+                </div>
+
+                <!-- ── Summary stats block (ui-ux-pro-max: between header & table) ── -->
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;margin-bottom:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.9rem;font-weight:700;color:#1e3a8a;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        \u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0637\u0628\u0648\u0639\u0629:
+                        <span style="font-size:1.2rem;color:#0f172a;border:1.5px solid #1e3a8a;border-radius:6px;padding:0 10px;">${totalPrinted}</span>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:0.82rem;">
+                        ${urgencySummary}
+                    </div>
+                </div>
+
+                <!-- Data table -->
+                <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+                    <thead>
+                        <tr style="background:#1e3a8a;">
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u0643\u0627\u0645\u0644 \u0644\u0644\u0645\u0644\u0641</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u0627\u0644\u0645\u0633\u062a\u0634\u0627\u0631 \u0627\u0644\u0645\u0642\u0631\u0631</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u062f\u0631\u062c\u0629 \u0627\u0644\u0627\u0633\u062a\u0639\u062c\u0627\u0644</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0628\u0642\u064a\u0629</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u0633\u062c\u064a\u0644</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u062a\u0627\u0631\u064a\u062e \u0627\u0646\u062a\u0647\u0627\u0621 \u0627\u0644\u0623\u062c\u0644</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRowsHtml}
+                    </tbody>
+                </table>
+
+                <!-- Footer signature line -->
+                <div style="margin-top:24px;display:flex;justify-content:space-between;font-size:0.82rem;color:#475569;border-top:1px dashed #e2e8f0;padding-top:10px;">
+                    <span>\u062a\u0645 \u0627\u0644\u062a\u062d\u0631\u064a\u0631 \u0628\u0648\u0627\u0633\u0637\u0629 \u0646\u0638\u0627\u0645 \u0625\u062f\u0627\u0631\u0629 \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u0643\u0645</span>
+                    <span>${dateStr}</span>
+                </div>
+            </div>
+        `;
+
+        fetch('/api/log-client-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `\u0637\u0628\u0627\u0639\u0629 \u062c\u062f\u0648\u0644: ${printLabel} - ${tabLabel} (${totalPrinted} \u0645\u0644\u0641)` })
+        }).catch(() => {});
+
+        const printImg = printContainer.querySelector('img');
+        const doPrint = () => {
+            window.print();
+            setTimeout(() => {
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
+            }, 600);
+        };
+        if (printImg && !printImg.complete) {
+            printImg.onload = doPrint;
+            printImg.onerror = doPrint;
+        } else {
+            setTimeout(doPrint, 200);
+        }
+    }
+
+    const btnPrintTableAuto   = document.getElementById('btnPrintTableAuto');
+    const btnPrintTableManual = document.getElementById('btnPrintTableManual');
+    if (btnPrintTableAuto)   btnPrintTableAuto.addEventListener('click',   () => triggerTablePrint('\u0627\u0644\u062c\u0644\u0628 \u0627\u0644\u062a\u0644\u0642\u0627\u0626\u064a (\u0627\u0644\u0630\u0643\u064a)'));
+    if (btnPrintTableManual) btnPrintTableManual.addEventListener('click', () => triggerTablePrint('\u0627\u0644\u0631\u0641\u0639 \u0627\u0644\u064a\u062f\u0648\u064a'));
 
     // --- Update Checker ---
     async function checkUpdate() {
