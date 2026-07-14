@@ -41,9 +41,9 @@ jobs:
         if ($tag -and $tag.StartsWith("v")) {
           $version = $tag.Substring(1)
         } else {
-          $version = "1.1.4"
+          $version = "1.2.0"
         }
-        (Get-Content setup.iss) -replace '#define AppVersion "1.1.4"', "#define AppVersion `"$version`"" | Set-Content setup.iss
+        (Get-Content setup.iss) -replace '#define AppVersion "[^"]+"', "#define AppVersion `"$version`"" | Set-Content setup.iss
         iscc setup.iss
 
     - name: Rename files with version tag
@@ -51,10 +51,8 @@ jobs:
       run: |
         $tag = "${{ github.ref_name }}"
         if ($tag -and $tag -ne "main") {
-          Copy-Item "dist/Mahkama Dossier Manager.exe" "dist/Mahkama Dossier Manager $tag.exe"
           Copy-Item "dist/Mahkama_Dossier_Manager_Setup.exe" "dist/Mahkama Dossier Manager Setup $tag.exe"
         } else {
-          Copy-Item "dist/Mahkama Dossier Manager.exe" "dist/Mahkama Dossier Manager dev.exe"
           Copy-Item "dist/Mahkama_Dossier_Manager_Setup.exe" "dist/Mahkama Dossier Manager Setup dev.exe"
         }
 
@@ -63,7 +61,6 @@ jobs:
       with:
         name: Mahkama-Windows-App
         path: |
-          dist/Mahkama Dossier Manager *.exe
           dist/Mahkama Dossier Manager Setup *.exe
         
     - name: Create Release
@@ -71,7 +68,6 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          dist/Mahkama Dossier Manager *.exe
           dist/Mahkama Dossier Manager Setup *.exe
         draft: false
         prerelease: false
