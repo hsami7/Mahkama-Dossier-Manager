@@ -1764,9 +1764,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Single print button
     const btnPrintTable = document.getElementById('btnPrintTable');
-    if (btnPrintTable) btnPrintTable.addEventListener('click', () => triggerTablePrint('\u062a\u0642\u0631\u064a\u0631 \u0627\u0644\u0642\u0636\u0627\u064a\u0627'));
-
-    // Excel export button — exports currently visible filtered rows as CSV (UTF-8 BOM for Arabic in Excel)
+    if (btnPrintTable) btnPrintTable.addEventListener('click', () => triggerTablePrint('\u062a\u0642\u0631\u064a\u0631 \u0627\u0644\u0642\u0636\u0627\u064a\u0627'));    // Excel export button — exports currently visible filtered rows as a real styled Excel file (.xls)
     const btnExportExcel = document.getElementById('btnExportExcel');
     if (btnExportExcel) {
         btnExportExcel.addEventListener('click', () => {
@@ -1776,45 +1774,145 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // All 12 columns in original screen order
+            // Count statistics
+            let redCount = 0, orangeCount = 0, greenCount = 0, completedCount = 0;
+            rows.forEach(row => {
+                if (row.classList.contains('row-red'))       redCount++;
+                else if (row.classList.contains('row-orange')) orangeCount++;
+                else if (row.classList.contains('row-green'))  greenCount++;
+                else if (row.classList.contains('row-completed')) completedCount++;
+            });
+            const totalPrinted = rows.length;
+
+            const now = new Date();
+            const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+            const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u0645\u0646\u062c\u0632\u0629';
+
+            // Generate statistical display
+            let statsHtml = '';
+            if (currentTab === 'pending') {
+                statsHtml = `\u0639\u0627\u062c\u0644 \u062c\u062f\u0627\u064b: ${redCount} | \u0645\u062a\u0648\u0633\u0637: ${orangeCount} | \u0622\u0645\u0646: ${greenCount}`;
+            } else {
+                statsHtml = `\u0645\u0646\u062c\u0632: ${completedCount}`;
+            }
+
+            // Table headers (excluding status checkbox)
             const headers = [
                 '\u0631\u0642\u0645 \u0627\u0644\u0645\u0644\u0641',
                 '\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u0643\u0627\u0645\u0644 \u0644\u0644\u0645\u0644\u0641',
                 '\u0627\u0644\u0641\u0626\u0629',
-                '\u062d\u0627\u0644\u0629 \u0627\u0644\u0645\u0644\u0641',
                 '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u0633\u062c\u064a\u0644',
                 '\u062a\u0627\u0631\u064a\u062e \u0627\u0646\u062a\u0647\u0627\u0621 \u0627\u0644\u0623\u062c\u0644',
                 '\u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0628\u0642\u064a\u0629',
-                '\u062f\u0631\u062c\u0629 \u0627\u0644\u0627\u0633\u062a\u0639\u062c\u0627\u0644',
+                '\u062f\u0631\u062c\u0629 \u0627\u0633\u062a\u0639\u062c\u0627\u0644',
                 '\u0627\u0644\u0645\u0642\u0631\u0631 (\u0627\u0644\u0642\u0627\u0636\u064a)',
                 '\u0627\u0644\u0645\u0633\u062a\u0623\u0646\u0641',
                 '\u0627\u0644\u0645\u0633\u062a\u0623\u0646\u0641 \u0639\u0644\u064a\u0647',
-                '\u0646\u0648\u0639 \u0627\u0644\u0642\u0636\u064a\u0629'
+                '\u0646\u0648\u0639 \u0627\u0644\u0642\u0636\u0627\u064a\u0629'
             ];
 
-            const escape = val => {
-                const s = String(val ?? '').replace(/"/g, '""');
-                return `"${s}"`;
-            };
-
-            let csv = '\uFEFF'; // UTF-8 BOM for Arabic in Excel
-            csv += headers.map(escape).join(',') + '\r\n';
-
+            // Build rows
+            let rowsHtml = '';
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
-                if (!cells || cells.length < 9) return;
-                const rowData = Array.from(cells).map(td => escape(td.innerText.trim()));
-                csv += rowData.join(',') + '\r\n';
+                if (!cells || cells.length < 12) return;
+
+                // Urgency/Completion background colors for cells
+                let cellBg = '#ffffff';
+                if (row.classList.contains('row-red'))       cellBg = '#fff1f2';
+                else if (row.classList.contains('row-orange')) cellBg = '#fffbeb';
+                else if (row.classList.contains('row-green'))  cellBg = '#f0fdf4';
+                else if (row.classList.contains('row-completed')) cellBg = '#f1f5f9';
+
+                rowsHtml += '<tr>';
+                // Output indices: 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11 (Skip 3 which is status checkbox)
+                [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11].forEach(idx => {
+                    const txt = cells[idx] ? cells[idx].innerText.trim() : '-';
+                    rowsHtml += `<td style="background:${cellBg};border:1px solid #cbd5e1;padding:6px;text-align:center;">${txt}</td>`;
+                });
+                rowsHtml += '</tr>';
             });
 
-            const now = new Date();
-            const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-            const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627_\u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627_\u0627\u0644\u0645\u0646\u062c\u0632\u0629';
-            const filename = `\u062a\u0642\u0631\u064a\u0631_\u0627\u0644\u0642\u0636\u0627\u064a\u0627_${tabLabel}_${stamp}.csv`;
+            // XML/HTML template for Excel (.xls) compatibility with RTL
+            const excelTemplate = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                <!--[if gte mso 9]>
+                <xml>
+                <x:ExcelWorkbook>
+                <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                <x:Name>${tabLabel}</x:Name>
+                <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+                </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; }
+                    table { border-collapse: collapse; width: 100%; }
+                    th { background-color: #1e3a8a; color: #ffffff; border: 1px solid #cbd5e1; padding: 10px; font-weight: bold; text-align: center; }
+                </style>
+                </head>
+                <body>
+                    <table dir="rtl">
+                        <!-- Letterhead in Excel -->
+                        <tr>
+                            <td colspan="11" style="font-weight:bold; font-size:14pt; text-align:right; border:none; padding-bottom:5px;">
+                                \u0627\u0644\u0645\u0645\u0644\u0643\u0629 \u0627\u0644\u0645\u063a\u0631\u0628\u064a\u0629
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="11" style="font-weight:bold; font-size:12pt; text-align:right; border:none; padding-bottom:5px;">
+                                \u0648\u0632\u0627\u0631\u0629 \u0627\u0644\u0639\u062f\u0644
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="11" style="font-weight:bold; font-size:12pt; text-align:right; border:none; padding-bottom:15px;">
+                                \u0645\u062d\u0643\u0645\u0629 \u0627\u0644\u0627\u0633\u062a\u0626\u0646\u0627\u0641 \u0627\u0644\u0627\u062f\u0627\u0631\u064a\u0629 \u0641\u0627\u0633
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="11" style="font-weight:bold; font-size:16pt; color:#1e3a8a; text-align:center; border:none; padding-bottom:5px;">
+                                \u062a\u0642\u0631\u064a\u0631 \u0625\u062f\u0627\u0631\u0629 \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u0643\u0645 &mdash; ${tabLabel}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="11" style="font-size:10pt; color:#64748b; text-align:center; border:none; padding-bottom:15px;">
+                                \u062d\u0631\u0631 \u0641\u064a: ${dateStr}
+                            </td>
+                        </tr>
+                        <!-- Summary stats block -->
+                        <tr>
+                            <td colspan="11" style="background-color:#f8fafc; border:1px solid #e2e8f0; font-weight:bold; padding:10px; text-align:right;">
+                                \u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631\u0629: ${totalPrinted} &nbsp;|&nbsp; ${statsHtml}
+                            </td>
+                        </tr>
+                        <tr><td colspan="11" style="border:none; height:15px;"></td></tr>
+                        <!-- Header Row -->
+                        <thead>
+                            <tr>
+                                ${headers.map(h => `<th>${h}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([excelTemplate], { type: 'application/vnd.ms-excel;charset=utf-8;' });
             const url  = URL.createObjectURL(blob);
             const a    = document.createElement('a');
+            const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const filename = `\u062a\u0642\u0631\u064a\u0631_\u0627\u0644\u0642\u0636\u0627\u064a\u0627_${tabLabel.replace(/\s+/g, '_')}_${stamp}.xls`;
+
             a.href     = url;
             a.download = filename;
             document.body.appendChild(a);
@@ -1823,8 +1921,6 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(url);
         });
     }
-
-
     // --- Update Checker ---
     async function checkUpdate() {
         const banner = document.getElementById('updateBanner');
