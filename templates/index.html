@@ -43,25 +43,49 @@
     <main class="mahakim-main">
         
         <!-- Global Loading Overlay -->
-        <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(3px); padding: 20px;">
+        <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); padding: 20px;">
             <style>
                 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                .loading-card-container {
+                    background: #ffffff;
+                    border: 1px solid var(--mahakim-border);
+                    border-radius: 16px;
+                    padding: 40px;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    max-width: 650px;
+                    width: 100%;
+                    text-align: center;
+                }
             </style>
-            <div style="border: 5px solid #e2e8f0; border-top: 5px solid var(--mahakim-primary); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite;"></div>
-            <p id="loadingOverlayText" style="margin-top: 20px; font-weight: bold; font-size: 1.2rem; color: var(--mahakim-primary); text-align: center;">جاري مسح المجلد، يرجى الانتظار...</p>
             
-            <!-- Live logs display during sync -->
-            <div id="liveSyncLogsWrapper" style="display: none; margin-top: 20px; width: 100%; max-width: 600px; border: 1px solid #cbd5e1; border-radius: 6px; background: #0f172a; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="background: #1e293b; padding: 8px 12px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; color: white; font-size: 0.85rem; font-weight: bold;">
-                    <span>🤖 تفاصيل عملية المزامنة المباشرة:</span>
-                    <button id="btnMinimizeLiveLogs" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.85rem;">⬇️ إخفاء التفاصيل</button>
+            <div class="loading-card-container">
+                <div style="border: 4px solid #f1f5f9; border-top: 4px solid var(--mahakim-primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+                <p id="loadingOverlayText" style="font-weight: 700; font-size: 1.25rem; color: var(--mahakim-primary); margin-bottom: 20px;">جاري مسح المجلد، يرجى الانتظار...</p>
+                
+                <!-- Live logs display during sync -->
+                <div id="liveSyncLogsWrapper" style="display: none; margin-top: 20px; width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; background: #0f172a; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <div style="background: #1e293b; padding: 10px 16px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; color: white; font-size: 0.85rem; font-weight: bold;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                            تفاصيل عملية المزامنة المباشرة:
+                        </span>
+                        <button id="btnMinimizeLiveLogs" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 14-5-5-5 5"/></svg>
+                            إخفاء التفاصيل
+                        </button>
+                    </div>
+                    <div id="liveSyncLogs" style="padding: 12px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: #38bdf8; text-align: left; direction: ltr; white-space: pre-wrap;"></div>
                 </div>
-                <div id="liveSyncLogs" style="padding: 12px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: #38bdf8; text-align: left; direction: ltr; white-space: pre-wrap;"></div>
+                
+                <!-- زر إيقاف العملية بالقوة -->
+                <button id="btnAbortOperation" class="btn-mahakim" style="margin-top: 25px; background-color: #ef4444; border-color: #ef4444; color: white; font-weight: bold; width: 100%; justify-content: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-octagon-alert"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                    إلغاء وإيقاف العملية الجارية
+                </button>
             </div>
-            <!-- زر إيقاف العملية بالقوة -->
-            <button id="btnAbortOperation" style="margin-top: 15px; background-color: #ef4444; border: 1.5px solid #dc2626; color: white; padding: 10px 24px; font-size: 1rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-weight: bold; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);">
-                🛑 إلغاء وإيقاف العملية جارية
-            </button>
         </div>
         <!-- شاشة البداية (الخيارات) -->
         <section class="section-card" id="landingSection">
@@ -199,39 +223,39 @@
                 </div>
             </div>
 
-            <div class="filters-bar" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid var(--mahakim-border); display: none;" id="filtersBar">
+            <div class="filters-bar" id="filtersBar" style="display: none;">
                 <div class="filter-item">
-                    <label for="filterCategory" style="font-weight: bold; font-size: 0.9rem; margin-left: 5px;">الفئة:</label>
-                    <select id="filterCategory" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <label for="filterCategory">الفئة:</label>
+                    <select id="filterCategory">
                         <option value="all">الكل</option>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label for="filterUrgency" style="font-weight: bold; font-size: 0.9rem; margin-left: 5px;">درجة الاستعجال:</label>
-                    <select id="filterUrgency" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <label for="filterUrgency">درجة الاستعجال:</label>
+                    <select id="filterUrgency">
                         <option value="all">الكل</option>
                         <option value="red">عاجل جداً (أحمر)</option>
                         <option value="orange">متوسط (برتقالي)</option>
                         <option value="green">آمن (أخضر)</option>
                     </select>
                 </div>
-                <div class="filter-item" style="display: flex; align-items: center; gap: 5px;">
-                    <label style="font-weight: bold; font-size: 0.9rem;">الأيام المتبقية:</label>
-                    <input type="number" id="filterDaysMin" placeholder="من" style="width: 70px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <div class="filter-item">
+                    <label>الأيام المتبقية:</label>
+                    <input type="number" id="filterDaysMin" placeholder="من">
                     <span>-</span>
-                    <input type="number" id="filterDaysMax" placeholder="إلى" style="width: 70px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <input type="number" id="filterDaysMax" placeholder="إلى">
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-secondary" id="btnApplyFilters" style="padding: 6px 15px; height: auto;">تطبيق الفلاتر</button>
                     <button class="btn-secondary" id="btnClearFilters" style="padding: 6px 15px; height: auto; background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" style="margin-left: 5px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                        مسح الفلاتر
+                        مَسْح الفلاتر
                     </button>
                 </div>
             </div>
 
-            <div class="bulk-actions-wrapper" id="bulkActionsWrapper" style="display: none; margin-bottom: 12px; text-align: right;">
-                <label style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; user-select: none; font-size: 0.9rem; font-weight: bold; color: var(--mahakim-primary);">
+            <div class="bulk-actions-wrapper" id="bulkActionsWrapper" style="display: none;">
+                <label class="bulk-actions-label">
                     <input type="checkbox" id="selectAll" style="width: 16px; height: 16px; cursor: pointer;">
                     <span id="selectAllText">تحديد الكل / إلغاء تحديد الكل</span>
                 </label>
