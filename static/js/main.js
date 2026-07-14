@@ -1762,10 +1762,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const btnPrintTableAuto   = document.getElementById('btnPrintTableAuto');
-    const btnPrintTableManual = document.getElementById('btnPrintTableManual');
-    if (btnPrintTableAuto)   btnPrintTableAuto.addEventListener('click',   () => triggerTablePrint('\u0627\u0644\u062c\u0644\u0628 \u0627\u0644\u062a\u0644\u0642\u0627\u0626\u064a (\u0627\u0644\u0630\u0643\u064a)'));
-    if (btnPrintTableManual) btnPrintTableManual.addEventListener('click', () => triggerTablePrint('\u0627\u0644\u0631\u0641\u0639 \u0627\u0644\u064a\u062f\u0648\u064a'));
+    // Single print button
+    const btnPrintTable = document.getElementById('btnPrintTable');
+    if (btnPrintTable) btnPrintTable.addEventListener('click', () => triggerTablePrint('\u062a\u0642\u0631\u064a\u0631 \u0627\u0644\u0642\u0636\u0627\u064a\u0627'));
+
+    // Excel export button — exports currently visible filtered rows as CSV (UTF-8 BOM for Arabic in Excel)
+    const btnExportExcel = document.getElementById('btnExportExcel');
+    if (btnExportExcel) {
+        btnExportExcel.addEventListener('click', () => {
+            const rows = Array.from(dossiersTableBody.querySelectorAll('tr:not(.skeleton-row)'));
+            if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) {
+                showAlert('\u0644\u0627 \u062a\u0648\u062c\u062f \u0628\u064a\u0627\u0646\u0627\u062a \u0644\u062a\u0635\u062f\u064a\u0631\u0647\u0627.');
+                return;
+            }
+
+            // All 12 columns in original screen order
+            const headers = [
+                '\u0631\u0642\u0645 \u0627\u0644\u0645\u0644\u0641',
+                '\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u0643\u0627\u0645\u0644 \u0644\u0644\u0645\u0644\u0641',
+                '\u0627\u0644\u0641\u0626\u0629',
+                '\u062d\u0627\u0644\u0629 \u0627\u0644\u0645\u0644\u0641',
+                '\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u0633\u062c\u064a\u0644',
+                '\u062a\u0627\u0631\u064a\u062e \u0627\u0646\u062a\u0647\u0627\u0621 \u0627\u0644\u0623\u062c\u0644',
+                '\u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0628\u0642\u064a\u0629',
+                '\u062f\u0631\u062c\u0629 \u0627\u0644\u0627\u0633\u062a\u0639\u062c\u0627\u0644',
+                '\u0627\u0644\u0645\u0642\u0631\u0631 (\u0627\u0644\u0642\u0627\u0636\u064a)',
+                '\u0627\u0644\u0645\u0633\u062a\u0623\u0646\u0641',
+                '\u0627\u0644\u0645\u0633\u062a\u0623\u0646\u0641 \u0639\u0644\u064a\u0647',
+                '\u0646\u0648\u0639 \u0627\u0644\u0642\u0636\u064a\u0629'
+            ];
+
+            const escape = val => {
+                const s = String(val ?? '').replace(/"/g, '""');
+                return `"${s}"`;
+            };
+
+            let csv = '\uFEFF'; // UTF-8 BOM for Arabic in Excel
+            csv += headers.map(escape).join(',') + '\r\n';
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 9) return;
+                const rowData = Array.from(cells).map(td => escape(td.innerText.trim()));
+                csv += rowData.join(',') + '\r\n';
+            });
+
+            const now = new Date();
+            const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627_\u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627_\u0627\u0644\u0645\u0646\u062c\u0632\u0629';
+            const filename = `\u062a\u0642\u0631\u064a\u0631_\u0627\u0644\u0642\u0636\u0627\u064a\u0627_${tabLabel}_${stamp}.csv`;
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+
 
     // --- Update Checker ---
     async function checkUpdate() {
