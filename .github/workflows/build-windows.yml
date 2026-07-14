@@ -51,9 +51,9 @@ jobs:
       run: |
         $tag = "${{ github.ref_name }}"
         if ($tag -and $tag -ne "main") {
-          Copy-Item "dist/Mahkama_Dossier_Manager_Setup.exe" "dist/Mahkama Dossier Manager Setup $tag.exe"
+          Copy-Item "dist/Mahkama_Dossier_Manager_Setup.exe" "dist/Mahkama Dossier Manager $tag.exe"
         } else {
-          Copy-Item "dist/Mahkama_Dossier_Manager_Setup.exe" "dist/Mahkama Dossier Manager Setup dev.exe"
+          Copy-Item "dist/Mahkama_Dossier_Manager_Setup.exe" "dist/Mahkama Dossier Manager dev.exe"
         }
 
     - name: Upload Artifact
@@ -61,14 +61,14 @@ jobs:
       with:
         name: Mahkama-Windows-App
         path: |
-          dist/Mahkama Dossier Manager Setup *.exe
+          dist/Mahkama Dossier Manager *.exe
         
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          dist/Mahkama Dossier Manager Setup *.exe
+          dist/Mahkama Dossier Manager *.exe
         draft: false
         prerelease: false
         generate_release_notes: true
