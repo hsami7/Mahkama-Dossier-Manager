@@ -701,5 +701,60 @@ input[type="text"]:focus, select:focus {
     transform: translateY(-1px);
 }
 
+/* Header utility buttons (compact / icon-only style) */
+.btn-header-utility {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    width: 42px !important;
+    height: 42px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    position: relative;
+}
 
+.btn-header-utility:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: var(--mahakim-accent) !important;
+    transform: translateY(-1px);
+}
 
+.btn-header-utility svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Breadcrumb navigation links */
+.btn-breadcrumb {
+    background: none !important;
+    border: none !important;
+    color: var(--mahakim-primary) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+}
+
+.btn-breadcrumb:hover {
+    background: rgba(30, 58, 138, 0.05) !important;
+    color: var(--mahakim-primary-hover) !important;
+}
+
+.btn-breadcrumb svg {
+    transition: transform 0.2s ease;
+}
+
+.btn-breadcrumb:hover svg {
+    transform: translateX(4px);
+}
