@@ -163,7 +163,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     url = f'http://127.0.0.1:{port}/'
-    start_kwargs = dict(title='مدير ملفات المحاكم', url=url, width=1200, height=800, text_select=True, maximized=True)
+    start_kwargs = dict(title='إدارة ملفات المحاكم', url=url, width=1200, height=800, text_select=True, maximized=True)
     log.debug(f'WEBVIEW_KWARGS={start_kwargs}')
 
     window = None
