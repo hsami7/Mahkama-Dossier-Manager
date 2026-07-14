@@ -105,7 +105,7 @@ def api_check_update():
             download_url = None
             for asset in assets:
                 name = asset.get('name', '')
-                if name.endswith('.exe') and 'Setup' not in name:
+                if name.endswith('.exe'):
                     download_url = asset.get('browser_download_url')
                     break
                     
@@ -116,7 +116,7 @@ def api_check_update():
                 global update_thread
                 with update_lock:
                     if update_status["status"] == "idle" or (update_status["status"] == "failed" and update_status["version"] != latest_version):
-                        if download_url and download_url.endswith('.exe') and 'Setup' not in download_url:
+                        if download_url and download_url.endswith('.exe'):
                             update_thread = threading.Thread(target=download_update_worker, args=(download_url, latest_version))
                             update_thread.daemon = True
                             update_thread.start()
@@ -160,7 +160,7 @@ def api_trigger_update():
             for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
                 env.pop(var, None)
             subprocess.Popen(
-                [temp_file, '--replace-and-start', sys.executable, str(os.getpid())],
+                [temp_file, '/SILENT', '/SP-'],
                 creationflags=creation_flags,
                 close_fds=True,
                 env=env

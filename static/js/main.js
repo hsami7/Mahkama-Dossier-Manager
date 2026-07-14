@@ -1620,6 +1620,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 bannerText.textContent = `جاري تحميل التحديث الجديد (${data.latest_version}) تلقائياً في الخلفية...`;
                                 if (progressText) progressText.textContent = `${statusData.progress}%`;
                                 if (btnTrigger) btnTrigger.style.display = 'none';
+                            } else if (statusData.status === 'idle') {
+                                bannerText.textContent = `تم العثور على تحديث جديد (${data.latest_version})، جاري بدء التحميل...`;
+                                if (progressText) progressText.textContent = '';
+                                if (btnTrigger) btnTrigger.style.display = 'none';
                             } else if (statusData.status === 'ready') {
                                 bannerText.textContent = `تحديث جديد متاح (${data.latest_version}) جاهز للتثبيت!`;
                                 if (progressText) progressText.textContent = '';
