@@ -1456,9 +1456,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const btnStatsPrintReport = document.getElementById('btnStatsPrintReport');
-    const btnStatsDownloadPDF = document.getElementById('btnStatsDownloadPDF');
     
-    const triggerPrint = (isDownloadOnly = false) => {
+    const triggerPrint = () => {
         const startDate = document.getElementById('statsStartDate').textContent;
         const endDate = document.getElementById('statsEndDate').textContent;
         const reg = document.getElementById('statRegistered').textContent;
@@ -1550,74 +1549,21 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
                 `;
 
-            if (isDownloadOnly) {
-                // Log the download event
-                fetch('/api/log-client-event', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: `تحميل تقرير إحصائي كملف PDF: ${pdfTitle.trim()}` })
-                }).catch(() => {});
+            // Log the print event
+            fetch('/api/log-client-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `طباعة تقرير إحصائي: ${pdfTitle.trim()}` })
+            }).catch(() => {});
 
-                const overlay = document.getElementById('loadingOverlay');
-                const loadingOverlayText = document.getElementById('loadingOverlayText');
-                if (overlay) {
-                    overlay.style.display = 'flex';
-                    if (loadingOverlayText) {
-                        loadingOverlayText.innerText = 'جاري إنشاء وتحميل ملف الـ PDF...';
-                    }
-                }
-
-                // Send request to server-side endpoint
-                fetch('/api/download-report', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        startDate,
-                        endDate,
-                        reg,
-                        act,
-                        comp,
-                        cls,
-                        rem,
-                        pdfTitle: pdfTitle.trim()
-                    })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (overlay) overlay.style.display = 'none';
-                    if (data.success) {
-                        showAlert(`تم إنشاء تقرير HTML وفتحه بنجاح في متصفحك الافتراضي! 🚀\n\nتم حفظ الملف في: ${data.path}\n\nيمكنك الآن حفظه كـ PDF عبر خيار الطباعة (Ctrl+P) بالمتصفح.`);
-                    } else {
-                        showAlert(`فشل في إنشاء التقرير: ${data.error}`);
-                    }
-                })
-                .catch(err => {
-                    if (overlay) overlay.style.display = 'none';
-                    showAlert(`حدث خطأ أثناء الاتصال بالخادم: ${err}`);
-                });
-
-                printContainer.innerHTML = '';
-                document.title = originalTitle;
-            } else {
-                // Log the print event
-                fetch('/api/log-client-event', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: `طباعة تقرير إحصائي: ${pdfTitle.trim()}` })
-                }).catch(() => {});
-
-                window.print();
-                printContainer.innerHTML = '';
-                document.title = originalTitle;
-            }
+            window.print();
+            printContainer.innerHTML = '';
+            document.title = originalTitle;
         }
     };
 
     if (btnStatsPrintReport) {
-        btnStatsPrintReport.addEventListener('click', () => triggerPrint(false));
-    }
-    if (btnStatsDownloadPDF) {
-        btnStatsDownloadPDF.addEventListener('click', () => triggerPrint(true));
+        btnStatsPrintReport.addEventListener('click', () => triggerPrint());
     }
 
     // --- Update Checker ---
