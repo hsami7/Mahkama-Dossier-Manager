@@ -1936,18 +1936,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 </html>
             `;
 
-            const blob = new Blob([excelTemplate], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
             const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-            const filename = `\u062a\u0642\u0631\u064a\u0631_\u0627\u0644\u0642\u0636\u0627\u064a\u0627_${tabLabel.replace(/\s+/g, '_')}_${stamp}.xls`;
+            const filename = `تقرير_القضايا_${tabLabel.replace(/\s+/g, '_')}_${stamp}.xls`;
 
-            a.href     = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Use server-side endpoint to trigger download — blob URLs don't work in pywebview/WebView2
+            fetch('/api/export-excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: excelTemplate, filename })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Export failed');
+                return res.blob();
+            })
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            })
+            .catch(err => showAlert('فشل تصدير الملف: ' + err.message));
         });
     }
     // --- Update Checker ---

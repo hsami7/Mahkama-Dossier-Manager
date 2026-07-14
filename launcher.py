@@ -201,7 +201,39 @@ if __name__ == '__main__':
     try:
         window = webview.create_window(**start_kwargs)
         log.debug('WEBVIEW_CREATED')
+
+        def setup_window():
+            if os.name == 'nt':
+                try:
+                    import ctypes
+                    # Get native HWND from pywebview window
+                    hwnd = window.native.Handle
+                    
+                    # DWMWA_CAPTION_COLOR = 35
+                    # R=1E, G=3A, B=8A -> COLORREF is 0x008A3A1E
+                    caption_color = 0x008A3A1E
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd,
+                        35,
+                        ctypes.byref(ctypes.c_int(caption_color)),
+                        ctypes.sizeof(ctypes.c_int)
+                    )
+                    
+                    # DWMWA_TEXT_COLOR = 36
+                    # White text -> 0x00FFFFFF
+                    text_color = 0x00FFFFFF
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd,
+                        36,
+                        ctypes.byref(ctypes.c_int(text_color)),
+                        ctypes.sizeof(ctypes.c_int)
+                    )
+                    log.debug('TITLEBAR_COLOR_APPLIED')
+                except Exception as ex:
+                    log.debug(f'TITLEBAR_COLOR_FAILED: {ex}')
+
         webview.start(
+            setup_window,
             debug=False,
             gui='edge' if os.name == 'nt' else None,
             http_server=False,

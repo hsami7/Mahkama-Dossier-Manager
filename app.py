@@ -8,7 +8,7 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
 
 if getattr(sys, 'frozen', False):
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'ms-playwright')
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, Response
 import engine
 import urllib.request
 import json
@@ -726,6 +726,32 @@ def api_toggle_complete_bulk():
         return jsonify({"success": True, "count": success_count})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/export-excel', methods=['POST'])
+def api_export_excel():
+    """Receive Excel HTML content and return it as a downloadable .xls file.
+    This is needed because pywebview/WebView2 cannot handle blob URL downloads.
+    """
+    try:
+        data = request.get_json() or {}
+        html_content = data.get('content', '')
+        filename = data.get('filename', 'export.xls')
+        if not html_content:
+            return jsonify({'error': 'No content provided'}), 400
+
+        # Return the HTML as an application/vnd.ms-excel response
+        response = Response(
+            html_content.encode('utf-8-sig'),  # BOM for Excel RTL support
+            mimetype='application/vnd.ms-excel',
+            headers={
+                'Content-Disposition': f'attachment; filename="{filename}"',
+                'Content-Type': 'application/vnd.ms-excel; charset=utf-8',
+            }
+        )
+        return response
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
