@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dossiers.length === 0) {
             const tr = document.createElement('tr');
             const td = document.createElement('td');
-            td.colSpan = 11;
+            td.colSpan = 12;
             td.style.textAlign = 'center';
             td.style.padding = '30px';
             td.style.color = '#6c757d';
@@ -198,19 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (dos.color === 'orange') badgeClass = 'badge-orange';
 
             tr.innerHTML = `
+                <td><strong>${dos.number}</strong></td>
                 <td><span class="badge ${badgeClass}">${dos.full_code}</span></td>
-                <td>${dos.judge || 'غير معين'}</td>
-                <td>${dos.urgency_text}</td>
-                <td><span dir="ltr" style="display: inline-block;">${dos.days_remaining === 9999 ? 'غير محدد' : dos.days_remaining}</span></td>
-                <td>${dos.reg_date}</td>
-                <td>${dos.expiry_date}</td>
+                <td>${dos.category}</td>
                 <td>
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; margin: 0;">
                         <input type="checkbox" class="toggle-complete-checkbox" data-filepath="${dos.file_path}" data-fullcode="${dos.full_code}" ${dos.completed ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px;">
                         <span style="font-weight: bold; color: ${dos.completed ? 'var(--mahakim-text-secondary)' : 'var(--mahakim-primary)'}">${dos.completed ? '✔️ مكتمل' : '⏳ معلق'}</span>
                     </label>
                 </td>
-                <td>${dos.category}</td>
+                <td>${dos.reg_date}</td>
+                <td>${dos.expiry_date}</td>
+                <td><span dir="ltr" style="display: inline-block;">${dos.days_remaining === 9999 ? 'غير محدد' : dos.days_remaining}</span></td>
+                <td>${dos.urgency_text}</td>
+                <td>${dos.judge || 'غير معين'}</td>
                 <td style="max-width: 200px;" title="${dos.appellant || ''}"><div class="truncate-text">${dos.appellant || '-'}</div></td>
                 <td style="max-width: 200px;" title="${dos.appellee || ''}"><div class="truncate-text">${dos.appellee || '-'}</div></td>
                 <td>${dos.case_type || '-'}</td>
@@ -1613,19 +1614,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u0645\u0646\u062c\u0632\u0629';
 
         // Build table rows for print using currently rendered cell text content
-        // Column order: الرمز الكامل | المستشار المقرر | درجة الاستعجال | الأيام المتبقية | تاريخ التسجيل | تاريخ انتهاء الأجل
-        // Rendered cell indices (after reorder): 0=full_code, 1=judge, 2=urgency, 3=days, 4=reg_date, 5=expiry_date
+        // ORIGINAL table cell indices (screen order, unchanged):
+        //   [0]=رقم الملف  [1]=الرمز الكامل  [2]=الفئة  [3]=حالة الملف
+        //   [4]=تاريخ التسجيل  [5]=تاريخ انتهاء الأجل  [6]=الأيام المتبقية
+        //   [7]=درجة الاستعجال  [8]=المقرر  [9]=المستأنف  [10]=المستأنف عليه  [11]=نوع القضية
+        // Print column order requested:
+        //   الرمز الكامل[1] | المستشار المقرر[8] | درجة الاستعجال[7] | الأيام المتبقية[6] | تاريخ التسجيل[4] | تاريخ انتهاء الأجل[5]
         let tableRowsHtml = '';
         rows.forEach((row, idx) => {
             const cells = row.querySelectorAll('td');
-            if (!cells || cells.length < 6) return;
+            if (!cells || cells.length < 9) return;
 
-            const fullCode = cells[0] ? cells[0].innerText.trim() : '-';
-            const judge    = cells[1] ? cells[1].innerText.trim() : '-';
-            const urgency  = cells[2] ? cells[2].innerText.trim() : '-';
-            const days     = cells[3] ? cells[3].innerText.trim() : '-';
+            const fullCode = cells[1] ? cells[1].innerText.trim() : '-';
+            const judge    = cells[8] ? cells[8].innerText.trim() : '-';
+            const urgency  = cells[7] ? cells[7].innerText.trim() : '-';
+            const days     = cells[6] ? cells[6].innerText.trim() : '-';
             const regDate  = cells[4] ? cells[4].innerText.trim() : '-';
             const expDate  = cells[5] ? cells[5].innerText.trim() : '-';
+
 
             let urgColor = '#16a34a';
             if (row.classList.contains('row-red'))    urgColor = '#dc2626';
