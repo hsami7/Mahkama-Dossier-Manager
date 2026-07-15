@@ -540,12 +540,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Custom Alert Logic ---
-    function showAlert(message) {
+    function showAlert(message, filePath = null) {
         if (!alertModal) {
             alert(message);
             return;
         }
         alertModalMessage.innerHTML = message.replace(/\n/g, '<br>');
+        
+        const btnAlertOpenLink = document.getElementById('btnAlertOpenLink');
+        if (btnAlertOpenLink) {
+            if (filePath) {
+                btnAlertOpenLink.style.display = 'inline-block';
+            } else {
+                btnAlertOpenLink.style.display = 'none';
+            }
+        }
+
         alertModal.style.display = 'flex';
         
         return new Promise((resolve) => {
@@ -553,13 +563,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 alertModal.style.display = 'none';
                 if (btnAlertOk) btnAlertOk.removeEventListener('click', okHandler);
                 if (btnAlertClose) btnAlertClose.removeEventListener('click', okHandler);
+                if (btnAlertOpenLink) btnAlertOpenLink.removeEventListener('click', openHandler);
                 resolve();
             };
             
             const okHandler = () => { cleanup(); };
+            const openHandler = () => {
+                if (filePath) {
+                    fetch('/api/open-file', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ path: filePath })
+                    }).catch(err => console.error("Error opening file:", err));
+                }
+                cleanup();
+            };
             
             if (btnAlertOk) btnAlertOk.addEventListener('click', okHandler);
             if (btnAlertClose) btnAlertClose.addEventListener('click', okHandler);
+            if (btnAlertOpenLink && filePath) btnAlertOpenLink.addEventListener('click', openHandler);
         });
     }
 
@@ -1949,7 +1971,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`);
+                    showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
                 } else {
                     showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
                 }

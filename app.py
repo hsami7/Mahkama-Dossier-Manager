@@ -757,6 +757,28 @@ def api_export_excel():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/open-file', methods=['POST'])
+def api_open_file():
+    """Open a file using the OS default application."""
+    try:
+        data = request.get_json() or {}
+        file_path = data.get('path', '')
+        if not file_path or not os.path.exists(file_path):
+            return jsonify({'error': 'الملف غير موجود أو المسار فارغ'}), 400
+
+        if os.name == 'nt':
+            os.startfile(file_path)
+        else:
+            import subprocess
+            if sys.platform == 'darwin':
+                subprocess.call(('open', file_path))
+            else:
+                subprocess.call(('xdg-open', file_path))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
         write_log("[+] تم تشغيل الخادم بنجاح.")
