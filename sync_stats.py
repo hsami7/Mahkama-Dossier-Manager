@@ -200,6 +200,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                     
         except Exception as e:
             log_msg(f"[-] Scraper error: {e}", log_callback)
+            raise e
         finally:
             browser.close()
             

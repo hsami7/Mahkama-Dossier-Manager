@@ -298,6 +298,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             # Take screenshot for debugging
             page.screenshot(path="debug_error.png")
             log("[*] Captured error screenshot in debug_error.png")
+            raise e
             
         finally:
             browser.close()
