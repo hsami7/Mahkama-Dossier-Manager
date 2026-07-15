@@ -13,7 +13,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.2.2"
+CURRENT_VERSION = "v1.2.3"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
