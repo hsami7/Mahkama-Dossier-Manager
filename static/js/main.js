@@ -1563,7 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const logoCircleImg = document.querySelector('.logo-circle img');
             printContainer.innerHTML = `
-    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 50px; padding-bottom: 12px; margin-bottom: 20px;">
+    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 20px; padding-bottom: 10px; margin-bottom: 15px;">
         <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
             المملكة المغربية<br>
             وزارة العدل<br>
@@ -1578,14 +1578,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
         </div>
     </div>
-    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 60px; margin-bottom: 20px; color: #000; text-decoration: underline;">
+    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #000; text-decoration: underline;">
         نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
     </div>
-    <table style="width: 80%; margin: 70px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
+    <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 35%;">الحالة</th>
-                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 65%;">العدد</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 50%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 50%;">العدد</th>
             </tr>
         </thead>
         <tbody>
@@ -1755,9 +1755,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <img src="/static/img/Picture1.png" style="height:62px;width:auto;object-fit:contain;">
                     </div>
                     <div style="text-align:left;font-size:0.75rem;font-weight:700;line-height:1.9;font-family:'Ebrima',sans-serif;direction:ltr;">
-                        \u2b35\u2d30\u2d33\u2d4d\u2d37\u2d49\u2d4f \u2d4f \u2d4d\u2d4e\u2d56\u2d54\u2d49\u2d31<br>
-                        \u2b35\u2d30\u2d4e\u2d30\u2d61\u2d59\u2d4f \u2d4f \u2d4b\u2d44\u2d37\u2d4d\u2d4f<br>
-                        \u2b35\u2d30\u2d59\u2d4f\u2d31\u2d39\u2d30\u2d62\u2d4f \u2d4f \u2d61\u2d30\u2d4d\u2d30\u2d59 \u2b35\u2d30\u2d4e\u2d59\u2d59\u2d53\u2d33\u2d53\u2d54\u2d4f \u2d37\u2d49 \u2d3c\u2d30\u2d59
+                        ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>
+                        ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>
+                        ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
                     </div>
                 </div>
 
