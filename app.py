@@ -730,9 +730,8 @@ def api_toggle_complete_bulk():
 
 @app.route('/api/export-excel', methods=['POST'])
 def api_export_excel():
-    """Save Excel HTML content directly to the user's Downloads folder.
-    pywebview/WebView2 cannot handle blob URL downloads or HTTP file responses,
-    so we write the file on the server side and notify the user of the path.
+    """Save Excel HTML content by showing a native file dialog to choose path/filename.
+    This works perfectly in pywebview since the server opens the dialog locally.
     """
     try:
         data = request.get_json() or {}
@@ -741,18 +740,30 @@ def api_export_excel():
         if not html_content:
             return jsonify({'error': 'No content provided'}), 400
 
-        # Save directly to user's Downloads folder.
-        # pywebview/WebView2 cannot trigger file downloads via HTTP headers or blob URLs,
-        # so we write the file on the server side and return the path.
-        downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-        os.makedirs(downloads_dir, exist_ok=True)
-        file_path = os.path.join(downloads_dir, filename)
+        # Open native Tkinter save file dialog
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        
+        file_path = filedialog.asksaveasfilename(
+            initialfile=filename,
+            defaultextension=".xls",
+            filetypes=[("Excel Files", "*.xls"), ("All files", "*.*")],
+            title="تصدير إلى Excel"
+        )
+        root.destroy()
+        
+        if not file_path:
+            return jsonify({'success': False, 'cancelled': True})
 
-        # UTF-8 BOM (utf-8-sig) ensures Excel opens Arabic/RTL content correctly
+        # Save to the chosen path
         with open(file_path, 'w', encoding='utf-8-sig') as f:
             f.write(html_content)
 
-        return jsonify({'success': True, 'path': file_path})
+        return jsonify({'success': True, 'path': file_path, 'cancelled': False})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

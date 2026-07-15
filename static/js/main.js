@@ -1972,6 +1972,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.success) {
                     showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
+                } else if (data.cancelled) {
+                    console.log('Export cancelled by user.');
                 } else {
                     showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
                 }
