@@ -1670,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', () => {
         //   [4]=تاريخ التسجيل  [5]=تاريخ انتهاء الأجل  [6]=الأيام المتبقية
         //   [7]=درجة الاستعجال  [8]=المقرر  [9]=المستأنف  [10]=المستأنف عليه  [11]=نوع القضية
         // Print column order requested:
-        //   الرمز الكامل[1] | المستشار المقرر[8] | درجة الاستعجال[7] | الأيام المتبقية[6] | تاريخ التسجيل[4] | تاريخ انتهاء الأجل[5]
+        //   الرمز الكامل[1] | المستشار المقرر[8] | تاريخ التسجيل[4] | تاريخ انتهاء الأجل[5] | درجة الاستعجال[7] | الأيام المتبقية[6]
         let tableRowsHtml = '';
         rows.forEach((row, idx) => {
             const cells = row.querySelectorAll('td');
@@ -1698,10 +1698,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr style="background:${rowBg};">
                     <td style="border:1px solid #d1d5db;padding:6px 10px;font-weight:700;text-align:center;">${fullCode}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${judge}</td>
-                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;color:${urgColor};font-weight:700;">${urgency}</td>
-                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;direction:ltr;">${days}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${regDate}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${expDate}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;color:${urgColor};font-weight:700;">${urgency}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;direction:ltr;">${days}</td>
                 </tr>`;
         });
 
@@ -1770,12 +1770,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
                     <thead>
                         <tr style="background:#1e3a8a;">
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u0643\u0627\u0645\u0644 \u0644\u0644\u0645\u0644\u0641</th>
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u0627\u0644\u0645\u0633\u062a\u0634\u0627\u0631 \u0627\u0644\u0645\u0642\u0631\u0631</th>
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u062f\u0631\u062c\u0629 \u0627\u0644\u0627\u0633\u062a\u0639\u062c\u0627\u0644</th>
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u0627\u0644\u0623\u064a\u0627\u0645 \u0627\u0644\u0645\u062a\u0628\u0642\u064a\u0629</th>
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u0633\u062c\u064a\u0644</th>
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">\u062a\u0627\u0631\u064a\u062e \u0627\u0646\u062a\u0647\u0627\u0621 \u0627\u0644\u0623\u062c\u0644</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الرمز الكامل للملف</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">المستشار المقرر</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">تاريخ التسجيل</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">تاريخ انتهاء الأجل</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">درجة الاستعجال</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الأيام المتبقية</th>
                         </tr>
                     </thead>
                     <tbody>
