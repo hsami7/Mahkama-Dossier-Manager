@@ -333,6 +333,7 @@
                 <div class="settings-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <button type="button" class="btn-tab active" id="tabLimits" style="flex: 1; padding: 10px; border-radius: 6px; border: none; background: var(--mahakim-primary); color: white; cursor: pointer; font-weight: bold;">الآجال القانونية</button>
                     <button type="button" class="btn-tab" id="tabThresholds" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--mahakim-text); cursor: pointer; font-weight: bold;">مؤشرات الخطر</button>
+                    <button type="button" class="btn-tab" id="tabAbout" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--mahakim-text); cursor: pointer; font-weight: bold;">حول التطبيق</button>
                 </div>
                 
                 <div id="settingsContentLimits">
@@ -346,6 +347,18 @@
                     <p class="subtitle">قم بتحديد كم يوماً يتبقى لتتحول القضية إلى اللون البرتقالي (متوسط) أو الأحمر (عاجل جداً).</p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;" id="settingsFormThresholds">
                         <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+
+                <div id="settingsContentAbout" style="display: none; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; text-align: center; direction: rtl; margin-top: 10px;">
+                    <img src="/static/img/Picture1.png" style="height: 75px; margin-bottom: 12px; object-fit: contain;">
+                    <h4 style="font-size: 1.2rem; color: var(--mahakim-primary); margin-bottom: 5px; font-weight: 700;">نظام إدارة ملفات المحاكم</h4>
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">بوابة محاكم الإلكترونية — محكمة الاستئناف الإدارية بفاس</p>
+                    
+                    <div style="text-align: right; display: flex; flex-direction: column; gap: 10px; font-size: 0.92rem; border-top: 1px solid #e2e8f0; padding-top: 15px; color: var(--mahakim-text);">
+                        <div><strong>الإصدار:</strong> <span style="font-family: monospace; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-weight: bold;">v1.2.1</span></div>
+                        <div><strong>وظيفة التطبيق:</strong> تتبع ومزامنة ملفات القضايا تلقائياً، وإدارة آجال مدد التقاضي لمكاتب الخبرة.</div>
+                        <div><strong>الحقوق:</strong> جميع الحقوق محفوظة © 2026.</div>
                     </div>
                 </div>
             </div>

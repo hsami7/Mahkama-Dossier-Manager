@@ -677,40 +677,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Settings Modal Logic ---
     const tabLimits = document.getElementById('tabLimits');
     const tabThresholds = document.getElementById('tabThresholds');
+    const tabAbout = document.getElementById('tabAbout');
     const contentLimits = document.getElementById('settingsContentLimits');
     const contentThresholds = document.getElementById('settingsContentThresholds');
+    const contentAbout = document.getElementById('settingsContentAbout');
     const formLimits = document.getElementById('settingsFormLimits');
     const formThresholds = document.getElementById('settingsFormThresholds');
 
-    if(tabLimits && tabThresholds) {
+    if(tabLimits && tabThresholds && tabAbout) {
+        function activateTab(activeTab, showContent, inactiveTabs, hideContents) {
+            activeTab.classList.add('active');
+            activeTab.style.background = 'var(--mahakim-primary)';
+            activeTab.style.color = 'white';
+            activeTab.style.border = 'none';
+            
+            inactiveTabs.forEach(t => {
+                t.classList.remove('active');
+                t.style.background = '#f8fafc';
+                t.style.color = 'var(--mahakim-text)';
+                t.style.border = '1px solid #cbd5e1';
+            });
+            
+            showContent.style.display = 'block';
+            hideContents.forEach(c => c.style.display = 'none');
+        }
+
         tabLimits.addEventListener('click', () => {
-            tabLimits.classList.add('active');
-            tabLimits.style.background = 'var(--mahakim-primary)';
-            tabLimits.style.color = 'white';
-            tabLimits.style.border = 'none';
-            
-            tabThresholds.classList.remove('active');
-            tabThresholds.style.background = '#f8fafc';
-            tabThresholds.style.color = 'var(--mahakim-text)';
-            tabThresholds.style.border = '1px solid #cbd5e1';
-            
-            contentLimits.style.display = 'block';
-            contentThresholds.style.display = 'none';
+            activateTab(tabLimits, contentLimits, [tabThresholds, tabAbout], [contentThresholds, contentAbout]);
         });
 
         tabThresholds.addEventListener('click', () => {
-            tabThresholds.classList.add('active');
-            tabThresholds.style.background = 'var(--mahakim-primary)';
-            tabThresholds.style.color = 'white';
-            tabThresholds.style.border = 'none';
-            
-            tabLimits.classList.remove('active');
-            tabLimits.style.background = '#f8fafc';
-            tabLimits.style.color = 'var(--mahakim-text)';
-            tabLimits.style.border = '1px solid #cbd5e1';
-            
-            contentThresholds.style.display = 'block';
-            contentLimits.style.display = 'none';
+            activateTab(tabThresholds, contentThresholds, [tabLimits, tabAbout], [contentLimits, contentAbout]);
+        });
+
+        tabAbout.addEventListener('click', () => {
+            activateTab(tabAbout, contentAbout, [tabLimits, tabThresholds], [contentLimits, contentThresholds]);
         });
     }
 
@@ -813,6 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal Event Bindings
     btnSettingsOpen.addEventListener('click', () => {
         loadSettings();
+        if (tabLimits) tabLimits.click();
         settingsModal.style.display = 'flex';
     });
 
