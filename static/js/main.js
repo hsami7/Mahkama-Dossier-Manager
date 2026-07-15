@@ -482,6 +482,12 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(dos => dos.days_remaining !== 9999 && dos.days_remaining <= maxDays);
         }
         
+        // Sort dynamically by days_remaining ascending (most urgent first)
+        filtered.sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            return a.days_remaining - b.days_remaining;
+        });
+
         // Show bulk actions bar if there are scanned dossiers
         if (allDossiers.length > 0) {
             bulkActionsWrapper.style.display = 'block';
