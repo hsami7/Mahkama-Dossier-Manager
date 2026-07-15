@@ -225,7 +225,7 @@ def api_get_default_workspace():
 @app.route('/')
 def index():
     if os.path.exists(os.path.join(app.template_folder, 'index.html')):
-        return render_template('index.html')
+        return render_template('index.html', version=CURRENT_VERSION)
     return """
     <html>
         <head><title>مدير ملفات المحاكم</title></head>
