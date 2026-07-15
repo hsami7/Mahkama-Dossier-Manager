@@ -1700,8 +1700,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${judge}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${regDate}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${expDate}</td>
-                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;color:${urgColor};font-weight:700;">${urgency}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;direction:ltr;">${days}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;color:${urgColor};font-weight:700;">${urgency}</td>
                 </tr>`;
         });
 
@@ -1774,8 +1774,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">المستشار المقرر</th>
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">تاريخ التسجيل</th>
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">تاريخ انتهاء الأجل</th>
-                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">درجة الاستعجال</th>
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الأيام المتبقية</th>
+                            <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">درجة الاستعجال</th>
                         </tr>
                     </thead>
                     <tbody>
