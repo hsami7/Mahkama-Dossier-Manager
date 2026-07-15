@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showSkeleton();
         btnScan.disabled = true;
+        window.scrollTo(0, 0);
 
         try {
             const bodyData = { directory: path };
@@ -346,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (landingSection && dashboardSection) {
                     landingSection.style.display = 'block';
                     dashboardSection.style.display = 'none';
+                    window.scrollTo(0, 0);
                 }
                 btnScan.disabled = false;
                 return;
@@ -376,6 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (landingSection && dashboardSection) {
                 landingSection.style.display = 'none';
                 dashboardSection.style.display = 'block';
+                window.scrollTo(0, 0);
             }
             
         } catch (error) {
@@ -911,6 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (landingSection && dashboardSection) {
                 landingSection.style.display = 'block';
                 dashboardSection.style.display = 'none';
+                window.scrollTo(0, 0);
             }
         });
     }
