@@ -700,6 +700,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             showContent.style.display = 'block';
             hideContents.forEach(c => c.style.display = 'none');
+
+            // Hide the 'Save changes' button when we are on the 'About' tab
+            if (activeTab === tabAbout) {
+                if (btnSettingsSave) btnSettingsSave.style.display = 'none';
+            } else {
+                if (btnSettingsSave) btnSettingsSave.style.display = 'inline-flex';
+            }
         }
 
         tabLimits.addEventListener('click', () => {
