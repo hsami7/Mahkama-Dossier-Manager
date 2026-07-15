@@ -389,6 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 </tr>
             `;
+            alert('حدث خطأ أثناء قراءة الملفات. سيتم إعادة تحميل الصفحة لضمان استقرار النظام.');
+            window.location.reload();
         } finally {
             btnScan.disabled = false;
         }
@@ -1072,6 +1074,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     operationRunning = false;
                     
                     const overlay = document.getElementById('loadingOverlay');
+                    
+                    if (data.error) {
+                        alert('حدث خطأ أثناء مزامنة السجلات. سيتم إعادة تحميل الصفحة لضمان استقرار النظام.');
+                        window.location.reload();
+                        return;
+                    }
                     
                     if (data.directory) {
                         folderPathInput.value = data.directory;

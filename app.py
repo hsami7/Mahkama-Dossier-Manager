@@ -266,11 +266,12 @@ sync_process = None
 stats_process = None
 
 def run_sync(years, base_download_dir):
-    global sync_active, sync_logs, sync_dir, sync_target_years, sync_process
+    global sync_active, sync_logs, sync_dir, sync_target_years, sync_process, sync_error
     with sync_lock:
         sync_logs.clear()
         sync_dir = base_download_dir
         sync_target_years = list(years)
+        sync_error = False
         
     def log_cb(msg):
         with sync_lock:
@@ -333,6 +334,8 @@ def run_sync(years, base_download_dir):
                         
     except Exception as e:
         log_cb(f"[-] خطأ في المزامنة: {str(e)}")
+        with sync_lock:
+            sync_error = True
     finally:
         with sync_lock:
             sync_active = False
@@ -381,7 +384,8 @@ def api_sync_status():
             "active": sync_active,
             "logs": list(sync_logs),
             "directory": sync_dir,
-            "years": sync_target_years
+            "years": sync_target_years,
+            "error": globals().get('sync_error', False)
         })
 
 stats_thread = None
@@ -392,10 +396,11 @@ stats_result = None
 stats_process = None
 
 def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None):
-    global stats_active, stats_logs, stats_result, stats_process
+    global stats_active, stats_logs, stats_result, stats_process, stats_error
     with stats_lock:
         stats_logs.clear()
         stats_result = None
+        stats_error = False
         
     def log_cb(msg):
         with stats_lock:
@@ -470,6 +475,8 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
                     log_cb(f"[-] محاولة {attempt} فشلت: {str(e)}. جاري المحاولة التالية...")
     except Exception as e:
         log_cb(f"[-] خطأ نهائي في حساب الإحصائيات: {str(e)}")
+        with stats_lock:
+            stats_error = True
     finally:
         with stats_lock:
             stats_active = False
@@ -530,7 +537,8 @@ def api_calculate_stats_status():
         return jsonify({
             "active": stats_active,
             "logs": list(stats_logs),
-            "result": stats_result
+            "result": stats_result,
+            "error": globals().get('stats_error', False)
         })
 
 @app.route('/api/logs', methods=['GET'])
