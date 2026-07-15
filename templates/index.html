@@ -493,12 +493,12 @@
                         <div id="statClosed" style="font-size: 2rem; font-weight: bold; color: #7f1d1d; margin-top: 5px;">0</div>
                     </div>
                 </div>
-                <!-- الباقي دون إنجاز -->
+                <!-- الباقي (في طور الإنجاز) -->
                 <div class="stat-card" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; margin: 0 auto; max-width: 320px;">
                     <div style="font-size: 2.5rem; margin-bottom: 5px; display: flex; justify-content: center;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin" style="color: #475569;"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.32-2.9A2 2 0 0 1 15.8 9.86V5a1 1 0 0 0-1-1H9.2a1 1 0 0 0-1 1v4.86c0 .42-.13.83-.38 1.15l-2.38 2.96A2 2 0 0 0 5 15.22Z"/></svg>
                     </div>
-                    <div style="font-size: 1.1rem; color: #334155; font-weight: bold;">الباقي دون إنجاز</div>
+                    <div style="font-size: 1.1rem; color: #334155; font-weight: bold;">الباقي (في طور الإنجاز)</div>
                     <div id="statRemaining" style="font-size: 2.5rem; font-weight: bold; color: #0f172a; margin-top: 5px;">0</div>
                 </div>
             </div>
@@ -540,29 +540,25 @@
         @media print {
             @page {
                 size: landscape;
-                margin: 0;
+                margin: 15mm;
             }
             body > * {
                 display: none !important;
             }
             #printContainer {
                 display: block !important;
-                position: absolute;
-                left: 0;
-                top: 0;
-                right: 0;
-                bottom: 0;
+                position: static !important;
                 width: 100%;
-                height: 100%;
                 direction: rtl;
                 text-align: right;
-                padding: 40px;
                 color: #000;
                 background: white;
-                box-sizing: border-box;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
         }
     </style>
 

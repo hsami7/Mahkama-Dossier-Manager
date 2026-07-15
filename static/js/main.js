@@ -1500,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                `- الرائج: ${act}\n` +
                                `- المنجز: ${comp}\n` +
                                `- المغلق: ${cls}\n` +
-                               `- الباقي دون إنجاز: ${rem}\n` +
+                               `- الباقي (في طور الإنجاز): ${rem}\n` +
                                `- متوسط مدة الإنجاز: ${avgTime}`;
                                
             // Log the copy event
@@ -1606,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${cls}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي دون إنجاز</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي (في طور الإنجاز)</strong></td>
                 <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${rem}</td>
             </tr>
         </tbody>
