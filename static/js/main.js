@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const countCompleted = document.getElementById('countCompleted');
     const selectAll = document.getElementById('selectAll');
     const bulkActionsWrapper = document.getElementById('bulkActionsWrapper');
-    
+
     // Landing & Auto Sync Elements
     const landingSection = document.getElementById('landingSection');
     const dashboardSection = document.getElementById('dashboardSection');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSettingsOpen = document.getElementById('btnSettingsOpen');
     const btnSettingsClose = document.getElementById('btnSettingsClose');
     const btnSettingsCancel = document.getElementById('btnSettingsCancel');
-    
+
     // Logs Modal & Live Logs Elements
     const logsModal = document.getElementById('logsModal');
     const btnShowLogs = document.getElementById('btnShowLogs');
@@ -39,13 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveSyncLogs = document.getElementById('liveSyncLogs');
     const btnMinimizeLiveLogs = document.getElementById('btnMinimizeLiveLogs');
     const loadingOverlayText = document.getElementById('loadingOverlayText');
-    
+
     // Alert Modal Elements
     const alertModal = document.getElementById('alertModal');
     const alertModalMessage = document.getElementById('alertModalMessage');
     const btnAlertOk = document.getElementById('btnAlertOk');
     const btnAlertClose = document.getElementById('btnAlertClose');
-    
+
     const btnSettingsSave = document.getElementById('btnSettingsSave');
     const settingsForm = document.getElementById('settingsForm');
 
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const filePath = e.target.getAttribute('data-filepath');
                 const fullCode = e.target.getAttribute('data-fullcode');
                 const completed = e.target.checked;
-                
+
                 const overlay = document.getElementById('loadingOverlay');
                 if (overlay) overlay.style.display = 'flex';
                 cb.disabled = true;
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         warningsContainer.innerHTML = '';
         warningsContainer.style.display = 'flex';
-        
+
         warnings.forEach(warn => {
             const alertDiv = document.createElement('div');
             alertDiv.className = 'warning-alert';
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetYears && targetYears.length > 0) {
                 bodyData.target_years = targetYears;
             }
-            
+
             const response = await fetch('/api/scan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             allDossiers = result.dossiers;
-            
+
             if (allDossiers.length === 0) {
                 // Determine if we searched manually or synced
                 const contextMsg = targetYears ? `السنوات (${targetYears.join(', ')})` : 'هذا المجلد';
@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnScan.disabled = false;
                 return;
             }
-            
+
             // Populate category filter dropdown
             const categories = new Set(allDossiers.map(d => d.category));
             filterCategory.innerHTML = '<option value="all">الكل</option>';
@@ -362,25 +362,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 opt.textContent = `الفئة ${cat}`;
                 filterCategory.appendChild(opt);
             });
-            
+
             saveRecentPath(path);
             filterAndRenderDossiers();
             renderWarnings(result.warnings);
-            
+
             dossierCount.textContent = `إجمالي الملفات: ${allDossiers.length}`;
-            
+
             // Show search bar and filters if there are records
             tableSearch.style.display = allDossiers.length > 0 ? 'block' : 'none';
             tabsWrapper.style.display = allDossiers.length > 0 ? 'flex' : 'none';
-            if(filtersBar) filtersBar.style.display = allDossiers.length > 0 ? 'flex' : 'none';
-            
+            if (filtersBar) filtersBar.style.display = allDossiers.length > 0 ? 'flex' : 'none';
+
             // Show Dashboard, Hide Landing
             if (landingSection && dashboardSection) {
                 landingSection.style.display = 'none';
                 dashboardSection.style.display = 'block';
                 window.scrollTo(0, 0);
             }
-            
+
         } catch (error) {
             dossiersTableBody.innerHTML = `
                 <tr>
@@ -407,43 +407,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const urgFilter = filterUrgency.value;
         const minDays = filterDaysMin.value !== '' ? parseInt(filterDaysMin.value, 10) : null;
         const maxDays = filterDaysMax.value !== '' ? parseInt(filterDaysMax.value, 10) : null;
-        
+
         // Update tab badges with count metrics
         const pendingCount = allDossiers.filter(d => !d.completed).length;
         const completedCount = allDossiers.filter(d => d.completed).length;
-        
+
         countPending.textContent = pendingCount;
         countCompleted.textContent = completedCount;
-        
+
         let filtered = allDossiers;
-        
+
         // Tab router
         if (currentTab === 'pending') {
             filtered = filtered.filter(dos => !dos.completed);
         } else {
             filtered = filtered.filter(dos => dos.completed);
         }
-        
+
         // Text Query search (forward and reverse sequence parsing)
         if (query) {
             filtered = filtered.filter(dos => {
                 if (!dos.full_code) return false;
-                
+
                 // 1. Standard forward match
                 const normalizedQuery = query.replace(/-/g, '/');
                 const normalizedDos = dos.full_code.toLowerCase().replace(/-/g, '/');
                 if (normalizedDos.includes(normalizedQuery)) return true;
-                
+
                 // 2. Reverse typing match (Seq/Category/Year)
                 // Extract pure Year, Category, Sequence from dos.full_code using Regex
                 const match = dos.full_code.match(/(\d{4})[/\-](\d{3,4})[/\-](\d+)/);
                 const qParts = normalizedQuery.split('/'); // User types Seq/Cat/Year
-                
+
                 if (match) {
                     const dYear = match[1];
                     const dCat = match[2];
                     const dSeq = match[3];
-                    
+
                     let revMatch = true;
                     // Check Seq
                     if (qParts.length > 0 && qParts[0]) {
@@ -457,10 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (qParts.length > 2 && qParts[2]) {
                         revMatch = revMatch && dYear.includes(qParts[2]);
                     }
-                    
+
                     if (revMatch) return true;
                 }
-                
+
                 return false;
             });
         }
@@ -469,19 +469,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (catFilter !== 'all') {
             filtered = filtered.filter(dos => dos.category === catFilter);
         }
-        
+
         if (urgFilter !== 'all') {
             filtered = filtered.filter(dos => dos.color === urgFilter);
         }
-        
+
         if (minDays !== null) {
             filtered = filtered.filter(dos => dos.days_remaining !== 9999 && dos.days_remaining >= minDays);
         }
-        
+
         if (maxDays !== null) {
             filtered = filtered.filter(dos => dos.days_remaining !== 9999 && dos.days_remaining <= maxDays);
         }
-        
+
         // Sort dynamically by days_remaining ascending (most urgent first)
         filtered.sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -503,16 +503,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Debounce helper to prevent hanging when typing quickly
     function debounce(func, wait) {
         let timeout;
-        return function(...args) {
+        return function (...args) {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, args), wait);
         };
     }
 
     tableSearch.addEventListener('input', debounce(filterAndRenderDossiers, 250));
-    if(btnApplyFilters) btnApplyFilters.addEventListener('click', filterAndRenderDossiers);
-    
-    if(btnClearFilters) {
+    if (btnApplyFilters) btnApplyFilters.addEventListener('click', filterAndRenderDossiers);
+
+    if (btnClearFilters) {
         btnClearFilters.addEventListener('click', () => {
             tableSearch.value = '';
             filterCategory.value = 'all';
@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filterAndRenderDossiers();
         });
     }
-    
+
     // Tab event switchers
     tabPending.addEventListener('click', () => {
         currentTab = 'pending';
@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         alertModalMessage.innerHTML = message.replace(/\n/g, '<br>');
-        
+
         const btnAlertOpenLink = document.getElementById('btnAlertOpenLink');
         if (btnAlertOpenLink) {
             if (filePath) {
@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         alertModal.style.display = 'flex';
-        
+
         return new Promise((resolve) => {
             const cleanup = () => {
                 alertModal.style.display = 'none';
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btnAlertOpenLink) btnAlertOpenLink.removeEventListener('click', openHandler);
                 resolve();
             };
-            
+
             const okHandler = () => { cleanup(); };
             const openHandler = () => {
                 if (filePath) {
@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 cleanup();
             };
-            
+
             if (btnAlertOk) btnAlertOk.addEventListener('click', okHandler);
             if (btnAlertClose) btnAlertClose.addEventListener('click', okHandler);
             if (btnAlertOpenLink && filePath) btnAlertOpenLink.addEventListener('click', openHandler);
@@ -605,10 +605,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnYes = document.getElementById('btnConfirmYes');
             const btnNo = document.getElementById('btnConfirmNo');
             const btnClose = document.getElementById('btnConfirmClose');
-            
+
             messageEl.textContent = message;
             modal.style.display = 'flex';
-            
+
             function cleanup(result) {
                 modal.style.display = 'none';
                 btnYes.removeEventListener('click', onYes);
@@ -616,10 +616,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnClose.removeEventListener('click', onNo);
                 resolve(result);
             }
-            
+
             function onYes() { cleanup(true); }
             function onNo() { cleanup(false); }
-            
+
             btnYes.addEventListener('click', onYes);
             btnNo.addEventListener('click', onNo);
             btnClose.addEventListener('click', onNo);
@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Show custom confirmation popup
-        const confirmMsg = completed 
+        const confirmMsg = completed
             ? "هل أنت متأكد من رغبتك في تحديد جميع القضايا المعروضة كمنجزة؟"
             : "هل أنت متأكد من رغبتك في إلغاء تحديد جميع القضايا المعروضة وإعادتها كقضايا جارية؟";
 
@@ -692,20 +692,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const formLimits = document.getElementById('settingsFormLimits');
     const formThresholds = document.getElementById('settingsFormThresholds');
 
-    if(tabLimits && tabThresholds && tabAbout) {
+    if (tabLimits && tabThresholds && tabAbout) {
         function activateTab(activeTab, showContent, inactiveTabs, hideContents) {
             activeTab.classList.add('active');
             activeTab.style.background = 'var(--mahakim-primary)';
             activeTab.style.color = 'white';
             activeTab.style.border = 'none';
-            
+
             inactiveTabs.forEach(t => {
                 t.classList.remove('active');
                 t.style.background = '#f8fafc';
                 t.style.color = 'var(--mahakim-text)';
                 t.style.border = '1px solid #cbd5e1';
             });
-            
+
             showContent.style.display = 'block';
             hideContents.forEach(c => c.style.display = 'none');
 
@@ -734,19 +734,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/settings');
             const settings = await response.json();
-            
+
             const formLimits = document.getElementById('settingsFormLimits');
             const formThresholds = document.getElementById('settingsFormThresholds');
-            
+
             if (!formLimits || !formThresholds) return;
-            
+
             formLimits.innerHTML = '';
             formThresholds.innerHTML = '';
-            
+
             for (let i = 7201; i <= 7215; i++) {
                 const code = i.toString();
-                const codeSet = settings[code] || {limit: 30, red: 5, orange: 15};
-                
+                const codeSet = settings[code] || { limit: 30, red: 5, orange: 15 };
+
                 const groupLim = document.createElement('div');
                 groupLim.className = 'input-group';
                 groupLim.innerHTML = `
@@ -782,17 +782,17 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const updated = {};
         for (let i = 7201; i <= 7215; i++) {
-            updated[i.toString()] = {limit: 30, red: 5, orange: 15};
+            updated[i.toString()] = { limit: 30, red: 5, orange: 15 };
         }
 
         const formLimits = document.getElementById('settingsFormLimits');
         const formThresholds = document.getElementById('settingsFormThresholds');
-        
+
         if (!formLimits || !formThresholds) return;
 
         const inputsLimits = formLimits.querySelectorAll('input[type="number"]');
         const inputsThresh = formThresholds.querySelectorAll('input[type="number"]');
-        
+
         inputsLimits.forEach(input => {
             updated[input.getAttribute('data-code')].limit = parseInt(input.value, 10);
         });
@@ -810,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const settingsModal = document.getElementById('settingsModal');
                 if (settingsModal) settingsModal.style.display = 'none';
-                
+
                 const folderPathInput = document.getElementById('folderPath');
                 if (folderPathInput && folderPathInput.value.trim()) {
                     const btnScan = document.getElementById('btnScan');
@@ -836,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSettingsClose.addEventListener('click', () => settingsModal.style.display = 'none');
     btnSettingsCancel.addEventListener('click', () => settingsModal.style.display = 'none');
     btnSettingsSave.addEventListener('click', saveSettings);
-    
+
     // Close modal on background click
     settingsModal.addEventListener('click', (e) => {
         if (e.target === settingsModal) {
@@ -850,11 +850,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = path ? `/api/browse?path=${encodeURIComponent(path)}` : '/api/browse';
             const response = await fetch(url);
             const data = await response.json();
-            
+
             currentBrowsePath = data.current_path;
             browseCurrentPath.textContent = `المسار الحالي: ${data.current_path}`;
             browseList.innerHTML = '';
-            
+
             // Add parent directory row (Up)
             if (data.parent_path) {
                 const parentRow = document.createElement('div');
@@ -863,7 +863,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 parentRow.addEventListener('click', () => loadDirectory(data.parent_path));
                 browseList.appendChild(parentRow);
             }
-            
+
             if (data.directories.length === 0) {
                 const empty = document.createElement('div');
                 empty.style.padding = '15px';
@@ -873,7 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 browseList.appendChild(empty);
                 return;
             }
-            
+
             data.directories.forEach(dir => {
                 const row = document.createElement('div');
                 row.className = 'browse-folder-row';
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Scan Event Binding
     btnScan.addEventListener('click', performScan);
-    
+
     if (btnReturnHome) {
         btnReturnHome.addEventListener('click', () => {
             if (landingSection && dashboardSection) {
@@ -935,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     // Allow scan on Enter key
     folderPathInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -946,16 +946,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Auto Sync
     if (btnAddYear && syncYearsContainer) {
         const allPossibleYears = ["2026", "2025", "2024"];
-        
+
         const updateYearOptions = () => {
             const selects = Array.from(syncYearsContainer.querySelectorAll('.sync-year-select'));
             const currentSelections = selects.map(s => s.value);
-            
+
             selects.forEach((select, index) => {
                 const currentValue = select.value;
                 const otherSelections = currentSelections.filter((_, i) => i !== index);
                 const availableYears = allPossibleYears.filter(y => !otherSelections.includes(y));
-                
+
                 select.innerHTML = '';
                 availableYears.forEach(year => {
                     const opt = document.createElement('option');
@@ -966,12 +966,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     select.appendChild(opt);
                 });
-                
+
                 if (!availableYears.includes(currentValue) && availableYears.length > 0) {
                     select.value = availableYears[0];
                 }
             });
-            
+
             if (selects.length >= allPossibleYears.length) {
                 btnAddYear.disabled = true;
                 btnAddYear.style.opacity = '0.5';
@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (firstRow) {
                 const newRow = firstRow.cloneNode(true);
                 const select = newRow.querySelector('.sync-year-select');
-                
+
                 // Add delete button if it doesn't exist
                 let delBtn = newRow.querySelector('.remove-year-btn');
                 if (!delBtn) {
@@ -1005,15 +1005,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     delBtn.innerText = 'X';
                     newRow.appendChild(delBtn);
                 }
-                
+
                 delBtn.onclick = () => {
                     newRow.remove();
                     updateYearOptions();
                 };
-                
+
                 syncYearsContainer.appendChild(newRow);
                 bindSelectChange(select);
-                
+
                 // Assign first available year to the new select
                 const currentSelects = Array.from(syncYearsContainer.querySelectorAll('.sync-year-select'));
                 const selectedYears = currentSelects.slice(0, -1).map(s => s.value);
@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (firstAvailable) {
                     select.value = firstAvailable;
                 }
-                
+
                 updateYearOptions();
             }
         });
@@ -1043,12 +1043,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnMinimizeLiveLogs) {
             btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
         }
-        
+
         pollInterval = setInterval(async () => {
             try {
                 const res = await fetch('/api/sync/status');
                 const data = await res.json();
-                
+
                 // Append new logs
                 if (data.logs && data.logs.length > lastLogCount) {
                     const newLogs = data.logs.slice(lastLogCount);
@@ -1061,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             div.style.color = '#4ade80';
                         }
                         if (liveSyncLogs) liveSyncLogs.appendChild(div);
-                        
+
                         // Also append to global history console
                         const historyDiv = document.createElement('div');
                         historyDiv.textContent = logLine;
@@ -1073,29 +1073,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (liveSyncLogs) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
                     if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
                 }
-                
+
                 if (!data.active) {
                     clearInterval(pollInterval);
                     pollInterval = null;
                     operationRunning = false;
-                    
+
                     const overlay = document.getElementById('loadingOverlay');
-                    
+
                     if (data.error) {
                         alert('حدث خطأ أثناء مزامنة السجلات. سيتم إعادة تحميل الصفحة لضمان استقرار النظام.');
                         window.location.reload();
                         return;
                     }
-                    
+
                     if (data.directory) {
                         folderPathInput.value = data.directory;
                         if (loadingOverlayText) loadingOverlayText.innerText = 'جاري قراءة ومعالجة الملفات...';
-                        
+
                         await performScan(data.years);
                     } else {
                         showAlert('فشلت عملية المزامنة أو لم يتم تحميل أي ملفات.');
                     }
-                    
+
                     if (overlay) overlay.style.display = 'none';
                     if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
                     btnAutoSync.disabled = false;
@@ -1110,22 +1110,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAutoSync) {
         btnAutoSync.addEventListener('click', async () => {
             if (operationRunning) return;
-            
+
             const selects = document.querySelectorAll('.sync-year-select');
             const years = Array.from(selects).map(s => s.value.trim()).filter(y => y);
             const uniqueYears = [...new Set(years)];
-            
+
             if (uniqueYears.length === 0) {
                 showAlert('الرجاء إدخال سنة واحدة على الأقل.');
                 return;
             }
-            
+
             btnAutoSync.disabled = true;
             const originalText = btnAutoSync.innerText;
             btnAutoSync.innerText = 'جاري المزامنة...';
 
             resetOperationUI('جاري المزامنة مع بوابة المحاكم تلقائياً...');
-            
+
             try {
                 const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
                 const res = await fetch('/api/sync', {
@@ -1134,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ years: uniqueYears, directory: folderPath })
                 });
                 const data = await res.json();
-                
+
                 if (data.error) {
                     showAlert(data.error);
                     if (overlay) overlay.style.display = 'none';
@@ -1189,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     if (btnLogsClose) btnLogsClose.addEventListener('click', closeLogsModal);
     if (btnLogsModalClose) btnLogsModalClose.addEventListener('click', closeLogsModal);
-    
+
     if (btnLogsClear) {
         btnLogsClear.addEventListener('click', async () => {
             if (logsConsole) logsConsole.innerHTML = 'جاري مسح سجل العمليات...';
@@ -1201,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     const btnLogsCopy = document.getElementById('btnLogsCopy');
     if (btnLogsCopy) {
         btnLogsCopy.addEventListener('click', () => {
@@ -1226,7 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     if (logsModal) {
         logsModal.addEventListener('click', (e) => {
             if (e.target === logsModal) {
@@ -1292,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.inputType === 'deleteContentBackward') return;
             let value = input.value.replace(/\D/g, '');
             if (value.length > 8) value = value.substring(0, 8);
-            
+
             let formattedValue = '';
             if (value.length > 0) {
                 formattedValue += value.substring(0, 2);
@@ -1323,12 +1323,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnMinimizeLiveLogs) {
             btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
         }
-        
+
         statsPollInterval = setInterval(async () => {
             try {
                 const res = await fetch('/api/calculate-stats/status');
                 const data = await res.json();
-                
+
                 // Append new logs
                 if (data.logs && data.logs.length > lastStatsLogCount) {
                     const newLogs = data.logs.slice(lastStatsLogCount);
@@ -1341,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             div.style.color = '#4ade80';
                         }
                         if (liveSyncLogs) liveSyncLogs.appendChild(div);
-                        
+
                         // Also append to global history console
                         const historyDiv = document.createElement('div');
                         historyDiv.textContent = logLine;
@@ -1353,24 +1353,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (liveSyncLogs) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
                     if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
                 }
-                
+
                 if (!data.active) {
                     clearInterval(statsPollInterval);
                     statsPollInterval = null;
                     operationRunning = false;
-                    
+
                     const overlay = document.getElementById('loadingOverlay');
                     if (overlay) overlay.style.display = 'none';
                     if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
-                    
+
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
-                    
+
                     if (data.result) {
                         // Populate modal values
                         document.getElementById('statsYearTitle').textContent = yearOrRangeText;
                         document.querySelectorAll('.statsYearLabel').forEach(el => el.textContent = yearOrRangeText);
-                        
+
                         document.getElementById('statRegistered').textContent = data.result.registered;
                         document.getElementById('statActive').textContent = data.result.active;
                         document.getElementById('statCompleted').textContent = data.result.completed;
@@ -1381,10 +1381,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (avgTimeEl) {
                             avgTimeEl.textContent = avgDays + ' يوم';
                         }
-                        
+
                         document.getElementById('statsStartDate').textContent = data.result.start_date || '--';
                         document.getElementById('statsEndDate').textContent = data.result.end_date || '--';
-                        
+
                         if (statsResultModal) statsResultModal.style.display = 'flex';
                     } else {
                         showAlert('حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
@@ -1399,27 +1399,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCalculateStats) {
         btnCalculateStats.addEventListener('click', async () => {
             if (operationRunning) return;
-            
+
             const statsRangeRadio = document.querySelector('input[name="statsRange"]:checked');
             const rangeMode = statsRangeRadio ? statsRangeRadio.value : 'year';
-            
+
             const yearSelect = document.getElementById('statsYearSelect');
             const optionSelect = document.getElementById('statsOptionSelect');
             const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
-            
+
             let year = yearSelect ? yearSelect.value : "2026";
             const option = optionSelect ? optionSelect.value : "مكتب الخبرة";
-            
+
             let start_date = null;
             let end_date = null;
             let displayTitle = year;
-            
+
             if (rangeMode === 'custom') {
                 const startDateInput = document.getElementById('statsStartDateInput');
                 const endDateInput = document.getElementById('statsEndDateInput');
                 const rawStart = startDateInput ? startDateInput.value.trim() : '';
                 const rawEnd = endDateInput ? endDateInput.value.trim() : '';
-                
+
                 const parseDMY = (str) => {
                     if (!str) return null;
                     const parts = str.split('/');
@@ -1430,42 +1430,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (day.length !== 2 || month.length !== 2 || year.length !== 4) return null;
                     return `${year}-${month}-${day}`;
                 };
-                
+
                 start_date = parseDMY(rawStart);
                 end_date = parseDMY(rawEnd);
-                
+
                 if (!start_date || !end_date) {
                     showAlert('يرجى إدخال التاريخ بالصيغة الصحيحة (يوم/شهر/سنة) مثال: 01/01/2026');
                     return;
                 }
-                
+
                 try {
                     year = end_date.split('-')[0];
-                } catch(e) {}
-                
+                } catch (e) { }
+
                 displayTitle = 'فترة مخصصة';
             }
-            
+
             btnCalculateStats.disabled = true;
             const originalText = btnCalculateStats.innerText;
             btnCalculateStats.innerText = 'جاري الاحتساب...';
-            
+
             resetOperationUI('جاري الاتصال وسحب الملفات واحتساب إحصائيات الخبرة...');
-            
+
             try {
                 const res = await fetch('/api/calculate-stats', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        year: year, 
-                        option: option, 
+                    body: JSON.stringify({
+                        year: year,
+                        option: option,
                         directory: folderPath,
                         start_date: start_date,
                         end_date: end_date
                     })
                 });
                 const data = await res.json();
-                
+
                 if (data.error) {
                     showAlert(data.error);
                     if (overlay) overlay.style.display = 'none';
@@ -1490,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     if (btnStatsResultClose) btnStatsResultClose.addEventListener('click', closeStatsModal);
     if (btnStatsResultCloseOk) btnStatsResultCloseOk.addEventListener('click', closeStatsModal);
-    
+
     if (statsResultModal) {
         statsResultModal.addEventListener('click', (e) => {
             if (e.target === statsResultModal) {
@@ -1508,21 +1508,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const cls = document.getElementById('statClosed').textContent;
             const rem = document.getElementById('statRemaining').textContent;
             const avgTime = document.getElementById('statAverageTime') ? document.getElementById('statAverageTime').textContent : '0 يوم';
-            
+
             const reportText = `تقرير إحصائيات مكتب الخبرة لسنة ${year}:\n` +
-                               `- المسجل: ${reg}\n` +
-                               `- الرائج: ${act}\n` +
-                               `- المنجز: ${comp}\n` +
-                               `- المغلق: ${cls}\n` +
-                               `- الباقي (في طور الإنجاز): ${rem}\n` +
-                               `- متوسط مدة الإنجاز: ${avgTime}`;
-                               
+                `- المسجل: ${reg}\n` +
+                `- الرائج: ${act}\n` +
+                `- المنجز: ${comp}\n` +
+                `- المغلق: ${cls}\n` +
+                `- الباقي (في طور الإنجاز): ${rem}\n` +
+                `- متوسط مدة الإنجاز: ${avgTime}`;
+
             // Log the copy event
             fetch('/api/log-client-event', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: `نسخ التقرير الإحصائي للحافظة: ${year.trim()}` })
-            }).catch(() => {});
+            }).catch(() => { });
 
             navigator.clipboard.writeText(reportText).then(() => {
                 showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح! 📋');
@@ -1543,7 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const btnStatsPrintReport = document.getElementById('btnStatsPrintReport');
-    
+
     const triggerPrint = () => {
         const startDate = document.getElementById('statsStartDate').textContent;
         const endDate = document.getElementById('statsEndDate').textContent;
@@ -1577,7 +1577,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const logoCircleImg = document.querySelector('.logo-circle img');
             printContainer.innerHTML = `
-    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 20px; padding-bottom: 10px; margin-bottom: 15px;">
+    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 10px; padding-bottom: 10px; margin-bottom: 15px;">
         <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
             المملكة المغربية<br>
             وزارة العدل<br>
@@ -1597,6 +1597,14 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
     <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
+            <tr>
+                <th colspan="4" style="background: white; border: none; padding-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #333; font-family: sans-serif; font-weight: normal;">
+                        <span>إدارة ملفات المحاكم</span>
+                        <span style="direction: ltr;">${new Date().toLocaleDateString('en-GB')}</span>
+                    </div>
+                </th>
+            </tr>
             <tr>
                 <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 50%;">الحالة</th>
                 <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 50%;">العدد</th>
@@ -1627,12 +1635,12 @@ document.addEventListener('DOMContentLoaded', () => {
     </table>
     <div class="footer" style="margin-top: 25px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
         حرر في: ${(() => {
-            const d = new Date();
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
-        })()}
+                    const d = new Date();
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    return `${day}/${month}/${year}`;
+                })()}
     </div>
                 `;
 
@@ -1641,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: `طباعة تقرير إحصائي: ${pdfTitle.trim()}` })
-            }).catch(() => {});
+            }).catch(() => { });
 
             // Wait for the logo image to finish loading so it appears in the print view
             const printImg = printContainer.querySelector('img');
@@ -1680,15 +1688,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Count rows per urgency colour (from row class)
         let redCount = 0, orangeCount = 0, greenCount = 0, completedCount = 0;
         rows.forEach(row => {
-            if (row.classList.contains('row-red'))       redCount++;
+            if (row.classList.contains('row-red')) redCount++;
             else if (row.classList.contains('row-orange')) orangeCount++;
-            else if (row.classList.contains('row-green'))  greenCount++;
+            else if (row.classList.contains('row-green')) greenCount++;
             else if (row.classList.contains('row-completed')) completedCount++;
         });
         const totalPrinted = rows.length;
 
         const now = new Date();
-        const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+        const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
         const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u0645\u0646\u062c\u0632\u0629';
 
         // Build table rows for print using currently rendered cell text content
@@ -1704,21 +1712,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!cells || cells.length < 9) return;
 
             const fullCode = cells[1] ? cells[1].innerText.trim() : '-';
-            const judge    = cells[8] ? cells[8].innerText.trim() : '-';
-            const urgency  = cells[7] ? cells[7].innerText.trim() : '-';
-            const days     = cells[6] ? cells[6].innerText.trim() : '-';
-            const regDate  = cells[4] ? cells[4].innerText.trim() : '-';
-            const expDate  = cells[5] ? cells[5].innerText.trim() : '-';
+            const judge = cells[8] ? cells[8].innerText.trim() : '-';
+            const urgency = cells[7] ? cells[7].innerText.trim() : '-';
+            const days = cells[6] ? cells[6].innerText.trim() : '-';
+            const regDate = cells[4] ? cells[4].innerText.trim() : '-';
+            const expDate = cells[5] ? cells[5].innerText.trim() : '-';
 
 
             let urgColor = '#16a34a';
-            if (row.classList.contains('row-red'))    urgColor = '#dc2626';
+            if (row.classList.contains('row-red')) urgColor = '#dc2626';
             if (row.classList.contains('row-orange')) urgColor = '#d97706';
 
             let rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-            if (row.classList.contains('row-red'))       rowBg = '#fff1f2';
-            if (row.classList.contains('row-orange'))    rowBg = '#fffbeb';
-            if (row.classList.contains('row-green'))     rowBg = '#f0fdf4';
+            if (row.classList.contains('row-red')) rowBg = '#fff1f2';
+            if (row.classList.contains('row-orange')) rowBg = '#fffbeb';
+            if (row.classList.contains('row-green')) rowBg = '#f0fdf4';
             if (row.classList.contains('row-completed')) rowBg = '#f1f5f9';
 
             tableRowsHtml += `
@@ -1757,7 +1765,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         printContainer.innerHTML = `
             <div style="direction:rtl;font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:28px 36px;color:#0f172a;background:#fff;">
-
                 <!-- Letterhead -->
                 <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:10px;margin-bottom:16px;">
                     <div style="text-align:right;font-size:0.88rem;font-weight:700;line-height:1.9;">
@@ -1796,6 +1803,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Data table -->
                 <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
                     <thead>
+                        <tr>
+                            <th colspan="6" style="background: white; border: none; padding-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #333; font-family: sans-serif; font-weight: normal;">
+                                    <span>إدارة ملفات المحاكم</span>
+                                    <span style="direction: ltr;">${dateStr}</span>
+                                </div>
+                            </th>
+                        </tr>
                         <tr style="background:#1e3a8a;">
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الرمز الكامل للملف</th>
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">المستشار المقرر</th>
@@ -1822,7 +1837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: `\u0637\u0628\u0627\u0639\u0629 \u062c\u062f\u0648\u0644: ${printLabel} - ${tabLabel} (${totalPrinted} \u0645\u0644\u0641)` })
-        }).catch(() => {});
+        }).catch(() => { });
 
         const printImg = printContainer.querySelector('img');
         const doPrint = () => {
@@ -1855,15 +1870,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Count statistics
             let redCount = 0, orangeCount = 0, greenCount = 0, completedCount = 0;
             rows.forEach(row => {
-                if (row.classList.contains('row-red'))       redCount++;
+                if (row.classList.contains('row-red')) redCount++;
                 else if (row.classList.contains('row-orange')) orangeCount++;
-                else if (row.classList.contains('row-green'))  greenCount++;
+                else if (row.classList.contains('row-green')) greenCount++;
                 else if (row.classList.contains('row-completed')) completedCount++;
             });
             const totalPrinted = rows.length;
 
             const now = new Date();
-            const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+            const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
             const tabLabel = currentTab === 'pending' ? '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u062c\u0627\u0631\u064a\u0629' : '\u0627\u0644\u0642\u0636\u0627\u064a\u0627 \u0627\u0644\u0645\u0646\u062c\u0632\u0629';
 
             // Generate statistical display
@@ -1897,9 +1912,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Urgency/Completion background colors for cells
                 let cellBg = '#ffffff';
-                if (row.classList.contains('row-red'))       cellBg = '#fff1f2';
+                if (row.classList.contains('row-red')) cellBg = '#fff1f2';
                 else if (row.classList.contains('row-orange')) cellBg = '#fffbeb';
-                else if (row.classList.contains('row-green'))  cellBg = '#f0fdf4';
+                else if (row.classList.contains('row-green')) cellBg = '#f0fdf4';
                 else if (row.classList.contains('row-completed')) cellBg = '#f1f5f9';
 
                 rowsHtml += '<tr>';
@@ -1985,7 +2000,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </html>
             `;
 
-            const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const filename = `تقرير_القضايا_${tabLabel.replace(/\s+/g, '_')}_${stamp}.xls`;
 
             // In pywebview/WebView2 neither blob URLs nor HTTP file responses trigger downloads.
@@ -1995,17 +2010,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: excelTemplate, filename })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
-                } else if (data.cancelled) {
-                    console.log('Export cancelled by user.');
-                } else {
-                    showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
-                }
-            })
-            .catch(err => showAlert('❌ فشل تصدير الملف: ' + err.message));
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
+                    } else if (data.cancelled) {
+                        console.log('Export cancelled by user.');
+                    } else {
+                        showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
+                    }
+                })
+                .catch(err => showAlert('❌ فشل تصدير الملف: ' + err.message));
         });
     }
     // --- Update Checker ---
@@ -2025,17 +2040,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/check-update');
             const data = await response.json();
-            
+
             if (data.has_update && data.latest_version) {
                 if (banner && bannerText) {
                     banner.style.display = 'block';
-                    
+
                     // Poll update status every 2 seconds
                     const updatePollInterval = setInterval(async () => {
                         try {
                             const res = await fetch('/api/update-status');
                             const statusData = await res.json();
-                            
+
                             if (statusData.status === 'downloading') {
                                 bannerText.textContent = `جاري تحميل التحديث الجديد (${data.latest_version}) تلقائياً في الخلفية...`;
                                 if (progressText) progressText.textContent = `${statusData.progress}%`;
