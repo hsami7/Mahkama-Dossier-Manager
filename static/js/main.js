@@ -1727,8 +1727,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (row.classList.contains('row-green')) rowBg = '#f0fdf4';
             if (row.classList.contains('row-completed')) rowBg = '#f1f5f9';
 
+            let breakStyle = (idx === 11 && rows.length > 12) ? 'page-break-after: always; break-after: page;' : '';
             tableRowsHtml += `
-                <tr style="background:${rowBg};">
+                <tr style="background:${rowBg}; ${breakStyle}">
                     <td style="border:1px solid #d1d5db;padding:6px 10px;font-weight:700;text-align:center;">${fullCode}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${judge}</td>
                     <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${regDate}</td>
