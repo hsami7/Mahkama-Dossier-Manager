@@ -1598,14 +1598,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
-                <th colspan="4" style="background: white; border: none; padding-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #333; font-family: sans-serif; font-weight: normal;">
-                        <span>إدارة ملفات المحاكم</span>
-                        <span style="direction: ltr;">${new Date().toLocaleDateString('en-GB')}</span>
-                    </div>
-                </th>
-            </tr>
-            <tr>
                 <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 50%;">الحالة</th>
                 <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 50%;">العدد</th>
             </tr>
@@ -1803,14 +1795,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Data table -->
                 <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
                     <thead>
-                        <tr>
-                            <th colspan="6" style="background: white; border: none; padding-bottom: 10px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #333; font-family: sans-serif; font-weight: normal;">
-                                    <span>إدارة ملفات المحاكم</span>
-                                    <span style="direction: ltr;">${dateStr}</span>
-                                </div>
-                            </th>
-                        </tr>
                         <tr style="background:#1e3a8a;">
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الرمز الكامل للملف</th>
                             <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">المستشار المقرر</th>
