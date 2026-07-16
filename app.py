@@ -32,6 +32,7 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 
 import tempfile
 import threading
+import uuid
 import time
 
 update_status = {"status": "idle", "progress": 0, "version": None, "error": None}
@@ -255,6 +256,7 @@ def api_scan():
     })
 
 import threading
+import uuid
 
 sync_thread = None
 sync_logs = []
@@ -263,10 +265,11 @@ sync_lock = threading.Lock()
 sync_dir = ""
 sync_target_years = []
 sync_process = None
+active_sync_id = None
 stats_process = None
 
-def run_sync(years, base_download_dir):
-    global sync_active, sync_logs, sync_dir, sync_target_years, sync_process, sync_error
+def run_sync(years, base_download_dir, session_id):
+    global sync_active, sync_logs, sync_dir, sync_target_years, sync_process, sync_error, active_sync_id
     with sync_lock:
         sync_logs.clear()
         sync_dir = base_download_dir
@@ -295,9 +298,9 @@ def run_sync(years, base_download_dir):
             max_retries = 3
             for attempt in range(1, max_retries + 1):
                 with sync_lock:
-                    if not sync_active:
+                    if not sync_active or active_sync_id != session_id:
                         log_cb("[-] تم إيقاف المزامنة من قبل المستخدم.")
-                        break
+                        return
                         
                 if attempt > 1:
                     log_cb(f"[*] إعادة المحاولة ({attempt}/{max_retries}) للسنة {year}...")
@@ -327,6 +330,9 @@ def run_sync(years, base_download_dir):
                     else:
                         raise Exception(f"خطأ في المزامنة. الرمز: {return_code}")
                 except Exception as e:
+                    with sync_lock:
+                        if not sync_active or active_sync_id != session_id:
+                            return
                     if attempt == max_retries:
                         raise e
                     else:
@@ -338,12 +344,13 @@ def run_sync(years, base_download_dir):
             sync_error = True
     finally:
         with sync_lock:
-            sync_active = False
-            sync_process = None
+            if active_sync_id == session_id:
+                sync_active = False
+                sync_process = None
 
 @app.route('/api/sync', methods=['POST'])
 def api_sync():
-    global sync_thread, sync_active
+    global sync_thread, sync_active, active_sync_id
     data = request.get_json() or {}
     years = data.get('years', [])
     
@@ -355,6 +362,8 @@ def api_sync():
             return jsonify({"error": "المزامنة جارية بالفعل."}), 400
         sync_active = True
             
+        active_sync_id = str(uuid.uuid4())
+        session_id = active_sync_id
     try:
         directory = data.get('directory')
         if not directory or not directory.strip():
@@ -364,7 +373,7 @@ def api_sync():
             
         base_download_dir = directory
         
-        sync_thread = threading.Thread(target=run_sync, args=(years, base_download_dir))
+        sync_thread = threading.Thread(target=run_sync, args=(years, base_download_dir, session_id))
         sync_thread.daemon = True
         sync_thread.start()
         
