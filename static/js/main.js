@@ -1583,7 +1583,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const logoCircleImg = document.querySelector('.logo-circle img');
             printContainer.innerHTML = `
     <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
-        <thead><tr><td style="border: none; height: 15px;"></td></tr></thead>
+        <thead><tr><td style="border: none; height: 35px;"></td></tr></thead>
         <tbody>
             <tr>
                 <td style="border: none; padding: 0;">
@@ -1763,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         printContainer.innerHTML = `
             <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #fff;">
-                <thead><tr><td style="border: none; height: 15px;"></td></tr></thead>
+                <thead><tr><td style="border: none; height: 35px;"></td></tr></thead>
                 <tbody>
                     <tr>
                         <td style="border: none; padding: 15px 36px;">
