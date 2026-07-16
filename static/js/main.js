@@ -769,6 +769,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <input type="number" data-code="${code}" data-type="red" value="${codeSet.red}" min="1" required style="width:100%; padding:6px; border:1px solid #dfe7ef; border-radius:4px;">
                         </div>
                     </div>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot><tr><td style="border: none; height: 15px;"></td></tr></tfoot>
+    </table>
                 `;
                 formThresholds.appendChild(groupThresh);
             }
@@ -1577,25 +1582,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const logoCircleImg = document.querySelector('.logo-circle img');
             printContainer.innerHTML = `
-    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 10px; padding-bottom: 10px; margin-bottom: 15px;">
-        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
-            المملكة المغربية<br>
-            وزارة العدل<br>
-            محكمة الاستئناف الادارية فاس
-        </div>
-        <div class="middle-header" style="text-align: center; padding: 0 20px;">
-            <img src="/static/img/Picture1.png" style="height: 80px; width: auto; object-fit: contain;">
-        </div>
-        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 2.1; font-family: 'Ebrima', sans-serif;">
-            ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>
-            ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>
-            ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
-        </div>
-    </div>
-    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #000; text-decoration: underline;">
-        نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
-    </div>
-    <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
+    <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
+        <thead><tr><td style="border: none; height: 15px;"></td></tr></thead>
+        <tbody>
+            <tr>
+                <td style="border: none; padding: 0;">
+                    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 10px; padding-bottom: 10px; margin-bottom: 15px;">
+                        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
+                            المملكة المغربية<br>وزارة العدل<br>محكمة الاستئناف الادارية فاس
+                        </div>
+                        <div class="middle-header" style="text-align: center; padding: 0 20px;">
+                            <img src="/static/img/Picture1.png" style="height: 80px; width: auto; object-fit: contain;">
+                        </div>
+                        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 2.1; font-family: 'Ebrima', sans-serif;">
+                            ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
+                        </div>
+                    </div>
+                    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #000; text-decoration: underline;">
+                        نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
+                    </div>
+                    <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
         <thead>
             <tr>
                 <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 50%;">الحالة</th>
@@ -1756,9 +1762,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.title = `\u0625\u062f\u0627\u0631\u0629 \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u0643\u0645 - ${printLabel} - ${tabLabel} - ${dateStr}`;
 
         printContainer.innerHTML = `
-            <div style="direction:rtl;font-family:'Segoe UI',Tahoma,Arial,sans-serif;padding:28px 36px;color:#0f172a;background:#fff;">
-                <!-- Letterhead -->
-                <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:10px;margin-bottom:16px;">
+            <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #fff;">
+                <thead><tr><td style="border: none; height: 15px;"></td></tr></thead>
+                <tbody>
+                    <tr>
+                        <td style="border: none; padding: 15px 36px;">
+                            <!-- Letterhead -->
+                            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:10px;margin-bottom:16px;">
                     <div style="text-align:right;font-size:0.88rem;font-weight:700;line-height:1.9;">
                         \u0627\u0644\u0645\u0645\u0644\u0643\u0629 \u0627\u0644\u0645\u063a\u0631\u0628\u064a\u0629<br>
                         \u0648\u0632\u0627\u0631\u0629 \u0627\u0644\u0639\u062f\u0644<br>
@@ -1814,7 +1824,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span>\u062a\u0645 \u0627\u0644\u062a\u062d\u0631\u064a\u0631 \u0628\u0648\u0627\u0633\u0637\u0629 \u0646\u0638\u0627\u0645 \u0625\u062f\u0627\u0631\u0629 \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u062d\u0627\u0643\u0645</span>
                     <span>${dateStr}</span>
                 </div>
-            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot><tr><td style="border: none; height: 15px;"></td></tr></tfoot>
+            </table>
         `;
 
         fetch('/api/log-client-event', {
