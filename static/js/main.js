@@ -1090,7 +1090,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     const overlay = document.getElementById('loadingOverlay');
 
                     if (data.error) {
-                        showAlert('حدث خطأ أثناء مزامنة السجلات. يرجى التحقق من السجل لمعرفة التفاصيل.');
+                        let errorMsg = 'حدث خطأ أثناء مزامنة السجلات. يرجى التحقق من السجل لمعرفة التفاصيل.';
+                        if (data.logs && data.logs.length > 0) {
+                            const recentLogs = data.logs.slice(-10);
+                            const errorLines = recentLogs.filter(l => l.includes('[-]')).map(l => l.replace('[-]', '').trim());
+                            if (errorLines.length > 0) {
+                                const specificErrors = errorLines.filter(l => !l.includes('فشل مزامنة السنة') && !l.includes('خطأ في المزامنة. الرمز'));
+                                if (specificErrors.length > 0) {
+                                    errorMsg = specificErrors.join('\n');
+                                } else {
+                                    errorMsg = errorLines.join('\n');
+                                }
+                            }
+                        }
+                        showAlert(`حدث خطأ أثناء مزامنة السجلات:\n\n${errorMsg}`);
                     } else if (data.directory) {
                         folderPathInput.value = data.directory;
                         if (loadingOverlayText) loadingOverlayText.innerText = 'جاري قراءة ومعالجة الملفات...';
