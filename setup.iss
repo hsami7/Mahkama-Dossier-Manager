@@ -1,5 +1,5 @@
 #define AppName "Mahkama Dossier Manager"
-#define AppVersion "1.2.3"
+#define AppVersion "1.2.4"
 #define AppPublisher "Hatim Sami"
 #define AppPublisherURL "https://hatimsami.engineer/"
 #define AppExeName "Mahkama Dossier Manager.exe"
