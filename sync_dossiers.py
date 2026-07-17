@@ -39,7 +39,9 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 try:
                     os.remove(os.path.join(target_dir, item))
                 except Exception as e:
-                    log(f"[-] Could not remove stale file {item}: {e}")
+                    error_msg = f"Could not remove stale file {item}: {e}. The file is likely open in another program (like Excel). Please close it and try again."
+                    log(f"[-] {error_msg}")
+                    raise RuntimeError(error_msg)
                     
     log(f"[*] Starting sync for year {year}...")
     log(f"[*] Target directory: {target_dir}")
@@ -287,9 +289,13 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                     downloaded_count += 1
                     
                 except PlaywrightTimeoutError:
-                    log(f"[-] Registry {display_index} ({reg_name}): Did not trigger a download.")
+                    error_msg = f"Registry {display_index} ({reg_name}): Did not trigger a download (Timeout). Please check your connection or try again."
+                    log(f"[-] {error_msg}")
+                    raise RuntimeError(error_msg)
                 except Exception as e:
-                    log(f"[-] Registry {display_index} ({reg_name}): Error: {e}")
+                    error_msg = f"Registry {display_index} ({reg_name}): Error during download: {e}. Please check and try again."
+                    log(f"[-] {error_msg}")
+                    raise RuntimeError(error_msg)
                     
             log(f"\n[+] Operation completed. Downloaded {downloaded_count} files successfully into {target_dir}")
             

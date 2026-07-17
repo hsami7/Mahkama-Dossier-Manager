@@ -192,7 +192,9 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                             downloaded_files[yr] = file_path
                             log_msg(f"[+] Downloaded: {file_name}", log_callback)
                         except Exception as e:
-                            log_msg(f"[-] Download failed for {yr}: {e}", log_callback)
+                            error_msg = f"فشل تحميل ملف الإحصائيات لسنة {yr}: {e}. يرجى التحقق من الاتصال والمحاولة مرة أخرى."
+                            log_msg(f"[-] {error_msg}", log_callback)
+                            raise RuntimeError(error_msg)
                     else:
                         log_msg(f"[-] Download link not found for year {yr}", log_callback)
                 else:
