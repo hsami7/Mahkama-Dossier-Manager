@@ -1091,12 +1091,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const overlay = document.getElementById('loadingOverlay');
 
                     if (data.error) {
-                        alert('حدث خطأ أثناء مزامنة السجلات. سيتم إعادة تحميل الصفحة لضمان استقرار النظام.');
-                        window.location.reload();
-                        return;
-                    }
-
-                    if (data.directory) {
+                        showAlert('حدث خطأ أثناء مزامنة السجلات. يرجى التحقق من السجل لمعرفة التفاصيل.');
+                    } else if (data.directory) {
                         folderPathInput.value = data.directory;
                         if (loadingOverlayText) loadingOverlayText.innerText = 'جاري قراءة ومعالجة الملفات...';
 
@@ -1184,7 +1180,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             logsConsole.appendChild(div);
                         });
-                        logsConsole.scrollTop = logsConsole.scrollHeight;
+                        setTimeout(() => {
+                            logsConsole.scrollTop = logsConsole.scrollHeight;
+                        }, 50);
                     }
                 } catch (err) {
                     logsConsole.innerHTML = '❌ خطأ في تحميل السجل من الخادم.';
