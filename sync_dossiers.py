@@ -39,7 +39,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 try:
                     os.remove(os.path.join(target_dir, item))
                 except Exception as e:
-                    error_msg = f"تعذر حذف الملف القديم {item}: {e}. الملف مفتوح غالباً في برنامج آخر مثل Excel. يرجى إغلاقه والمحاولة مرة أخرى."
+                    error_msg = f"تعذر حذف الملف القديم ({item}) لأن الملف مفتوح غالباً في برنامج آخر مثل Excel. يرجى إغلاق الملف والمحاولة مرة أخرى."
                     log(f"[-] {error_msg}")
                     sys.exit(1)
                     
