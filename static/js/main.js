@@ -1373,12 +1373,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const overlay = document.getElementById('loadingOverlay');
                     if (overlay) overlay.style.display = 'none';
-                    if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
 
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
 
-                    if (data.result) {
+                    if (data.error || !data.result) {
+                        showAlert(data.error || 'حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
+                    } else {
+                        if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
                         // Populate modal values
                         document.getElementById('statsYearTitle').textContent = yearOrRangeText;
                         document.querySelectorAll('.statsYearLabel').forEach(el => el.textContent = yearOrRangeText);
@@ -1398,8 +1400,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('statsEndDate').textContent = data.result.end_date || '--';
 
                         if (statsResultModal) statsResultModal.style.display = 'flex';
-                    } else {
-                        showAlert('حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
                     }
                 }
             } catch (err) {

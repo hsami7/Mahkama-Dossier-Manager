@@ -132,7 +132,16 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             if "RegistreDossierMI" not in page.url:
                 page.goto("http://10.250.1.26/Outils/Productivite/RegistreDossierMI", wait_until="domcontentloaded", timeout=30000)
             
+            def get_year_art(yr_str):
+                art = {
+                    '2024': "\n  ____   ___ ____  _  _  \n |___ \\ / _ \\___ \\| || | \n   __) | | | |__) | || |_ \n  / __/| |_| / __/|__   _|\n |_____|\\___/_____|  |_|  \n",
+                    '2025': "\n  ____   ___ ___  ____  \n |___ \\ / _ \\__ \\| ___| \n   __) | | | | ) |___ \\ \n  / __/| |_| |/ / ___) |\n |_____|\\___//____|____/ \n",
+                    '2026': "\n  ____   ___ ___   __   \n |___ \\ / _ \\__ \\ / /_  \n   __) | | | | ) | '_ \\ \n  / __/| |_| |/ /| (_) |\n |_____|\\___//____\\___/ \n"
+                }
+                return art.get(str(yr_str), f"\n --- {yr_str} --- \n")
+
             for yr in years_to_download:
+                log_msg(get_year_art(yr), log_callback)
                 log_msg(f"[*] Loading data for year {yr}...", log_callback)
                 select_element = page.locator('select#AnneeEnregistrement, select').first
                 if select_element.count() > 0:
