@@ -196,9 +196,13 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                             log_msg(f"[-] {error_msg}", log_callback)
                             raise RuntimeError(error_msg)
                     else:
-                        log_msg(f"[-] Download link not found for year {yr}", log_callback)
+                        error_msg = f"لم يتم العثور على رابط التحميل لسنة {yr}."
+                        log_msg(f"[-] {error_msg}", log_callback)
+                        raise RuntimeError(error_msg)
                 else:
-                    log_msg(f"[-] Expertise row not found for year {yr}", log_callback)
+                    error_msg = f"لم يتم العثور على سجل الخبرة لسنة {yr}."
+                    log_msg(f"[-] {error_msg}", log_callback)
+                    raise RuntimeError(error_msg)
                     
         except Exception as e:
             log_msg(f"[-] Scraper error: {e}", log_callback)
@@ -228,8 +232,14 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # Step 1: Download files
     files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date)
     
-    if not files.get(target_year):
-        raise Exception(f"تعذر تحميل ملف سنة {target_year} للحساب.")
+    expected_years = [y for y in [2024, 2025, 2026] if y <= target_year]
+    if start_date and end_date:
+        end_year = end_date.year
+        expected_years = [y for y in [2024, 2025, 2026] if y <= end_year]
+
+    for yr in expected_years:
+        if not files.get(yr):
+            raise Exception(f"تعذر تحميل ملف سنة {yr} الضروري لحساب الإحصائيات بشكل دقيق.")
         
     # Read files
     # Note: Column J = case status (حالة ملف الخبرة), Column K = status date (تاريخ حالة ملف الخبرة)
@@ -237,13 +247,10 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     
     target_rows = engine.parse_excel_file(files[target_year])
     
-    prior_years = [y for y in [2024, 2025, 2026] if y < target_year]
+    prior_years = [y for y in expected_years if y < target_year]
     prior_files_rows = {}
     for yr in prior_years:
-        if files.get(yr):
-            prior_files_rows[yr] = engine.parse_excel_file(files[yr])
-        else:
-            prior_files_rows[yr] = []
+        prior_files_rows[yr] = engine.parse_excel_file(files[yr])
             
     # Calculate:
     # 1. Registered (المسجل)
