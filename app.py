@@ -377,6 +377,8 @@ def run_sync(years, base_download_dir, session_id):
                 
                 try:
                     with sync_lock:
+                        if not sync_active or active_sync_id != session_id:
+                            return
                         sync_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
                         
                     for line in iter(sync_process.stdout.readline, ''):
@@ -518,6 +520,8 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
                 cmd = [sys.executable, script_path, str(target_year), base_download_dir]
                 
                 with stats_lock:
+                    if not stats_active:
+                        return
                     stats_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
                 
                 for line in iter(stats_process.stdout.readline, ''):
@@ -547,6 +551,9 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
                     raise Exception(f"خطأ في حساب الإحصائيات. الرمز: {return_code}")
                     
             except Exception as e:
+                with stats_lock:
+                    if not stats_active:
+                        return
                 if attempt == max_retries:
                     raise e
                 else:
