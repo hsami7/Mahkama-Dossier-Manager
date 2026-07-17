@@ -261,21 +261,6 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     for yr in prior_years:
         prior_files_rows[yr] = engine.parse_excel_file(files[yr])
             
-    # Deduplicate all rows by dossier code to prevent counting duplicates
-    seen_codes = set()
-    def is_duplicate(r):
-        code = str(r.get('C') if '/' in str(r.get('C') or '') else r.get('B') or '').strip()
-        if not code or code == 'الرقم الكامل للملف' or '/' not in code:
-            return True
-        if code in seen_codes:
-            return True
-        seen_codes.add(code)
-        return False
-        
-    target_rows = [r for r in target_rows if not is_duplicate(r)]
-    for yr in prior_years:
-        prior_files_rows[yr] = [r for r in prior_files_rows[yr] if not is_duplicate(r)]
-            
     # Calculate:
     # 1. Registered (المسجل)
     # 2. Active workload (الرائج)
