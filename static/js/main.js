@@ -2125,4 +2125,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRecentPaths();
     loadDefaultWorkspace();
     checkUpdate();
+
+    // Fix for Ctrl+C text copying in PyWebView
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+            try {
+                const selection = window.getSelection();
+                if (selection && selection.toString()) {
+                    document.execCommand('copy');
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+        }
+    });
 });
