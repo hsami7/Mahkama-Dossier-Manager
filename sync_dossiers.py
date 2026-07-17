@@ -39,9 +39,9 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 try:
                     os.remove(os.path.join(target_dir, item))
                 except Exception as e:
-                    error_msg = f"Could not remove stale file {item}: {e}. The file is likely open in another program (like Excel). Please close it and try again."
+                    error_msg = f"تعذر حذف الملف القديم {item}: {e}. الملف مفتوح غالباً في برنامج آخر مثل Excel. يرجى إغلاقه والمحاولة مرة أخرى."
                     log(f"[-] {error_msg}")
-                    raise RuntimeError(error_msg)
+                    sys.exit(1)
                     
     log(f"[*] Starting sync for year {year}...")
     log(f"[*] Target directory: {target_dir}")
@@ -300,11 +300,11 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             log(f"\n[+] Operation completed. Downloaded {downloaded_count} files successfully into {target_dir}")
             
         except Exception as e:
-            log(f"[-] Unexpected error occurred: {e}")
+            log(f"[-] خطأ غير متوقع: {e}")
             # Take screenshot for debugging
             page.screenshot(path="debug_error.png")
             log("[*] Captured error screenshot in debug_error.png")
-            raise e
+            sys.exit(1)
             
         finally:
             browser.close()

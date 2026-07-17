@@ -399,7 +399,10 @@ def run_sync(years, base_download_dir, session_id):
                         if not sync_active or active_sync_id != session_id:
                             return
                     if attempt == max_retries:
-                        raise e
+                        log_cb(f"[-] فشل مزامنة السنة {year} كلياً بعد {max_retries} محاولات.")
+                        with sync_lock:
+                            sync_error = True
+                        break
                     else:
                         log_cb(f"[-] محاولة {attempt} فشلت: {str(e)}. جاري المحاولة التالية...")
                         
