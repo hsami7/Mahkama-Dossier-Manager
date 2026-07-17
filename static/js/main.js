@@ -1056,6 +1056,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Append new logs
                 if (data.logs && data.logs.length > lastLogCount) {
+                    const isLiveSyncAtBottom = liveSyncLogs && (liveSyncLogs.scrollHeight - liveSyncLogs.clientHeight - liveSyncLogs.scrollTop < 50);
+                    const isConsoleAtBottom = logsConsole && (logsConsole.scrollHeight - logsConsole.clientHeight - logsConsole.scrollTop < 50);
+
                     const newLogs = data.logs.slice(lastLogCount);
                     newLogs.forEach(logLine => {
                         const div = document.createElement('div');
@@ -1075,8 +1078,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logsConsole) logsConsole.appendChild(historyDiv);
                     });
                     lastLogCount = data.logs.length;
-                    if (liveSyncLogs) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
-                    if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
+                    
+                    if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
+                    if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
                 }
 
                 if (!data.active) {
@@ -1336,6 +1340,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Append new logs
                 if (data.logs && data.logs.length > lastStatsLogCount) {
+                    const isLiveSyncAtBottom = liveSyncLogs && (liveSyncLogs.scrollHeight - liveSyncLogs.clientHeight - liveSyncLogs.scrollTop < 50);
+                    const isConsoleAtBottom = logsConsole && (logsConsole.scrollHeight - logsConsole.clientHeight - logsConsole.scrollTop < 50);
+
                     const newLogs = data.logs.slice(lastStatsLogCount);
                     newLogs.forEach(logLine => {
                         const div = document.createElement('div');
@@ -1355,8 +1362,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logsConsole) logsConsole.appendChild(historyDiv);
                     });
                     lastStatsLogCount = data.logs.length;
-                    if (liveSyncLogs) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
-                    if (logsConsole) logsConsole.scrollTop = logsConsole.scrollHeight;
+                    
+                    if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
+                    if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
                 }
 
                 if (!data.active) {
