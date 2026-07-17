@@ -385,6 +385,10 @@ def scan_directory(dir_path, target_years=None):
             if ruling_date_raw and str(ruling_date_raw).strip():
                 continue
                 
+            # Skip if full code indicates case is transferred/merged
+            if '(محال للإختصاص أو مضموم)' in str(full_code):
+                continue
+                
             y, c, n = parse_dossier_code(full_code)
             if y and c and n:
                 full_code = f"{y}/{c}/{n}"
