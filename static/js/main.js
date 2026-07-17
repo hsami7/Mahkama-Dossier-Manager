@@ -1095,11 +1095,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             const recentLogs = data.logs.slice(-10);
                             const errorLines = recentLogs.filter(l => l.includes('[-]')).map(l => l.replace('[-]', '').trim());
                             if (errorLines.length > 0) {
-                                const specificErrors = errorLines.filter(l => !l.includes('فشل مزامنة السنة') && !l.includes('خطأ في المزامنة. الرمز'));
+                                const specificErrors = errorLines.filter(l => !l.includes('فشل مزامنة السنة') && !l.includes('خطأ في المزامنة. الرمز') && !l.includes('فشلت: خطأ'));
                                 if (specificErrors.length > 0) {
-                                    errorMsg = specificErrors.join('\n');
+                                    errorMsg = [...new Set(specificErrors)].join('\n');
                                 } else {
-                                    errorMsg = errorLines.join('\n');
+                                    errorMsg = [...new Set(errorLines)].join('\n');
                                 }
                             }
                         }
