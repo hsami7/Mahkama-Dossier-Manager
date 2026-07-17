@@ -1182,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         setTimeout(() => {
                             logsConsole.scrollTop = logsConsole.scrollHeight;
-                        }, 50);
+                        }, 150);
                     }
                 } catch (err) {
                     logsConsole.innerHTML = '❌ خطأ في تحميل السجل من الخادم.';
