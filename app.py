@@ -350,7 +350,16 @@ def run_sync(years, base_download_dir, session_id):
         for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
             env.pop(var, None)
             
+        def get_year_art(yr_str):
+            art = {
+                '2024': "\n  ____   ___ ____  _  _  \n |___ \\ / _ \\___ \\| || | \n   __) | | | |__) | || |_ \n  / __/| |_| / __/|__   _|\n |_____|\\___/_____|  |_|  \n",
+                '2025': "\n  ____   ___ ___  ____  \n |___ \\ / _ \\__ \\| ___| \n   __) | | | | ) |___ \\ \n  / __/| |_| |/ / ___) |\n |_____|\\___//____|____/ \n",
+                '2026': "\n  ____   ___ ___   __   \n |___ \\ / _ \\__ \\ / /_  \n   __) | | | | ) | '_ \\ \n  / __/| |_| |/ /| (_) |\n |_____|\\___//____\\___/ \n"
+            }
+            return art.get(str(yr_str), f"\n --- {yr_str} --- \n")
+
         for year in years:
+            log_cb(get_year_art(year))
             max_retries = 3
             for attempt in range(1, max_retries + 1):
                 with sync_lock:
