@@ -39,7 +39,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 try:
                     os.remove(os.path.join(target_dir, item))
                 except Exception as e:
-                    error_msg = f"تعذر حذف الملف القديم ({item}) لأن الملف مفتوح غالباً في برنامج آخر مثل Excel. يرجى إغلاق الملف والمحاولة مرة أخرى."
+                    error_msg = f"تعذر حذف الملف القديم (\u202A{item}\u202C) لأن الملف مفتوح. يرجى إغلاقه والمحاولة مرة أخرى."
                     log(f"[-] {error_msg}")
                     sys.exit(1)
                     
@@ -265,7 +265,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                         is_empty = True
                 
                 if is_empty:
-                    log(f"[-] Registry {display_index} ({reg_name}): Skipped (empty - 0 files).")
+                    log(f"[*] Registry {display_index} ({reg_name}): Skipped (empty - 0 files).")
                     continue
                 
                 log(f"[*] Registry {display_index} ({reg_name}): Downloading...")
