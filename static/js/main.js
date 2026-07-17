@@ -389,8 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 </tr>
             `;
-            alert('حدث خطأ أثناء قراءة الملفات. سيتم إعادة تحميل الصفحة لضمان استقرار النظام.');
-            window.location.reload();
+            showAlert('حدث خطأ أثناء قراءة الملفات. يرجى مراجعة المسار أو الملفات المحملة.');
         } finally {
             btnScan.disabled = false;
         }
@@ -1102,7 +1101,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (overlay) overlay.style.display = 'none';
-                    if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
+                    if (!data.error && liveSyncLogsWrapper) {
+                        liveSyncLogsWrapper.style.display = 'none';
+                    }
                     btnAutoSync.disabled = false;
                     btnAutoSync.innerText = originalText;
                 }
