@@ -30,6 +30,62 @@ def write_log(msg):
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
+APP_START_ART = r"""
+  _   _   _   _   _   _   _  
+ / \ / \ / \ / \ / \ / \ / \ 
+( M | A | H | K | A | M | A )
+ \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
+================================================
+          APP STARTED / SESSION BEGAN
+================================================
+"""
+
+AUTO_SYNC_ART = r"""
+  ___  _   _  _____  ___  
+ / _ \| | | ||_   _|/ _ \ 
+| |_| | |_| |  | | | | | |
+|  _  |  _  |  | | | |_| |
+|_| |_|_| |_|  |_|  \___/ 
+================================================
+          AUTO SYNC DOSSIERS STARTED
+================================================
+"""
+
+STATS_ART = r"""
+ ____  _____  _  _____  ____  
+/ ___||_   _|/ \|_   _|/ ___| 
+\___ \  | | / _ \ | |  \___ \ 
+ ___) | | |/ ___ \| |   ___) |
+|____/  |_/_/   \_\_|  |____/ 
+================================================
+            STATS CALCULATION STARTED
+================================================
+"""
+
+MANUAL_SCAN_ART = r"""
+  ___  ____   ___  _   _ 
+ / _ \|  _ \ / _ \| \ | |
+| | | | |_) | | | |  \| |
+| |_| |  __/| |_| | |\  |
+ \___/|_|    \___/|_| \_|
+================================================
+          MANUAL FOLDER SCAN INITIATED
+================================================
+"""
+
+CLEAR_LOGS_ART = r"""
+  ____  _     _____    _    ____  
+ / ___|| |   | ____|  / \  |  _ \ 
+| |    | |   |  _|   / _ \ | |_) |
+| |___ | |___| |___ / ___ \|  _ < 
+ \____||_____|_____/_/   \_\_| \_\
+================================================
+               LOGS CLEARED
+================================================
+"""
+
+write_log("\n" + APP_START_ART)
+
 import tempfile
 import threading
 import uuid
@@ -249,7 +305,7 @@ def api_scan():
     directory = os.path.expanduser(directory)
     
     dossiers, warnings = engine.scan_directory(directory, target_years=target_years)
-    write_log(f"[+] تم فحص المجلد: {directory} - عدد الملفات: {len(dossiers)}")
+    write_log("\n" + MANUAL_SCAN_ART + f"\n[+] تم فحص المجلد: {directory} - عدد الملفات: {len(dossiers)}")
     return jsonify({
         "dossiers": dossiers,
         "warnings": warnings
@@ -281,7 +337,7 @@ def run_sync(years, base_download_dir, session_id):
             sync_logs.append(msg)
         write_log(msg)
             
-    write_log(f"[*] بدء مزامنة السجلات للسنة: {years}")
+    write_log("\n" + AUTO_SYNC_ART + f"\n[*] بدء مزامنة السجلات للسنة: {years}")
     try:
         import subprocess
         script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync_dossiers.py')
@@ -416,7 +472,8 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
             stats_logs.append(msg)
         write_log(msg)
             
-    write_log(f"[*] بدء حساب إحصائيات الفترة: {start_date} إلى {end_date}" if start_date and end_date else f"[*] بدء حساب إحصائيات السنة: {target_year}")
+    msg = f"[*] بدء حساب إحصائيات الفترة: {start_date} إلى {end_date}" if start_date and end_date else f"[*] بدء حساب إحصائيات السنة: {target_year}"
+    write_log("\n" + STATS_ART + "\n" + msg)
     try:
         max_retries = 3
         for attempt in range(1, max_retries + 1):
@@ -568,7 +625,7 @@ def api_clear_logs():
     try:
         with open(log_path, 'w', encoding='utf-8') as f:
             f.write("")
-        write_log("[+] تم مسح السجل.")
+        write_log("\n" + CLEAR_LOGS_ART + "\n[+] تم مسح السجل.")
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
