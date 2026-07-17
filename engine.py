@@ -317,7 +317,7 @@ def rename_file_safely(file_path, year, category):
     except Exception as e:
         return False, file_path, f"error: {str(e)}"
 
-def scan_directory(dir_path, target_years=None):
+def scan_directory(dir_path, target_years=None, skip_transferred=False):
     """
     Scan a directory for Excel files, rename them based on contents, and parse dossier details.
     If target_years is provided (list of strings), only dossiers matching those years are returned.
@@ -383,6 +383,10 @@ def scan_directory(dir_path, target_years=None):
                 
             # Skip if there is a ruling date in column J
             if ruling_date_raw and str(ruling_date_raw).strip():
+                continue
+                
+            # Skip if full code indicates case is transferred/merged
+            if skip_transferred and '(محال للإختصاص أو مضموم)' in str(full_code):
                 continue
                 
             y, c, n = parse_dossier_code(full_code)

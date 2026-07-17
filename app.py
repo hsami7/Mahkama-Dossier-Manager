@@ -304,7 +304,7 @@ def api_scan():
         
     directory = os.path.expanduser(directory)
     
-    dossiers, warnings = engine.scan_directory(directory, target_years=target_years)
+    dossiers, warnings = engine.scan_directory(directory, target_years=target_years, skip_transferred=True)
     write_log("\n" + MANUAL_SCAN_ART + f"\n[+] تم فحص المجلد: {directory} - عدد الملفات: {len(dossiers)}")
     return jsonify({
         "dossiers": dossiers,
