@@ -247,27 +247,37 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         end_year = end_date.year
         expected_years = [y for y in [2024, 2025, 2026] if y <= end_year]
 
-    # Step 1: Check if files already exist locally (skip download if present)
+    # Step 1: Check if files already exist locally
     os.makedirs(download_dir, exist_ok=True)
     files = {}
     missing_years = []
     registered = 0
-    for yr in expected_years:
-        local_path = os.path.join(download_dir, f"stats_{yr}.xlsx")
-        if os.path.exists(local_path):
-            files[yr] = local_path
-            log_msg(f"[+] موجود محلياً: stats_{yr}.xlsx", log_callback)
-        else:
-            missing_years.append(yr)
 
-    if missing_years:
-        if local_only:
+    if local_only:
+        # آخر حفظ — use existing files only
+        for yr in expected_years:
+            local_path = os.path.join(download_dir, f"stats_{yr}.xlsx")
+            if os.path.exists(local_path):
+                files[yr] = local_path
+                log_msg(f"[+] موجود محلياً: stats_{yr}.xlsx", log_callback)
+            else:
+                missing_years.append(yr)
+        if missing_years:
             raise Exception(f"الملفات المحلية غير موجودة للسنوات: {missing_years}. قم باستخدام 'بدء العمل' لتحميلها أولاً.")
-        log_msg(f"[*] السنوات المطلوب تحميلها: {missing_years}", log_callback)
+        log_msg("[+] جميع ملفات الإحصائيات موجودة محلياً. تم تخطي التحميل.", log_callback)
+    else:
+        # بدء العمل — force fresh download from portal
+        for yr in expected_years:
+            local_path = os.path.join(download_dir, f"stats_{yr}.xlsx")
+            if os.path.exists(local_path):
+                try:
+                    os.remove(local_path)
+                    log_msg(f"[~] تم حذف الملف القديم: stats_{yr}.xlsx", log_callback)
+                except Exception as e:
+                    log_msg(f"[-] تعذر حذف stats_{yr}.xlsx: {e}", log_callback)
+        log_msg("[*] جاري تحميل نسخة جديدة من بوابة المحاكم...", log_callback)
         downloaded_files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date, username, password)
         files.update(downloaded_files)
-    else:
-        log_msg("[+] جميع ملفات الإحصائيات موجودة محلياً. تم تخطي التحميل.", log_callback)
 
     for yr in expected_years:
         if not files.get(yr):
