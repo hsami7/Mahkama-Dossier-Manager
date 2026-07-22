@@ -217,7 +217,7 @@ def api_trigger_update():
             for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
                 env.pop(var, None)
             subprocess.Popen(
-                [temp_file, '/SILENT', '/SP-'],
+                [temp_file],
                 creationflags=creation_flags,
                 close_fds=True,
                 env=env

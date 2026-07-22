@@ -1005,6 +1005,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const btnStatsReturnHome = document.getElementById('btnStatsReturnHome');
+    if (btnStatsReturnHome) {
+        btnStatsReturnHome.addEventListener('click', () => {
+            const statsSection = document.getElementById('statsResultsSection');
+            if (landingSection && statsSection) {
+                landingSection.style.display = 'block';
+                statsSection.style.display = 'none';
+                window.scrollTo(0, 0);
+            }
+        });
+    }
+
     // Allow scan on Enter key
     folderPathInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -1586,10 +1598,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         document.getElementById('statsStartDate').textContent = data.result.start_date || '--';
                         document.getElementById('statsEndDate').textContent = data.result.end_date || '--';
+
+                        // Populate section values
+                        document.getElementById('statsYearTitleSection').textContent = yearOrRangeText;
+                        document.querySelectorAll('.statsYearLabelSection').forEach(el => el.textContent = yearOrRangeText);
+                        document.getElementById('statRegisteredSection').textContent = data.result.registered;
+                        document.getElementById('statActiveSection').textContent = data.result.active;
+                        document.getElementById('statCompletedSection').textContent = data.result.completed;
+                        document.getElementById('statClosedSection').textContent = data.result.closed;
+                        document.getElementById('statRemainingSection').textContent = data.result.remaining;
+                        const avgTimeSectionEl = document.getElementById('statAverageTimeSection');
+                        if (avgTimeSectionEl) {
+                            avgTimeSectionEl.textContent = avgDays + ' يوم';
+                        }
+                        document.getElementById('statsStartDateSection').textContent = data.result.start_date || '--';
+                        document.getElementById('statsEndDateSection').textContent = data.result.end_date || '--';
                         
                         window.lastStatsResult = data.result;
 
-                        if (statsResultModal) statsResultModal.style.display = 'flex';
+                        const statsSection = document.getElementById('statsResultsSection');
+                        if (statsSection) {
+                            if (landingSection) landingSection.style.display = 'none';
+                            statsSection.style.display = 'block';
+                        }
                     }
                 }
             } catch (err) {
@@ -1723,6 +1754,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.showStatDossiers = function(type) {
+        if (!window.lastStatsResult) return;
+        
+        let list = [];
+        let title = "قائمة الملفات";
+        
+        switch(type) {
+            case 'registered':
+                list = window.lastStatsResult.registered_list || [];
+                title = "قائمة الملفات المسجلة";
+                break;
+            case 'active':
+                list = window.lastStatsResult.active_list || [];
+                title = "قائمة الملفات الرائجة";
+                break;
+            case 'completed':
+                list = window.lastStatsResult.completed_list || [];
+                title = "قائمة الملفات المنجزة";
+                break;
+            case 'closed':
+                list = window.lastStatsResult.closed_list || [];
+                title = "قائمة الملفات المغلقة";
+                break;
+            case 'remaining':
+                list = window.lastStatsResult.remaining_list || [];
+                title = "قائمة الملفات المتبقية";
+                break;
+        }
+        
+        document.getElementById('dossierListModalTitle').textContent = title;
+        const tbody = document.getElementById('dossierListTbody');
+        tbody.innerHTML = '';
+        
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
+        } else {
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">${item.code}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.date}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        if (dossierListModal) {
+            dossierListModal.style.display = 'flex';
+        }
+    };
+
+    window.showStatDossiersSection = function(type) {
         if (!window.lastStatsResult) return;
         
         let list = [];
@@ -1938,6 +2021,157 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnStatsPrintReport) {
         btnStatsPrintReport.addEventListener('click', () => triggerPrint());
+    }
+
+    const btnStatsCopyReportSection = document.getElementById('btnStatsCopyReportSection');
+    if (btnStatsCopyReportSection) {
+        btnStatsCopyReportSection.addEventListener('click', () => {
+            const year = document.getElementById('statsYearTitleSection').textContent;
+            const reg = document.getElementById('statRegisteredSection').textContent;
+            const act = document.getElementById('statActiveSection').textContent;
+            const comp = document.getElementById('statCompletedSection').textContent;
+            const cls = document.getElementById('statClosedSection').textContent;
+            const rem = document.getElementById('statRemainingSection').textContent;
+            const avgTime = document.getElementById('statAverageTimeSection') ? document.getElementById('statAverageTimeSection').textContent : '0 يوم';
+
+            const reportText = `تقرير إحصائيات مكتب الخبرة لسنة ${year}:\n` +
+                `- المسجل: ${reg}\n` +
+                `- الرائج: ${act}\n` +
+                `- المنجز: ${comp}\n` +
+                `- المغلق: ${cls}\n` +
+                `- الباقي (في طور الإنجاز): ${rem}\n` +
+                `- متوسط مدة الإنجاز: ${avgTime}`;
+
+            fetch('/api/log-client-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `نسخ التقرير الإحصائي للحافظة (القسم): ${year.trim()}` })
+            }).catch(() => { });
+
+            navigator.clipboard.writeText(reportText).then(() => {
+                showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح!');
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = reportText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح!');
+                } catch (e) {
+                    showAlert('فشل في نسخ التقرير.');
+                }
+                document.body.removeChild(textArea);
+            });
+        });
+    }
+
+    const btnStatsPrintReportSection = document.getElementById('btnStatsPrintReportSection');
+    if (btnStatsPrintReportSection) {
+        btnStatsPrintReportSection.addEventListener('click', () => {
+            const startDate = document.getElementById('statsStartDateSection').textContent;
+            const endDate = document.getElementById('statsEndDateSection').textContent;
+            const reg = document.getElementById('statRegisteredSection').textContent;
+            const act = document.getElementById('statActiveSection').textContent;
+            const comp = document.getElementById('statCompletedSection').textContent;
+            const cls = document.getElementById('statClosedSection').textContent;
+            const rem = document.getElementById('statRemainingSection').textContent;
+
+            const printContainer = document.getElementById('printContainer');
+            if (printContainer) {
+                const statsYearTitle = document.getElementById('statsYearTitleSection');
+                const selectedYear = statsYearTitle ? statsYearTitle.textContent.trim() : '';
+
+                let pdfTitle = 'إدارة ملفات المحاكم _ إحصائيات';
+                if (selectedYear) {
+                    pdfTitle += ` ${selectedYear}`;
+                }
+
+                const originalTitle = document.title;
+                document.title = pdfTitle.trim();
+
+                printContainer.innerHTML = `
+    <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
+        <thead><tr><td style="border: none; height: 35px;"></td></tr></thead>
+        <tbody>
+            <tr>
+                <td style="border: none; padding: 0;">
+                    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 10px; padding-bottom: 10px; margin-bottom: 15px;">
+                        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
+                            المملكة المغربية<br>وزارة العدل<br>محكمة الاستئناف الادارية فاس
+                        </div>
+                        <div class="middle-header" style="text-align: center; padding: 0 20px;">
+                            <img src="/static/img/Picture1.png" style="height: 80px; width: auto; object-fit: contain;">
+                        </div>
+                        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 2.1; font-family: 'Ebrima', sans-serif;">
+                            ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
+                        </div>
+                    </div>
+                    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #000; text-decoration: underline;">
+                        نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
+                    </div>
+                    <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 50%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 50%;">العدد</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المسجل</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${reg}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الرائج</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${act}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المنجز</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${comp}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${cls}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي (في طور الإنجاز)</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${rem}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="footer" style="margin-top: 25px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
+        حرر في: ${(() => {
+                    const d = new Date();
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    return `${day}/${month}/${year}`;
+                })()}
+    </div>
+                `;
+
+            fetch('/api/log-client-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `طباعة تقرير إحصائي (القسم): ${pdfTitle.trim()}` })
+            }).catch(() => { });
+
+            const printImg = printContainer.querySelector('img');
+            const doPrint = () => {
+                window.print();
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
+            };
+
+            if (printImg && !printImg.complete) {
+                printImg.onload = doPrint;
+                printImg.onerror = doPrint;
+            } else {
+                setTimeout(doPrint, 250);
+            }
+            }
+        });
     }
 
     // ─────────────────────────────────────────────────────────────
