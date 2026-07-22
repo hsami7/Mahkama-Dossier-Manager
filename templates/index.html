@@ -322,7 +322,7 @@
         </section>
 
         <!-- قسم إحصائيات مكتب الخبرة (صفحة كاملة بدلاً من نافذة منبثقة) -->
-        <section class="section-card" id="statsResultsSection" style="display: none;">
+        <section class="section-card" id="statsResultsSection" style="display: none; max-width: 100%;">
             <div class="breadcrumb-nav" style="margin-bottom: 20px; border-bottom: 1px solid var(--mahakim-border); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-breadcrumb" id="btnStatsReturnHome">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -407,15 +407,16 @@
                         إغلاق القائمة
                     </button>
                 </div>
-                <div class="table-wrapper">
-                    <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
+                <div class="table-wrapper" style="width: 100%; overflow-x: auto;">
+                    <table class="dossiers-table" style="width: 100%; border-collapse: collapse; min-width: 900px;">
                         <thead>
                             <tr>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">رقم ملف الخبرة</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">الرقم الكامل للملف</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">تاريخ التسجيل</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">القاضي أو المستشار المقرّر</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">الخبير المعين</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">رقم ملف الخبرة</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">الرقم الكامل للملف</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">تاريخ التسجيل</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">القاضي أو المستشار المقرّر</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">الخبير المعين</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">تاريخ الجلسة المقبلة</th>
                             </tr>
                         </thead>
                         <tbody id="statsDossierListTbody"></tbody>
@@ -794,11 +795,12 @@
                     <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
-                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">رقم ملف الخبرة</th>
-                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">الرقم الكامل للملف</th>
-                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">تاريخ التسجيل</th>
-                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">القاضي أو المستشار المقرّر</th>
-                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">الخبير المعين</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap;">رقم ملف الخبرة</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap;">الرقم الكامل للملف</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap;">تاريخ التسجيل</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap;">القاضي أو المستشار المقرّر</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap;">الخبير المعين</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap;">تاريخ الجلسة المقبلة</th>
                             </tr>
                         </thead>
                         <tbody id="dossierListTbody">

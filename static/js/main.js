@@ -1887,7 +1887,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
         
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
         } else {
             list.forEach(item => {
                 const tr = document.createElement('tr');
@@ -1897,6 +1897,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.date}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.judge || ''}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.expert || ''}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.next_session || ''}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1953,7 +1954,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
         
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
         } else {
             list.forEach(item => {
                 const tr = document.createElement('tr');
@@ -1963,6 +1964,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.date}</td>
                     <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.judge || ''}</td>
                     <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.expert || ''}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.next_session || ''}</td>
                 `;
                 tbody.appendChild(tr);
             });
