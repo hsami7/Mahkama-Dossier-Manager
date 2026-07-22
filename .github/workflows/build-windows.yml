@@ -2,8 +2,11 @@ name: Build Windows Application
 
 on:
   push:
+    branches: [ "main", "v*" ]
     tags:
       - 'v*'
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
