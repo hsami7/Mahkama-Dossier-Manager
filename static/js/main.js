@@ -1617,18 +1617,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('statCompletedSection').textContent = data.result.completed;
                         document.getElementById('statClosedSection').textContent = data.result.closed;
                         document.getElementById('statRemainingSection').textContent = data.result.remaining;
-
-                        const total = (data.result.registered || 0) + (data.result.active || 0) + (data.result.completed || 0) + (data.result.closed || 0) + (data.result.remaining || 0);
-                        const totalEl = document.getElementById('statTotalSection');
-                        if (totalEl) totalEl.textContent = total;
-
-                        // Tab badges
-                        const badgeIds = { registered: 'tabBadgeRegistered', active: 'tabBadgeActive', completed: 'tabBadgeCompleted', closed: 'tabBadgeClosed', remaining: 'tabBadgeRemaining' };
-                        for (const [key, id] of Object.entries(badgeIds)) {
-                            const el = document.getElementById(id);
-                            if (el) el.textContent = data.result[key] || 0;
-                        }
-
                         const avgTimeSectionEl = document.getElementById('statAverageTimeSection');
                         if (avgTimeSectionEl) {
                             avgTimeSectionEl.textContent = avgDays + ' يوم';
@@ -1642,11 +1630,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (statsSection) {
                             if (landingSection) landingSection.style.display = 'none';
                             statsSection.style.display = 'block';
-                            // Auto-select first tab after a tiny delay to let render
-                            setTimeout(() => {
-                                const firstTab = document.querySelector('.stats-tab[data-type="registered"]');
-                                if (firstTab) firstTab.click();
-                            }, 50);
                         }
                     }
                 }
@@ -1975,14 +1958,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             list.forEach(item => {
                 const tr = document.createElement('tr');
-                const ph = (v) => (v && v.trim()) ? v : '<span class="dossier-empty-placeholder">&mdash;</span>';
                 tr.innerHTML = `
                     <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">${item.expert_code || ''}</td>
                     <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">${item.code}</td>
                     <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.date}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${ph(item.judge)}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${ph(item.expert)}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${ph(item.next_session)}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.judge || ''}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.expert || ''}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.next_session || ''}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2002,18 +1984,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (container) container.style.display = 'none';
         });
     }
-
-    // Stats tab switching
-    document.querySelectorAll('.stats-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const type = tab.getAttribute('data-type');
-            if (type && window.showStatDossiersSection) {
-                window.showStatDossiersSection(type);
-            }
-        });
-    });
 
     if (btnStatsCopyReport) {
         btnStatsCopyReport.addEventListener('click', () => {
