@@ -3,7 +3,7 @@ import time
 import argparse
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=None):
+def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=None, username=None, password=None):
     # Ensure output directory exists
     target_dir = os.path.join(output_dir, str(year))
     os.makedirs(target_dir, exist_ok=True)
@@ -91,7 +91,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             page.goto("http://10.250.1.26/", wait_until="domcontentloaded", timeout=60000)
             
             # --- 1. Login ---
-            log("[*] Attempting to log in...")
+            log(f"[*] Attempting to log in with {username}...")
             # Wait for all visible inputs
             page.locator('input:not([type="hidden"]):not([type="submit"])').first.wait_for(timeout=10000)
             all_inputs = page.locator('input:not([type="hidden"]):not([type="submit"])').all()
@@ -100,8 +100,8 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 username_input = all_inputs[0]
                 password_input = all_inputs[1]
                 
-                username_input.fill("nelissaoui")
-                password_input.fill("Admin.123")
+                username_input.fill(username)
+                password_input.fill(password)
                 
                 # Try to find a submit button and click it
                 submit_btn = page.locator('input[type="submit"], button[type="submit"], a:has-text("دخول")').first
@@ -111,8 +111,8 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                     password_input.press("Enter")
             else:
                 log("[-] Could not find enough input fields. Trying fallback method...")
-                page.get_by_placeholder("اسم المستخدم").fill("nelissaoui")
-                page.get_by_placeholder("كلمة المرور").fill("Admin.123")
+                page.get_by_placeholder("اسم المستخدم").fill(username)
+                page.get_by_placeholder("كلمة المرور").fill(password)
                 page.keyboard.press("Enter")
             
             # Wait for navigation after login (increase timeout in case server is slow)
@@ -120,7 +120,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 page.wait_for_load_state("networkidle", timeout=5000)
             except PlaywrightTimeoutError:
                 # If networkidle times out, check if we moved past the login page
-                if "Outils" not in page.url and page.url == "http://10.250.1.26/":
+                if page.locator('input[type="password"]').count() > 0:
                     log("[-] Still on login page, forcing submit button click...")
                     # Fallback click
                     page.locator('input[type="submit"], button:has-text("دخول"), input[value="دخول"]').first.click(force=True)
@@ -128,7 +128,10 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                         page.wait_for_load_state("networkidle", timeout=5000)
                     except PlaywrightTimeoutError:
                         pass
-                    
+            
+            if page.locator('input[type="password"]').count() > 0 or "Login" in page.url:
+                raise Exception("فشل تسجيل الدخول. يرجى التحقق من اسم المستخدم وكلمة المرور.")
+                        
             log("[+] Logged in successfully.")
             
             # --- 2. Navigate to RegistreDossier ---
@@ -314,7 +317,9 @@ if __name__ == "__main__":
     parser.add_argument('year', type=int, help='السنة المطلوب تحميل سجلاتها (مثال: 2026)')
     parser.add_argument('--output-dir', type=str, default='data/downloads', help='مجلد الحفظ')
     parser.add_argument('--debug', action='store_true', help='إظهار المتصفح أثناء العمل')
+    parser.add_argument('--username', type=str, default=None, help='اسم المستخدم للبوابة')
+    parser.add_argument('--password', type=str, default=None, help='كلمة المرور للبوابة')
     args = parser.parse_args()
     
-    sync_dossiers(args.year, output_dir=args.output_dir, debug=args.debug)
+    sync_dossiers(args.year, output_dir=args.output_dir, debug=args.debug, username=args.username, password=args.password)
 

@@ -333,6 +333,7 @@
                 <div class="settings-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <button type="button" class="btn-tab active" id="tabLimits" style="flex: 1; padding: 10px; border-radius: 6px; border: none; background: var(--mahakim-primary); color: white; cursor: pointer; font-weight: bold;">الآجال القانونية</button>
                     <button type="button" class="btn-tab" id="tabThresholds" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--mahakim-text); cursor: pointer; font-weight: bold;">مؤشرات الخطر</button>
+                    <button type="button" class="btn-tab" id="tabAccount" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--mahakim-text); cursor: pointer; font-weight: bold;">إعدادات الحساب</button>
                     <button type="button" class="btn-tab" id="tabAbout" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: var(--mahakim-text); cursor: pointer; font-weight: bold;">حول التطبيق</button>
                 </div>
                 
@@ -348,6 +349,56 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;" id="settingsFormThresholds">
                         <!-- سيتم ملؤها ديناميكياً -->
                     </div>
+                </div>
+
+                <div id="settingsContentAccount" style="display: none;">
+                    <p class="subtitle" style="margin-bottom: 20px;">قم بحفظ بيانات تسجيل الدخول لاستخدامها تلقائياً عند المزامنة وجلب الإحصائيات.</p>
+                    <form id="settingsFormAccount" style="display: block;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            
+                            <!-- Dossiers Card -->
+                            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <h4 style="margin-top: 0; margin-bottom: 15px; color: var(--mahakim-primary); display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.2rem;">📂</span> حساب المزامنة
+                                </h4>
+                                <div class="input-group" style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: var(--mahakim-text);">اسم المستخدم</label>
+                                    <input type="text" id="savedUsernameDossier" placeholder="اسم المستخدم" class="input-mahakim" style="width: 100%;">
+                                </div>
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: var(--mahakim-text);">كلمة المرور</label>
+                                    <div style="position: relative;">
+                                        <input type="password" id="savedPasswordDossier" placeholder="كلمة المرور" class="input-mahakim" style="width: 100%; padding-left: 35px;">
+                                        <span onclick="togglePasswordVisibility(this, 'savedPasswordDossier')" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; display: flex; align-items: center;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats Card -->
+                            <div style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <h4 style="margin-top: 0; margin-bottom: 15px; color: #16a34a; display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.2rem;">📊</span> حساب الإحصائيات
+                                </h4>
+                                <div class="input-group" style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: var(--mahakim-text);">اسم المستخدم</label>
+                                    <input type="text" id="savedUsernameStats" placeholder="اسم المستخدم" class="input-mahakim" style="width: 100%;">
+                                </div>
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: var(--mahakim-text);">كلمة المرور</label>
+                                    <div style="position: relative;">
+                                        <input type="password" id="savedPasswordStats" placeholder="كلمة المرور" class="input-mahakim" style="width: 100%; padding-left: 35px;">
+                                        <span onclick="togglePasswordVisibility(this, 'savedPasswordStats')" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; display: flex; align-items: center;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <button type="button" id="btnSaveAccount" class="btn-mahakim" style="width: 100%; justify-content: center; background-color: var(--mahakim-primary); color: white;">حفظ البيانات</button>
+                    </form>
                 </div>
 
                 <div id="settingsContentAbout" style="display: none; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; text-align: center; direction: rtl; margin-top: 10px;">
@@ -399,8 +450,47 @@
         </div>
     </div>
 
+    <!-- نافذة تسجيل الدخول (Login Modal) -->
+    <div class="mahakim-modal-overlay" id="loginModal" style="display: none; z-index: 1300;">
+        <div class="mahakim-modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock" style="color: #1e3a8a;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    تسجيل الدخول للبوابة
+                </h3>
+                <button class="btn-close-modal" id="btnLoginClose">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: right;">
+                <p style="margin-bottom: 15px; color: #475569; font-size: 0.95rem;">يرجى إدخال بيانات الدخول لبوابة المحاكم لمتابعة العملية.</p>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px; color: var(--mahakim-primary);">اسم المستخدم:</label>
+                    <input type="text" id="loginUsername" class="form-control" placeholder="أدخل اسم المستخدم">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px; color: var(--mahakim-primary);">كلمة المرور:</label>
+                    <div style="position: relative;">
+                        <input type="password" id="loginPassword" class="form-control" placeholder="أدخل كلمة المرور" style="padding-left: 35px;">
+                        <span onclick="togglePasswordVisibility(this, 'loginPassword')" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; display: flex; align-items: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 5px; text-align: right;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--mahakim-text);">
+                        <input type="checkbox" id="loginSaveCredentials" style="cursor: pointer; width: 16px; height: 16px;">
+                        <span>حفظ بيانات تسجيل الدخول للاستخدام التلقائي لاحقاً</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 15px;">
+                <button class="btn-mahakim" id="btnLoginStart" style="min-width: 100px;">بدء العمل</button>
+                <button class="btn-secondary" id="btnLoginCancel" style="min-width: 100px;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <!-- نافذة تأكيد الإجراء الجماعي المنبثقة (Custom Confirm Modal) -->
-    <div class="mahakim-modal-overlay" id="confirmModal" style="display: none; z-index: 1100;">
+    <div class="mahakim-modal-overlay" id="confirmModal" style="display: none; z-index: 9998;">
         <div class="mahakim-modal" style="max-width: 450px;">
             <div class="modal-header">
                 <h3 id="confirmModalTitle" style="display: flex; align-items: center; gap: 8px;">
@@ -420,7 +510,7 @@
     </div>
 
     <!-- نافذة التنبيهات (Custom Alert Modal) -->
-    <div class="mahakim-modal-overlay" id="alertModal" style="display: none; z-index: 1200;">
+    <div class="mahakim-modal-overlay" id="alertModal" style="display: none; z-index: 9999;">
         <div class="mahakim-modal" style="max-width: 450px;">
             <div class="modal-header">
                 <h3 style="display: flex; align-items: center; gap: 8px;">
@@ -563,6 +653,20 @@
             thead { display: table-header-group; }
         }
     </style>
+
+    <script>
+        function togglePasswordVisibility(btn, inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+            }
+        }
+    </script>
 
     <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(1, 99999) | random }}"></script>
 </body>

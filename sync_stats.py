@@ -42,7 +42,7 @@ def parse_excel_date(date_val):
     except ValueError:
         return None
 
-def download_stats_files(target_year, output_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None):
+def download_stats_files(target_year, output_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None, username=None, password=None):
     os.makedirs(output_dir, exist_ok=True)
     
     if start_date and end_date:
@@ -99,21 +99,21 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             page.goto("http://10.250.1.26/Outils/Productivite/RegistreDossierMI", wait_until="domcontentloaded", timeout=60000)
             
             # --- Login ---
-            log_msg("[*] Logging in with nelissaoui2...", log_callback)
+            log_msg(f"[*] Logging in with {username}...", log_callback)
             page.locator('input:not([type="hidden"]):not([type="submit"])').first.wait_for(timeout=10000)
             all_inputs = page.locator('input:not([type="hidden"]):not([type="submit"])').all()
             
             if len(all_inputs) >= 2:
-                all_inputs[0].fill("nelissaoui2")
-                all_inputs[1].fill("password")
+                all_inputs[0].fill(username)
+                all_inputs[1].fill(password)
                 submit_btn = page.locator('input[type="submit"], button[type="submit"], a:has-text("دخول")').first
                 if submit_btn.count() > 0:
                     submit_btn.click()
                 else:
                     all_inputs[1].press("Enter")
             else:
-                page.get_by_placeholder("اسم المستخدم").fill("nelissaoui2")
-                page.get_by_placeholder("كلمة المرور").fill("password")
+                page.get_by_placeholder("اسم المستخدم").fill(username)
+                page.get_by_placeholder("كلمة المرور").fill(password)
                 page.keyboard.press("Enter")
                 
             try:
@@ -125,6 +125,9 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                         page.wait_for_load_state("networkidle", timeout=5000)
                     except PlaywrightTimeoutError:
                         pass
+                        
+            if "Outils" not in page.url and page.url == "http://10.250.1.26/":
+                raise Exception("فشل تسجيل الدخول. يرجى التحقق من اسم المستخدم وكلمة المرور.")
                         
             log_msg("[+] Logged in successfully.", log_callback)
             
@@ -221,7 +224,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             
     return downloaded_files, registered_count_target
 
-def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None):
+def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None, username=None, password=None):
     if start_date is None:
         start_date = os.environ.get("START_DATE")
     if end_date is None:
@@ -239,7 +242,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         end_date = None
 
     # Step 1: Download files
-    files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date)
+    files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date, username, password)
     
     expected_years = [y for y in [2024, 2025, 2026] if y <= target_year]
     if start_date and end_date:
@@ -487,13 +490,17 @@ if __name__ == '__main__':
     except Exception:
         pass
         
-    year = int(sys.argv[1])
-    download_dir = sys.argv[2]
+    import argparse
+    parser = argparse.ArgumentParser(description='مزامنة الإحصائيات من بوابة محاكم')
+    parser.add_argument('year', type=int, help='السنة المطلوب احتسابها')
+    parser.add_argument('download_dir', type=str, help='مجلد الحفظ')
+    parser.add_argument('--username', type=str, default=None, help='اسم المستخدم للبوابة')
+    parser.add_argument('--password', type=str, default=None, help='كلمة المرور للبوابة')
+    args = parser.parse_args()
     
     try:
-        res = calculate_expert_stats(year, download_dir, debug=False, log_callback=None)
+        res = calculate_expert_stats(args.year, args.download_dir, debug=False, log_callback=None, username=args.username, password=args.password)
         print(f"RESULT:{json.dumps(res)}")
     except Exception as e:
         print(f"ERROR:{str(e)}")
         sys.exit(1)
-
