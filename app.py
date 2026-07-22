@@ -8,12 +8,15 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
 
 if getattr(sys, 'frozen', False):
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'ms-playwright')
+import configparser
 from flask import Flask, jsonify, request, render_template, Response
 import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.2.7"
+_config = configparser.ConfigParser()
+_config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.ini'))
+CURRENT_VERSION = "v" + _config['Version']['AppVersion']
 
 def write_log(msg):
     log_dir = engine.get_data_dir()

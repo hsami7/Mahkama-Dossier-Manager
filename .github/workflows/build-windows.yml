@@ -46,7 +46,7 @@ jobs:
         } else {
           $version = "1.2.0"
         }
-        (Get-Content setup.iss) -replace '#define AppVersion "[^"]+"', "#define AppVersion `"$version`"" | Set-Content setup.iss
+        (Get-Content version.ini) -replace 'AppVersion=.+', "AppVersion=$version" | Set-Content version.ini
         iscc setup.iss
 
     - name: Rename files with version tag
