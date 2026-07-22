@@ -321,102 +321,116 @@
             </div>
         </section>
 
-        <!-- قسم إحصائيات مكتب الخبرة (صفحة كاملة بدلاً من نافذة منبثقة) -->
+        <!-- قسم إحصائيات مكتب الخبرة -->
         <section class="section-card" id="statsResultsSection" style="display: none; max-width: 100%;">
-            <div class="breadcrumb-nav" style="margin-bottom: 20px; border-bottom: 1px solid var(--mahakim-border); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <div class="breadcrumb-nav">
                 <button class="btn-breadcrumb" id="btnStatsReturnHome">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     العودة لخيارات جلب السجلات
                 </button>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn-mahakim" id="btnStatsPrintReportSection" style="background-color: #10b981; border-color: #10b981; color: white; padding: 8px 18px; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-printer"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect width="12" height="8" x="6" y="14" rx="1" ry="1"/></svg>
+                    <button class="btn-mahakim" id="btnStatsPrintReportSection" style="background-color: #10b981; border-color: #10b981; color: white; padding: 8px 18px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect width="12" height="8" x="6" y="14" rx="1" ry="1"/></svg>
                         طباعة
                     </button>
-                    <button class="btn-mahakim" id="btnStatsCopyReportSection" style="background-color: #3b82f6; border-color: #3b82f6; color: white; padding: 8px 18px; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    <button class="btn-mahakim" id="btnStatsCopyReportSection" style="background-color: #3b82f6; border-color: #3b82f6; color: white; padding: 8px 18px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; border-radius: 8px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                         نسخ التقرير
                     </button>
                 </div>
             </div>
 
-            <h2 style="text-align: center; margin-bottom: 25px; color: var(--mahakim-primary); font-family: var(--mahakim-heading-font); display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart-3"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-                إحصائيات مكتب الخبرة - سنة <span id="statsYearTitleSection"></span>
-            </h2>
-
-            <div id="statsReportHeaderSection" style="text-align: center; font-weight: bold; font-size: 1.15rem; margin-bottom: 10px; color: var(--mahakim-primary); background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                نشاط شعبة الخبرة من <span id="statsStartDateSection" style="color: #0f172a; text-decoration: underline;">--</span> إلى غاية <span id="statsEndDateSection" style="color: #0f172a; text-decoration: underline;">--</span>
-            </div>
-
-            <div style="text-align: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 20px; color: #581c87; background: #faf5ff; padding: 8px; border-radius: 6px; border: 1px solid #e9d5ff; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                متوسط مدة الإنجاز: <span id="statAverageTimeSection" style="color: #6b21a8; text-decoration: underline;">0 يوم</span>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                <div class="stat-card" style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 15px; text-align: center;">
-                    <div style="font-size: 2.2rem; margin-bottom: 5px; display: flex; justify-content: center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download-cloud" style="color: #2563eb;"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg>
-                    </div>
-                    <div style="font-size: 0.95rem; color: #1e40af; font-weight: bold;">المسجل (سنة <span class="statsYearLabelSection"></span>)</div>
-                    <div id="statRegisteredSection" style="font-size: 2rem; font-weight: bold; color: #1e3a8a; margin-top: 5px;">0</div>
-                    <a href="#" onclick="showStatDossiersSection('registered')" style="font-size: 0.85rem; color: #2563eb; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
-                </div>
-                <div class="stat-card" style="background: #fef3c7; border: 1.5px solid #fde68a; border-radius: 8px; padding: 15px; text-align: center;">
-                    <div style="font-size: 2.2rem; margin-bottom: 5px; display: flex; justify-content: center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hourglass" style="color: #d97706;"><path d="M5 2h14"/><path d="M5 22h14"/><path d="M19 2c-2.4 1.9-4 5-4 8H9c0 3-1.6 6.1-4 8"/></svg>
-                    </div>
-                    <div style="font-size: 0.95rem; color: #92400e; font-weight: bold;">الرائج</div>
-                    <div id="statActiveSection" style="font-size: 2rem; font-weight: bold; color: #78350f; margin-top: 5px;">0</div>
-                    <a href="#" onclick="showStatDossiersSection('active')" style="font-size: 0.85rem; color: #d97706; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
-                </div>
-                <div class="stat-card" style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 15px; text-align: center;">
-                    <div style="font-size: 2.2rem; margin-bottom: 5px; display: flex; justify-content: center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle" style="color: #059669;"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-                    </div>
-                    <div style="font-size: 0.95rem; color: #065f46; font-weight: bold;">المنجز</div>
-                    <div id="statCompletedSection" style="font-size: 2rem; font-weight: bold; color: #064e3b; margin-top: 5px;">0</div>
-                    <a href="#" onclick="showStatDossiersSection('completed')" style="font-size: 0.85rem; color: #059669; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
-                </div>
-                <div class="stat-card" style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 15px; text-align: center;">
-                    <div style="font-size: 2.2rem; margin-bottom: 5px; display: flex; justify-content: center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock" style="color: #dc2626;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    </div>
-                    <div style="font-size: 0.95rem; color: #991b1b; font-weight: bold;">المغلق</div>
-                    <div id="statClosedSection" style="font-size: 2rem; font-weight: bold; color: #7f1d1d; margin-top: 5px;">0</div>
-                    <a href="#" onclick="showStatDossiersSection('closed')" style="font-size: 0.85rem; color: #dc2626; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
+            <!-- Section header -->
+            <div class="stats-section-header">
+                <h2 class="stats-section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                    إحصائيات مكتب الخبرة - سنة <span id="statsYearTitleSection"></span>
+                </h2>
+                <div class="stats-date-range">
+                    نشاط شعبة الخبرة من <span id="statsStartDateSection">--</span> إلى غاية <span id="statsEndDateSection">--</span>
                 </div>
             </div>
 
-            <div class="stat-card" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; margin: 0 auto 20px; max-width: 320px;">
-                <div style="font-size: 2.5rem; margin-bottom: 5px; display: flex; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pin" style="color: #475569;"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.32-2.9A2 2 0 0 1 15.8 9.86V5a1 1 0 0 0-1-1H9.2a1 1 0 0 0-1 1v4.86c0 .42-.13.83-.38 1.15l-2.38 2.96A2 2 0 0 0 5 15.22Z"/></svg>
+            <!-- KPI Dashboard Cards -->
+            <div class="stats-kpi-row">
+                <div class="kpi-card kpi-total">
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 8h7"/><path d="M8 12h6"/><path d="M11 16h5"/></svg></div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">إجمالي الملفات</span>
+                        <span class="kpi-value" id="statTotalSection">0</span>
+                    </div>
                 </div>
-                <div style="font-size: 1.1rem; color: #334155; font-weight: bold;">الباقي (في طور الإنجاز)</div>
-                <div id="statRemainingSection" style="font-size: 2.5rem; font-weight: bold; color: #0f172a; margin-top: 5px;">0</div>
-                <a href="#" onclick="showStatDossiersSection('remaining')" style="font-size: 0.9rem; color: #475569; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
+                <div class="kpi-card kpi-registered">
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg></div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">المسجلة <span class="kpi-year-badge statsYearLabelSection"></span></span>
+                        <span class="kpi-value" id="statRegisteredSection">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-active">
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14"/><path d="M5 22h14"/><path d="M19 2c-2.4 1.9-4 5-4 8H9c0 3-1.6 6.1-4 8"/></svg></div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">الرائج</span>
+                        <span class="kpi-value" id="statActiveSection">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-completed">
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">المنجز</span>
+                        <span class="kpi-value" id="statCompletedSection">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-closed">
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">المغلق</span>
+                        <span class="kpi-value" id="statClosedSection">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card kpi-remaining">
+                    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg></div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">الباقي (في طور الإنجاز)</span>
+                        <span class="kpi-value" id="statRemainingSection">0</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- قائمة الملفات الداخلية (تظهر عند النقر على عرض القائمة) -->
-            <div id="statsDossierListContainer" style="display: none; margin-top: 25px; border-top: 2px solid var(--mahakim-primary); padding-top: 20px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                    <h3 id="statsDossierListTitle" style="font-family: var(--mahakim-heading-font); font-size: 1.4rem; color: var(--mahakim-primary); margin: 0;"></h3>
+            <!-- Average time + Tab navigation -->
+            <div class="stats-meta-row">
+                <div class="stats-avg-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    متوسط مدة الإنجاز: <strong><span id="statAverageTimeSection">0 يوم</span></strong>
+                </div>
+                <div class="stats-tab-bar">
+                    <button class="stats-tab active" data-type="registered">المسجل <span class="stats-tab-badge registered-badge" id="tabBadgeRegistered">0</span></button>
+                    <button class="stats-tab" data-type="active">الرائج <span class="stats-tab-badge active-badge" id="tabBadgeActive">0</span></button>
+                    <button class="stats-tab" data-type="completed">المنجز <span class="stats-tab-badge completed-badge" id="tabBadgeCompleted">0</span></button>
+                    <button class="stats-tab" data-type="closed">المغلق <span class="stats-tab-badge closed-badge" id="tabBadgeClosed">0</span></button>
+                    <button class="stats-tab" data-type="remaining">الباقي <span class="stats-tab-badge remaining-badge" id="tabBadgeRemaining">0</span></button>
+                </div>
+            </div>
+
+            <!-- Dossier List Table -->
+            <div class="stats-table-section" id="statsDossierListContainer">
+                <div class="stats-table-header">
+                    <h3 id="statsDossierListTitle">قائمة الملفات</h3>
                     <button class="btn-secondary" id="btnCloseStatsDossierList" style="padding: 6px 16px; font-size: 0.85rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" style="margin-left: 5px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         إغلاق القائمة
                     </button>
                 </div>
-                <div class="table-wrapper" style="width: 100%; overflow-x: auto;">
-                    <table class="dossiers-table" style="width: 100%; border-collapse: collapse; min-width: 900px;">
+                <div class="table-wrapper">
+                    <table class="dossiers-table" id="statsDossierTable">
                         <thead>
                             <tr>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">رقم ملف الخبرة</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">الرقم الكامل للملف</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">تاريخ التسجيل</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">القاضي أو المستشار المقرّر</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">الخبير المعين</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary); white-space: nowrap;">تاريخ الجلسة المقبلة</th>
+                                <th>رقم ملف الخبرة</th>
+                                <th>الرقم الكامل للملف</th>
+                                <th>تاريخ التسجيل</th>
+                                <th>القاضي أو المستشار المقرّر</th>
+                                <th>الخبير المعين</th>
+                                <th>تاريخ الجلسة المقبلة</th>
                             </tr>
                         </thead>
                         <tbody id="statsDossierListTbody"></tbody>
