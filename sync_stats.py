@@ -251,6 +251,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     os.makedirs(download_dir, exist_ok=True)
     files = {}
     missing_years = []
+    registered = 0
     for yr in expected_years:
         local_path = os.path.join(download_dir, f"stats_{yr}.xlsx")
         if os.path.exists(local_path):

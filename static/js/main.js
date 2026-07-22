@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
             if (btnCalcStatsLocal) {
                 btnCalcStatsLocal.disabled = false;
-                btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                btnCalcStatsLocal.innerText = 'آخر حفظ';
             }
 
             try {
@@ -1584,7 +1584,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
                     if (btnCalcStatsLocal) {
                         btnCalcStatsLocal.disabled = false;
-                        btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                        btnCalcStatsLocal.innerText = 'آخر حفظ';
                     }
 
                     if (data.error || !data.result) {
@@ -1722,7 +1722,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
                     if (btnCalcStatsLocal) {
                         btnCalcStatsLocal.disabled = false;
-                        btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                        btnCalcStatsLocal.innerText = 'آخر حفظ';
                     }
                     operationRunning = false;
                 } else if (data.success) {
@@ -1736,7 +1736,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
                 if (btnCalcStatsLocal) {
                     btnCalcStatsLocal.disabled = false;
-                    btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                    btnCalcStatsLocal.innerText = 'آخر حفظ';
                 }
                 operationRunning = false;
             }
