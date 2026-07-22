@@ -13,7 +13,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.2.5"
+CURRENT_VERSION = "v1.2.6"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
@@ -324,7 +324,7 @@ sync_process = None
 active_sync_id = None
 stats_process = None
 
-def run_sync(years, base_download_dir, session_id):
+def run_sync(years, base_download_dir, session_id, username, password):
     global sync_active, sync_logs, sync_dir, sync_target_years, sync_process, sync_error, active_sync_id
     with sync_lock:
         sync_logs.clear()
@@ -374,6 +374,10 @@ def run_sync(years, base_download_dir, session_id):
                     
                 log_cb(f"[*] جاري مزامنة السنة {year}...")
                 cmd = [sys.executable, script_path, str(year), '--output-dir', base_download_dir]
+                if username:
+                    cmd.extend(['--username', username])
+                if password:
+                    cmd.extend(['--password', password])
                 
                 try:
                     with sync_lock:
@@ -418,11 +422,40 @@ def run_sync(years, base_download_dir, session_id):
                 sync_active = False
                 sync_process = None
 
+CREDENTIALS_FILE = os.path.join(engine.DATA_DIR, 'credentials.json')
+
+@app.route('/api/credentials', methods=['GET'])
+def get_credentials():
+    if os.path.exists(CREDENTIALS_FILE):
+        try:
+            with open(CREDENTIALS_FILE, 'r', encoding='utf-8') as f:
+                return jsonify(json.load(f))
+        except Exception as e:
+            return jsonify({"username": "", "password": "", "error": str(e)})
+    return jsonify({"username": "", "password": ""})
+
+@app.route('/api/credentials', methods=['POST'])
+def save_credentials():
+    data = request.get_json() or {}
+    try:
+        with open(CREDENTIALS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({
+                "dossier_username": data.get("dossier_username", ""),
+                "dossier_password": data.get("dossier_password", ""),
+                "stats_username": data.get("stats_username", ""),
+                "stats_password": data.get("stats_password", "")
+            }, f, ensure_ascii=False, indent=4)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/sync', methods=['POST'])
 def api_sync():
     global sync_thread, sync_active, active_sync_id
     data = request.get_json() or {}
     years = data.get('years', [])
+    username = data.get('username', '')
+    password = data.get('password', '')
     
     if not years:
         return jsonify({"error": "الرجاء تحديد سنة واحدة على الأقل."}), 400
@@ -443,7 +476,7 @@ def api_sync():
             
         base_download_dir = directory
         
-        sync_thread = threading.Thread(target=run_sync, args=(years, base_download_dir, session_id))
+        sync_thread = threading.Thread(target=run_sync, args=(years, base_download_dir, session_id, username, password))
         sync_thread.daemon = True
         sync_thread.start()
         
@@ -474,7 +507,7 @@ stats_lock = threading.Lock()
 stats_result = None
 stats_process = None
 
-def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None):
+def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None, username=None, password=None):
     global stats_active, stats_logs, stats_result, stats_process, stats_error
     with stats_lock:
         stats_logs.clear()
@@ -518,6 +551,10 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
                     env.pop(var, None)
                     
                 cmd = [sys.executable, script_path, str(target_year), base_download_dir]
+                if username:
+                    cmd.extend(['--username', username])
+                if password:
+                    cmd.extend(['--password', password])
                 
                 with stats_lock:
                     if not stats_active:
@@ -575,6 +612,8 @@ def api_calculate_stats():
     option = data.get('option')
     start_date = data.get('start_date')
     end_date = data.get('end_date')
+    username = data.get('username')
+    password = data.get('password')
     
     if not year and end_date:
         try:
@@ -602,7 +641,7 @@ def api_calculate_stats():
         stats_thread = threading.Thread(
             target=run_stats_calculation, 
             args=(year, base_download_dir),
-            kwargs={"start_date": start_date, "end_date": end_date}
+            kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password}
         )
         stats_thread.daemon = True
         stats_thread.start()

@@ -684,14 +684,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Settings Modal Logic ---
     const tabLimits = document.getElementById('tabLimits');
     const tabThresholds = document.getElementById('tabThresholds');
+    const tabAccount = document.getElementById('tabAccount');
     const tabAbout = document.getElementById('tabAbout');
     const contentLimits = document.getElementById('settingsContentLimits');
     const contentThresholds = document.getElementById('settingsContentThresholds');
+    const contentAccount = document.getElementById('settingsContentAccount');
     const contentAbout = document.getElementById('settingsContentAbout');
     const formLimits = document.getElementById('settingsFormLimits');
     const formThresholds = document.getElementById('settingsFormThresholds');
+    
+    // Account settings elements
+    const savedUsernameDossier = document.getElementById('savedUsernameDossier');
+    const savedPasswordDossier = document.getElementById('savedPasswordDossier');
+    const savedUsernameStats = document.getElementById('savedUsernameStats');
+    const savedPasswordStats = document.getElementById('savedPasswordStats');
+    const btnSaveAccount = document.getElementById('btnSaveAccount');
+    
+    // Global var to store credentials
+    let savedCredentials = { 
+        dossier_username: '', dossier_password: '',
+        stats_username: '', stats_password: ''
+    };
 
-    if (tabLimits && tabThresholds && tabAbout) {
+    if (tabLimits && tabThresholds && tabAccount && tabAbout) {
         function activateTab(activeTab, showContent, inactiveTabs, hideContents) {
             activeTab.classList.add('active');
             activeTab.style.background = 'var(--mahakim-primary)';
@@ -717,19 +732,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tabLimits.addEventListener('click', () => {
-            activateTab(tabLimits, contentLimits, [tabThresholds, tabAbout], [contentThresholds, contentAbout]);
+            activateTab(tabLimits, contentLimits, [tabThresholds, tabAccount, tabAbout], [contentThresholds, contentAccount, contentAbout]);
         });
 
         tabThresholds.addEventListener('click', () => {
-            activateTab(tabThresholds, contentThresholds, [tabLimits, tabAbout], [contentLimits, contentAbout]);
+            activateTab(tabThresholds, contentThresholds, [tabLimits, tabAccount, tabAbout], [contentLimits, contentAccount, contentAbout]);
+        });
+
+        tabAccount.addEventListener('click', () => {
+            activateTab(tabAccount, contentAccount, [tabLimits, tabThresholds, tabAbout], [contentLimits, contentThresholds, contentAbout]);
         });
 
         tabAbout.addEventListener('click', () => {
-            activateTab(tabAbout, contentAbout, [tabLimits, tabThresholds], [contentLimits, contentThresholds]);
+            activateTab(tabAbout, contentAbout, [tabLimits, tabThresholds, tabAccount], [contentLimits, contentThresholds, contentAccount]);
+        });
+    }
+
+    async function loadCredentials() {
+        try {
+            const res = await fetch('/api/credentials');
+            const data = await res.json();
+            savedCredentials.dossier_username = data.dossier_username || '';
+            savedCredentials.dossier_password = data.dossier_password || '';
+            savedCredentials.stats_username = data.stats_username || '';
+            savedCredentials.stats_password = data.stats_password || '';
+            
+            if (savedUsernameDossier) savedUsernameDossier.value = savedCredentials.dossier_username;
+            if (savedPasswordDossier) savedPasswordDossier.value = savedCredentials.dossier_password;
+            if (savedUsernameStats) savedUsernameStats.value = savedCredentials.stats_username;
+            if (savedPasswordStats) savedPasswordStats.value = savedCredentials.stats_password;
+        } catch (e) {
+            console.error("Error loading credentials", e);
+        }
+    }
+
+    if (btnSaveAccount) {
+        btnSaveAccount.addEventListener('click', async () => {
+            const payload = {
+                dossier_username: savedUsernameDossier.value.trim(),
+                dossier_password: savedPasswordDossier.value,
+                stats_username: savedUsernameStats.value.trim(),
+                stats_password: savedPasswordStats.value
+            };
+            try {
+                const res = await fetch('/api/credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    savedCredentials = { ...savedCredentials, ...payload };
+                    showAlert('✅ تم حفظ بيانات تسجيل الدخول بنجاح!');
+                } else {
+                    showAlert('❌ ' + data.error);
+                }
+            } catch (e) {
+                showAlert('❌ حدث خطأ أثناء الحفظ.');
+            }
         });
     }
 
     async function loadSettings() {
+        loadCredentials();
         try {
             const response = await fetch('/api/settings');
             const settings = await response.json();
@@ -1126,6 +1191,108 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
+    // Helper function to prompt for login credentials before performing sensitive operations
+    function promptLogin(type = 'dossier') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('loginModal');
+            if (!modal) return resolve(null);
+            
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            
+            usernameInput.value = '';
+            passwordInput.value = '';
+            
+            const saveCheckbox = document.getElementById('loginSaveCredentials');
+            if (saveCheckbox) saveCheckbox.checked = false;
+            
+            // Pre-fill if we have saved credentials
+            if (type === 'dossier') {
+                if (savedCredentials && savedCredentials.dossier_username) {
+                    usernameInput.value = savedCredentials.dossier_username;
+                }
+                if (savedCredentials && savedCredentials.dossier_password) {
+                    passwordInput.value = savedCredentials.dossier_password;
+                }
+            } else if (type === 'stats') {
+                if (savedCredentials && savedCredentials.stats_username) {
+                    usernameInput.value = savedCredentials.stats_username;
+                }
+                if (savedCredentials && savedCredentials.stats_password) {
+                    passwordInput.value = savedCredentials.stats_password;
+                }
+            }
+            
+            modal.style.display = 'flex';
+            
+            const closeBtn = document.getElementById('btnLoginClose');
+            const cancelBtn = document.getElementById('btnLoginCancel');
+            const startBtn = document.getElementById('btnLoginStart');
+            
+            const cleanup = () => {
+                modal.style.display = 'none';
+                closeBtn.removeEventListener('click', onCancel);
+                cancelBtn.removeEventListener('click', onCancel);
+                startBtn.removeEventListener('click', onStart);
+            };
+            
+            const onCancel = () => {
+                cleanup();
+                resolve(null);
+            };
+            
+            const onStart = async () => {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                if (!username || !password) {
+                    showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور.');
+                    return;
+                }
+                
+                if (saveCheckbox && saveCheckbox.checked) {
+                    let payload = { ...savedCredentials };
+                    if (type === 'dossier') {
+                        payload.dossier_username = username;
+                        payload.dossier_password = password;
+                    } else if (type === 'stats') {
+                        payload.stats_username = username;
+                        payload.stats_password = password;
+                    }
+                    
+                    try {
+                        const res = await fetch('/api/credentials', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            savedCredentials = payload;
+                            // Reflect in settings form
+                            const usd = document.getElementById('savedUsernameDossier');
+                            const psd = document.getElementById('savedPasswordDossier');
+                            const uss = document.getElementById('savedUsernameStats');
+                            const pss = document.getElementById('savedPasswordStats');
+                            if (usd) usd.value = savedCredentials.dossier_username;
+                            if (psd) psd.value = savedCredentials.dossier_password;
+                            if (uss) uss.value = savedCredentials.stats_username;
+                            if (pss) pss.value = savedCredentials.stats_password;
+                        }
+                    } catch (e) {
+                        console.error('Failed to save credentials from modal:', e);
+                    }
+                }
+                
+                cleanup();
+                resolve({ username, password });
+            };
+            
+            closeBtn.addEventListener('click', onCancel);
+            cancelBtn.addEventListener('click', onCancel);
+            startBtn.addEventListener('click', onStart);
+        });
+    }
+
     if (btnAutoSync) {
         btnAutoSync.addEventListener('click', async () => {
             if (operationRunning) return;
@@ -1139,6 +1306,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const credentials = await promptLogin('dossier');
+            if (!credentials) return; // User cancelled
+
             btnAutoSync.disabled = true;
             const originalText = btnAutoSync.innerText;
             btnAutoSync.innerText = 'جاري المزامنة...';
@@ -1150,7 +1320,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ years: uniqueYears, directory: folderPath })
+                    body: JSON.stringify({ 
+                        years: uniqueYears, 
+                        directory: folderPath,
+                        username: credentials.username,
+                        password: credentials.password 
+                    })
                 });
                 const data = await res.json();
 
@@ -1471,6 +1646,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayTitle = 'فترة مخصصة';
             }
 
+            const credentials = await promptLogin('stats');
+            if (!credentials) return; // User cancelled
+
             btnCalculateStats.disabled = true;
             const originalText = btnCalculateStats.innerText;
             btnCalculateStats.innerText = 'جاري الاحتساب...';
@@ -1486,7 +1664,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         option: option,
                         directory: folderPath,
                         start_date: start_date,
-                        end_date: end_date
+                        end_date: end_date,
+                        username: credentials.username,
+                        password: credentials.password
                     })
                 });
                 const data = await res.json();
@@ -2136,6 +2316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     loadRecentPaths();
     loadDefaultWorkspace();
+    loadCredentials();
     checkUpdate();
 
     // Fix for Ctrl+C text copying in PyWebView
