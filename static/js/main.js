@@ -1858,6 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let list = [];
         let title = "قائمة الملفات";
+        const isRemaining = type === 'remaining';
         
         switch(type) {
             case 'registered':
@@ -1883,22 +1884,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         document.getElementById('dossierListModalTitle').textContent = title;
+        
+        // Show/hide the next_session column header
+        const headerCells = document.querySelectorAll('#dossierListModal .dossiers-table th');
+        if (headerCells.length >= 6) {
+            headerCells[5].style.display = isRemaining ? '' : 'none';
+        }
+        
         const tbody = document.getElementById('dossierListTbody');
         tbody.innerHTML = '';
+        const colspan = isRemaining ? 6 : 5;
         
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="' + colspan + '" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
         } else {
             list.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">${item.expert_code || ''}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">${item.code}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.date}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.judge || ''}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.expert || ''}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.next_session || ''}</td>
-                `;
+                const ph = (v) => (v && v.trim()) ? v : '<span class="dossier-empty-placeholder">&mdash;</span>';
+                const cells = [
+                    '<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">' + (item.expert_code || '') + '</td>',
+                    '<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">' + (item.code || '') + '</td>',
+                    '<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">' + (item.date || '') + '</td>',
+                    '<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">' + ph(item.judge) + '</td>',
+                    '<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">' + ph(item.expert) + '</td>'
+                ];
+                if (isRemaining) {
+                    cells.push('<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">' + ph(item.next_session) + '</td>');
+                }
+                tr.innerHTML = cells.join('');
                 tbody.appendChild(tr);
             });
         }
@@ -1914,6 +1927,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let list = [];
         let label = "";
         let count = 0;
+        const isRemaining = type === 'remaining';
         
         switch(type) {
             case 'registered':
@@ -1949,23 +1963,34 @@ document.addEventListener('DOMContentLoaded', () => {
             titleEl.textContent = `قائمة الملفات ${label} - مكتب الخبرة - سنة ${year} (${count})`;
         }
         
+        // Show/hide the next_session column header in inline table
+        const headerCells = document.querySelectorAll('#statsDossierListContainer .dossiers-table th');
+        if (headerCells.length >= 6) {
+            headerCells[5].style.display = isRemaining ? '' : 'none';
+        }
+        
         const tbody = document.getElementById('statsDossierListTbody');
         if (!tbody) return;
         tbody.innerHTML = '';
+        const colspan = isRemaining ? 6 : 5;
         
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="' + colspan + '" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
         } else {
             list.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">${item.expert_code || ''}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">${item.code}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.date}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.judge || ''}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.expert || ''}</td>
-                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.next_session || ''}</td>
-                `;
+                const ph = (v) => (v && v.trim()) ? v : '<span class="dossier-empty-placeholder">&mdash;</span>';
+                const cells = [
+                    '<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">' + (item.expert_code || '') + '</td>',
+                    '<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">' + (item.code || '') + '</td>',
+                    '<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">' + (item.date || '') + '</td>',
+                    '<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">' + ph(item.judge) + '</td>',
+                    '<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">' + ph(item.expert) + '</td>'
+                ];
+                if (isRemaining) {
+                    cells.push('<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">' + ph(item.next_session) + '</td>');
+                }
+                tr.innerHTML = cells.join('');
                 tbody.appendChild(tr);
             });
         }
