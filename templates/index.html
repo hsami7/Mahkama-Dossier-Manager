@@ -408,9 +408,11 @@
                     <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">رقم الملف</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">رقم ملف الخبرة</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">الرقم الكامل للملف</th>
                                 <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">تاريخ التسجيل</th>
-                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">الحالة</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">القاضي أو المستشار المقرّر</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">الخبير المعين</th>
                             </tr>
                         </thead>
                         <tbody id="statsDossierListTbody"></tbody>
@@ -786,18 +788,20 @@
                 </button>
             </div>
             <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
-                <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">رقم الملف</th>
-                            <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">تاريخ التسجيل</th>
-                            <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dossierListTbody">
-                        <!-- Populated dynamically via JS -->
-                    </tbody>
-                </table>
+                    <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">رقم ملف الخبرة</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">الرقم الكامل للملف</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">تاريخ التسجيل</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">القاضي أو المستشار المقرّر</th>
+                                <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">الخبير المعين</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dossierListTbody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
             </div>
         </div>
     </div>
