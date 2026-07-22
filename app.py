@@ -505,6 +505,7 @@ stats_logs = []
 stats_active = False
 stats_lock = threading.Lock()
 stats_result = None
+stats_error = False
 stats_process = None
 
 def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
@@ -600,7 +601,7 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
     except Exception as e:
         log_cb(f"[-] خطأ نهائي في حساب الإحصائيات: {str(e)}")
         with stats_lock:
-            stats_error = True
+            stats_error = str(e)
     finally:
         with stats_lock:
             stats_active = False

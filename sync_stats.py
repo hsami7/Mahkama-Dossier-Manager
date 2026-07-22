@@ -438,7 +438,7 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
                     status = str(r.get('J') or '').strip()
                     d_val = r.get('D')
                     d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
-dossier_info = {"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')}
+                    dossier_info = {"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')}
                     if "مغلق" in status:
                         muglaq += 1
                         muglaq_list.append(dossier_info)

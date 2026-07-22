@@ -1588,7 +1588,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (data.error || !data.result) {
-                        showAlert(data.error || 'حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
+                        const errMsg = typeof data.error === 'string' ? data.error : (data.error || 'حدث خطأ غير معروف');
+                        showAlert('❌ ' + errMsg + '\n\nيرجى مراجعة سجل العمليات لمزيد من التفاصيل.');
                     } else {
                         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
                         // Populate modal values
