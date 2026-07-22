@@ -394,6 +394,29 @@
                 <div id="statRemainingSection" style="font-size: 2.5rem; font-weight: bold; color: #0f172a; margin-top: 5px;">0</div>
                 <a href="#" onclick="showStatDossiersSection('remaining')" style="font-size: 0.9rem; color: #475569; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
             </div>
+
+            <!-- قائمة الملفات الداخلية (تظهر عند النقر على عرض القائمة) -->
+            <div id="statsDossierListContainer" style="display: none; margin-top: 25px; border-top: 2px solid var(--mahakim-primary); padding-top: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                    <h3 id="statsDossierListTitle" style="font-family: var(--mahakim-heading-font); font-size: 1.4rem; color: var(--mahakim-primary); margin: 0;"></h3>
+                    <button class="btn-secondary" id="btnCloseStatsDossierList" style="padding: 6px 16px; font-size: 0.85rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" style="margin-left: 5px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        إغلاق القائمة
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">رقم الملف</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">تاريخ التسجيل</th>
+                                <th style="padding: 12px; border-bottom: 2px solid var(--mahakim-border); text-align: right; color: var(--mahakim-primary);">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsDossierListTbody"></tbody>
+                    </table>
+                </div>
+            </div>
         </section>
     </main>
 

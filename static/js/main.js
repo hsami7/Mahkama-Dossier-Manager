@@ -1809,53 +1809,75 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!window.lastStatsResult) return;
         
         let list = [];
-        let title = "قائمة الملفات";
+        let label = "";
+        let count = 0;
         
         switch(type) {
             case 'registered':
                 list = window.lastStatsResult.registered_list || [];
-                title = "قائمة الملفات المسجلة";
+                label = "المسجلة";
+                count = window.lastStatsResult.registered || 0;
                 break;
             case 'active':
                 list = window.lastStatsResult.active_list || [];
-                title = "قائمة الملفات الرائجة";
+                label = "الرائجة";
+                count = window.lastStatsResult.active || 0;
                 break;
             case 'completed':
                 list = window.lastStatsResult.completed_list || [];
-                title = "قائمة الملفات المنجزة";
+                label = "المنجرة";
+                count = window.lastStatsResult.completed || 0;
                 break;
             case 'closed':
                 list = window.lastStatsResult.closed_list || [];
-                title = "قائمة الملفات المغلقة";
+                label = "المغلقة";
+                count = window.lastStatsResult.closed || 0;
                 break;
             case 'remaining':
                 list = window.lastStatsResult.remaining_list || [];
-                title = "قائمة الملفات المتبقية";
+                label = "المتبقية";
+                count = window.lastStatsResult.remaining || 0;
                 break;
         }
+
+        const year = document.getElementById('statsYearTitleSection').textContent;
+        const titleEl = document.getElementById('statsDossierListTitle');
+        if (titleEl) {
+            titleEl.textContent = `قائمة الملفات ${label} - مكتب الخبرة - سنة ${year} (${count})`;
+        }
         
-        document.getElementById('dossierListModalTitle').textContent = title;
-        const tbody = document.getElementById('dossierListTbody');
+        const tbody = document.getElementById('statsDossierListTbody');
+        if (!tbody) return;
         tbody.innerHTML = '';
         
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
         } else {
             list.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">${item.code}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.date}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.status}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right; direction: ltr;">${item.code}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.date}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: right;">${item.status}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
         
-        if (dossierListModal) {
-            dossierListModal.style.display = 'flex';
+        const container = document.getElementById('statsDossierListContainer');
+        if (container) {
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
+
+    const btnCloseStatsDossierList = document.getElementById('btnCloseStatsDossierList');
+    if (btnCloseStatsDossierList) {
+        btnCloseStatsDossierList.addEventListener('click', () => {
+            const container = document.getElementById('statsDossierListContainer');
+            if (container) container.style.display = 'none';
+        });
+    }
 
     if (btnStatsCopyReport) {
         btnStatsCopyReport.addEventListener('click', () => {
