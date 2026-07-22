@@ -557,6 +557,7 @@
                         </div>
                         <div style="font-size: 0.95rem; color: #1e40af; font-weight: bold;">المسجل (سنة <span class="statsYearLabel"></span>)</div>
                         <div id="statRegistered" style="font-size: 2rem; font-weight: bold; color: #1e3a8a; margin-top: 5px;">0</div>
+                        <a href="#" onclick="showStatDossiers('registered')" style="font-size: 0.85rem; color: #2563eb; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
                     </div>
                     <!-- الرائج -->
                     <div class="stat-card" style="background: #fef3c7; border: 1.5px solid #fde68a; border-radius: 8px; padding: 15px; text-align: center;">
@@ -565,6 +566,7 @@
                         </div>
                         <div style="font-size: 0.95rem; color: #92400e; font-weight: bold;">الرائج</div>
                         <div id="statActive" style="font-size: 2rem; font-weight: bold; color: #78350f; margin-top: 5px;">0</div>
+                        <a href="#" onclick="showStatDossiers('active')" style="font-size: 0.85rem; color: #d97706; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
                     </div>
                     <!-- المنجز -->
                     <div class="stat-card" style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 15px; text-align: center;">
@@ -573,6 +575,7 @@
                         </div>
                         <div style="font-size: 0.95rem; color: #065f46; font-weight: bold;">المنجز</div>
                         <div id="statCompleted" style="font-size: 2rem; font-weight: bold; color: #064e3b; margin-top: 5px;">0</div>
+                        <a href="#" onclick="showStatDossiers('completed')" style="font-size: 0.85rem; color: #059669; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
                     </div>
                     <!-- المغلق -->
                     <div class="stat-card" style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 15px; text-align: center;">
@@ -581,6 +584,7 @@
                         </div>
                         <div style="font-size: 0.95rem; color: #991b1b; font-weight: bold;">المغلق</div>
                         <div id="statClosed" style="font-size: 2rem; font-weight: bold; color: #7f1d1d; margin-top: 5px;">0</div>
+                        <a href="#" onclick="showStatDossiers('closed')" style="font-size: 0.85rem; color: #dc2626; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
                     </div>
                 </div>
                 <!-- الباقي (في طور الإنجاز) -->
@@ -590,6 +594,7 @@
                     </div>
                     <div style="font-size: 1.1rem; color: #334155; font-weight: bold;">الباقي (في طور الإنجاز)</div>
                     <div id="statRemaining" style="font-size: 2.5rem; font-weight: bold; color: #0f172a; margin-top: 5px;">0</div>
+                    <a href="#" onclick="showStatDossiers('remaining')" style="font-size: 0.9rem; color: #475569; text-decoration: underline; margin-top: 5px; display: inline-block;">عرض القائمة</a>
                 </div>
             </div>
             <div class="modal-footer" style="justify-content: center; gap: 15px;">
@@ -669,5 +674,31 @@
     </script>
 
     <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(1, 99999) | random }}"></script>
+
+    <!-- Dossier List Modal -->
+    <div id="dossierListModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; width: 95%;">
+            <div class="modal-header">
+                <h3 id="dossierListModalTitle" style="margin: 0;">قائمة الملفات</h3>
+                <button class="btn-close" id="btnCloseDossierListModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <table class="dossiers-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">رقم الملف</th>
+                            <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">تاريخ التسجيل</th>
+                            <th style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dossierListTbody">
+                        <!-- Populated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -1586,6 +1586,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         document.getElementById('statsStartDate').textContent = data.result.start_date || '--';
                         document.getElementById('statsEndDate').textContent = data.result.end_date || '--';
+                        
+                        window.lastStatsResult = data.result;
 
                         if (statsResultModal) statsResultModal.style.display = 'flex';
                     }
@@ -1703,6 +1705,74 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const dossierListModal = document.getElementById('dossierListModal');
+    const btnCloseDossierListModal = document.getElementById('btnCloseDossierListModal');
+    
+    if (btnCloseDossierListModal) {
+        btnCloseDossierListModal.addEventListener('click', () => {
+            if (dossierListModal) dossierListModal.style.display = 'none';
+        });
+    }
+    if (dossierListModal) {
+        dossierListModal.addEventListener('click', (e) => {
+            if (e.target === dossierListModal) {
+                dossierListModal.style.display = 'none';
+            }
+        });
+    }
+
+    window.showStatDossiers = function(type) {
+        if (!window.lastStatsResult) return;
+        
+        let list = [];
+        let title = "قائمة الملفات";
+        
+        switch(type) {
+            case 'registered':
+                list = window.lastStatsResult.registered_list || [];
+                title = "قائمة الملفات المسجلة";
+                break;
+            case 'active':
+                list = window.lastStatsResult.active_list || [];
+                title = "قائمة الملفات الرائجة";
+                break;
+            case 'completed':
+                list = window.lastStatsResult.completed_list || [];
+                title = "قائمة الملفات المنجزة";
+                break;
+            case 'closed':
+                list = window.lastStatsResult.closed_list || [];
+                title = "قائمة الملفات المغلقة";
+                break;
+            case 'remaining':
+                list = window.lastStatsResult.remaining_list || [];
+                title = "قائمة الملفات المتبقية";
+                break;
+        }
+        
+        document.getElementById('dossierListModalTitle').textContent = title;
+        const tbody = document.getElementById('dossierListTbody');
+        tbody.innerHTML = '';
+        
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
+        } else {
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; direction: ltr;">${item.code}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.date}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        if (dossierListModal) {
+            dossierListModal.style.display = 'flex';
+        }
+    };
 
     if (btnStatsCopyReport) {
         btnStatsCopyReport.addEventListener('click', () => {
