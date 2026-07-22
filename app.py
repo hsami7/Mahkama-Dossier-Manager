@@ -13,7 +13,7 @@ import engine
 import urllib.request
 import json
 
-CURRENT_VERSION = "v1.2.6"
+CURRENT_VERSION = "v1.2.7"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
@@ -217,7 +217,7 @@ def api_trigger_update():
             for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
                 env.pop(var, None)
             subprocess.Popen(
-                [temp_file, '/SILENT', '/SP-'],
+                [temp_file],
                 creationflags=creation_flags,
                 close_fds=True,
                 env=env
@@ -505,9 +505,10 @@ stats_logs = []
 stats_active = False
 stats_lock = threading.Lock()
 stats_result = None
+stats_error = False
 stats_process = None
 
-def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None, username=None, password=None):
+def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
     global stats_active, stats_logs, stats_result, stats_process, stats_error
     with stats_lock:
         stats_logs.clear()
@@ -555,6 +556,8 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
                     cmd.extend(['--username', username])
                 if password:
                     cmd.extend(['--password', password])
+                if local_only:
+                    cmd.append('--local-only')
                 
                 with stats_lock:
                     if not stats_active:
@@ -598,7 +601,7 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
     except Exception as e:
         log_cb(f"[-] خطأ نهائي في حساب الإحصائيات: {str(e)}")
         with stats_lock:
-            stats_error = True
+            stats_error = str(e)
     finally:
         with stats_lock:
             stats_active = False
@@ -614,6 +617,7 @@ def api_calculate_stats():
     end_date = data.get('end_date')
     username = data.get('username')
     password = data.get('password')
+    local_only = data.get('local_only', False)
     
     if not year and end_date:
         try:
@@ -641,7 +645,7 @@ def api_calculate_stats():
         stats_thread = threading.Thread(
             target=run_stats_calculation, 
             args=(year, base_download_dir),
-            kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password}
+            kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password, "local_only": local_only}
         )
         stats_thread.daemon = True
         stats_thread.start()

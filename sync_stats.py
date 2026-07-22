@@ -224,7 +224,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             
     return downloaded_files, registered_count_target
 
-def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None, username=None, password=None):
+def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None, username=None, password=None, local_only=False):
     if start_date is None:
         start_date = os.environ.get("START_DATE")
     if end_date is None:
@@ -241,13 +241,43 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     else:
         end_date = None
 
-    # Step 1: Download files
-    files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date, username, password)
-    
+    # Determine expected years
     expected_years = [y for y in [2024, 2025, 2026] if y <= target_year]
     if start_date and end_date:
         end_year = end_date.year
         expected_years = [y for y in [2024, 2025, 2026] if y <= end_year]
+
+    # Step 1: Check if files already exist locally
+    os.makedirs(download_dir, exist_ok=True)
+    files = {}
+    missing_years = []
+    registered = 0
+
+    if local_only:
+        # آخر حفظ — use existing files only
+        for yr in expected_years:
+            local_path = os.path.join(download_dir, f"stats_{yr}.xlsx")
+            if os.path.exists(local_path):
+                files[yr] = local_path
+                log_msg(f"[+] موجود محلياً: stats_{yr}.xlsx", log_callback)
+            else:
+                missing_years.append(yr)
+        if missing_years:
+            raise Exception(f"الملفات المحلية غير موجودة للسنوات: {missing_years}. قم باستخدام 'بدء العمل' لتحميلها أولاً.")
+        log_msg("[+] جميع ملفات الإحصائيات موجودة محلياً. تم تخطي التحميل.", log_callback)
+    else:
+        # بدء العمل — force fresh download from portal
+        for yr in expected_years:
+            local_path = os.path.join(download_dir, f"stats_{yr}.xlsx")
+            if os.path.exists(local_path):
+                try:
+                    os.remove(local_path)
+                    log_msg(f"[~] تم حذف الملف القديم: stats_{yr}.xlsx", log_callback)
+                except Exception as e:
+                    log_msg(f"[-] تعذر حذف stats_{yr}.xlsx: {e}", log_callback)
+        log_msg("[*] جاري تحميل نسخة جديدة من بوابة المحاكم...", log_callback)
+        downloaded_files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date, username, password)
+        files.update(downloaded_files)
 
     for yr in expected_years:
         if not files.get(yr):
@@ -270,6 +300,12 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
     # 3. Completed Normally (المنجز)
     # 4. Closed (المغلق)
     # 5. Remaining (الباقي)
+    
+    registered_list = []
+    active_list = []
+    munjaz_list = []
+    muglaq_list = []
+    remaining_list = []
     
     if start_date and end_date:
         # Collect all rows from all years loaded
@@ -305,17 +341,25 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             res_date = parse_excel_date(r.get('K'))
             status = str(r.get('J') or '').strip()
             
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            d_val = r.get('D')
+            d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
+            dossier_info = {"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or '')}
+            
             # Registered in period
             if reg_date and start_date <= reg_date <= end_date:
                 registered += 1
+                registered_list.append(dossier_info)
                 
             # Completed in period
             if res_date and start_date <= res_date <= end_date and "منجز" in status:
                 munjaz += 1
+                munjaz_list.append(dossier_info)
                 
             # Closed in period
             if res_date and start_date <= res_date <= end_date and "مغلق" in status:
                 muglaq += 1
+                muglaq_list.append(dossier_info)
 
             # Duration for resolved dossiers
             if reg_date and res_date and start_date <= res_date <= end_date and ("منجز" in status or "مغلق" in status):
@@ -324,7 +368,17 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
                     durations.append(diff)
                 
         active = len(filtered_rows)
+        for r in filtered_rows:
+            code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
+            d_val = r.get('D')
+            d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
+            status = str(r.get('J') or '').strip()
+            active_list.append({"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')})
+            
         remaining = active - (munjaz + muglaq)
+        # Calculate remaining list by taking active_list and excluding munjaz and muglaq
+        resolved_codes = set([item["code"] for item in munjaz_list] + [item["code"] for item in muglaq_list])
+        remaining_list = [item for item in active_list if item["code"] not in resolved_codes]
         avg_duration = round(sum(durations) / len(durations)) if durations else 0
         start_date_str = start_date.strftime('%d/%m/%Y')
         end_date_str = end_date.strftime('%d/%m/%Y')
@@ -341,6 +395,10 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
             if code and code != 'الرقم الكامل للملف' and '/' in str(code):
                 real_registered += 1
+                d_val = r.get('D')
+                d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
+                status = str(r.get('J') or '').strip()
+                registered_list.append({"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')})
                 
         if registered == 0:
             registered = real_registered
@@ -358,10 +416,15 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             if dt_yr is not None:
                 # Case is resolved
                 status = str(r.get('J') or '').strip()
+                d_val = r.get('D')
+                d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
+                dossier_info = {"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')}
                 if "مغلق" in status:
                     muglaq += 1
+                    muglaq_list.append(dossier_info)
                 elif "منجز" in status:
                     munjaz += 1
+                    munjaz_list.append(dossier_info)
                     
         # In prior years files:
         for yr, rows in prior_files_rows.items():
@@ -373,28 +436,44 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
                 if dt_yr == target_year:
                     # Case resolved in target year
                     status = str(r.get('J') or '').strip()
+                    d_val = r.get('D')
+                    d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
+                    dossier_info = {"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')}
                     if "مغلق" in status:
                         muglaq += 1
+                        muglaq_list.append(dossier_info)
                     elif "منجز" in status:
                         munjaz += 1
+                        munjaz_list.append(dossier_info)
                         
         # c) Active (الرائج)
         active = registered
+        active_list = list(registered_list)
         for yr, rows in prior_files_rows.items():
             for r in rows:
                 code = r.get('C') if '/' in str(r.get('C') or '') else r.get('B')
                 if not code or code == 'الرقم الكامل للملف' or '/' not in str(code):
                     continue
                 dt_yr = get_row_date_year(r)
+                
+                d_val = r.get('D')
+                d_str = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else str(d_val)
+                status = str(r.get('J') or '').strip()
+                dossier_info = {"code": str(code), "date": d_str, "status": status, "expert_code": str(r.get('A', '') or ''), "judge": str(r.get('F', '') or ''), "expert": str(r.get('O', '') or ''), "next_session": str(r.get('N', '') or '')}
+                
                 if dt_yr is None:
                     # Still unresolved
                     active += 1
+                    active_list.append(dossier_info)
                 elif dt_yr == target_year:
                     # Resolved in target year (so it was active in target year)
                     active += 1
+                    active_list.append(dossier_info)
                     
         # d) Remaining (الباقي)
         remaining = active - (munjaz + muglaq)
+        resolved_codes = set([item["code"] for item in munjaz_list] + [item["code"] for item in muglaq_list])
+        remaining_list = [item for item in active_list if item["code"] not in resolved_codes]
         
         # Find oldest date in target year file
         oldest_dates = []
@@ -469,7 +548,12 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
         "remaining": remaining,
         "avg_duration": avg_duration,
         "start_date": start_date_str,
-        "end_date": end_date_str
+        "end_date": end_date_str,
+        "registered_list": registered_list,
+        "active_list": active_list,
+        "completed_list": munjaz_list,
+        "closed_list": muglaq_list,
+        "remaining_list": remaining_list
     }
 
 
@@ -496,10 +580,11 @@ if __name__ == '__main__':
     parser.add_argument('download_dir', type=str, help='مجلد الحفظ')
     parser.add_argument('--username', type=str, default=None, help='اسم المستخدم للبوابة')
     parser.add_argument('--password', type=str, default=None, help='كلمة المرور للبوابة')
+    parser.add_argument('--local-only', action='store_true', help='استخدام الملفات المحلية فقط دون تحميل')
     args = parser.parse_args()
     
     try:
-        res = calculate_expert_stats(args.year, args.download_dir, debug=False, log_callback=None, username=args.username, password=args.password)
+        res = calculate_expert_stats(args.year, args.download_dir, debug=False, log_callback=None, username=args.username, password=args.password, local_only=args.local_only)
         print(f"RESULT:{json.dumps(res)}")
     except Exception as e:
         print(f"ERROR:{str(e)}")

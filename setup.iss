@@ -40,4 +40,4 @@ Name: "{autodesktop}\إدارة ملفات المحاكم"; Filename: "{app}\{#A
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Parameters: "--install-browsers"; StatusMsg: "Installing Chromium browser required for dossier synchronization (please wait)..."; Flags: runhidden
-Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall

@@ -99,6 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnCalculateStats.disabled = false;
                 btnCalculateStats.innerText = 'بدء العمل';
             }
+            const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+            if (btnCalcStatsLocal) {
+                btnCalcStatsLocal.disabled = false;
+                btnCalcStatsLocal.innerText = 'آخر حفظ';
+            }
 
             try {
                 await fetch('/api/abort', { method: 'POST' });
@@ -1005,6 +1010,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const btnStatsReturnHome = document.getElementById('btnStatsReturnHome');
+    if (btnStatsReturnHome) {
+        btnStatsReturnHome.addEventListener('click', () => {
+            const statsSection = document.getElementById('statsResultsSection');
+            if (landingSection && statsSection) {
+                landingSection.style.display = 'block';
+                statsSection.style.display = 'none';
+                window.scrollTo(0, 0);
+            }
+        });
+    }
+
     // Allow scan on Enter key
     folderPathInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -1564,9 +1581,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
+                    const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                    if (btnCalcStatsLocal) {
+                        btnCalcStatsLocal.disabled = false;
+                        btnCalcStatsLocal.innerText = 'آخر حفظ';
+                    }
 
                     if (data.error || !data.result) {
-                        showAlert(data.error || 'حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
+                        const errMsg = typeof data.error === 'string' ? data.error : (data.error || 'حدث خطأ غير معروف');
+                        showAlert('❌ ' + errMsg + '\n\nيرجى مراجعة سجل العمليات لمزيد من التفاصيل.');
                     } else {
                         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
                         // Populate modal values
@@ -1587,7 +1610,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('statsStartDate').textContent = data.result.start_date || '--';
                         document.getElementById('statsEndDate').textContent = data.result.end_date || '--';
 
-                        if (statsResultModal) statsResultModal.style.display = 'flex';
+                        // Populate section values
+                        document.getElementById('statsYearTitleSection').textContent = yearOrRangeText;
+                        document.querySelectorAll('.statsYearLabelSection').forEach(el => el.textContent = yearOrRangeText);
+                        document.getElementById('statRegisteredSection').textContent = data.result.registered;
+                        document.getElementById('statActiveSection').textContent = data.result.active;
+                        document.getElementById('statCompletedSection').textContent = data.result.completed;
+                        document.getElementById('statClosedSection').textContent = data.result.closed;
+                        document.getElementById('statRemainingSection').textContent = data.result.remaining;
+                        const avgTimeSectionEl = document.getElementById('statAverageTimeSection');
+                        if (avgTimeSectionEl) {
+                            avgTimeSectionEl.textContent = avgDays + ' يوم';
+                        }
+                        document.getElementById('statsStartDateSection').textContent = data.result.start_date || '--';
+                        document.getElementById('statsEndDateSection').textContent = data.result.end_date || '--';
+                        
+                        window.lastStatsResult = data.result;
+
+                        const statsSection = document.getElementById('statsResultsSection');
+                        if (statsSection) {
+                            if (landingSection) landingSection.style.display = 'none';
+                            statsSection.style.display = 'block';
+                        }
                     }
                 }
             } catch (err) {
@@ -1676,6 +1720,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlay) overlay.style.display = 'none';
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
+                    const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                    if (btnCalcStatsLocal) {
+                        btnCalcStatsLocal.disabled = false;
+                        btnCalcStatsLocal.innerText = 'آخر حفظ';
+                    }
                     operationRunning = false;
                 } else if (data.success) {
                     startStatsPolling(displayTitle, originalText);
@@ -1685,6 +1734,91 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (overlay) overlay.style.display = 'none';
                 btnCalculateStats.disabled = false;
                 btnCalculateStats.innerText = originalText;
+                const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                if (btnCalcStatsLocal) {
+                    btnCalcStatsLocal.disabled = false;
+                    btnCalcStatsLocal.innerText = 'آخر حفظ';
+                }
+                operationRunning = false;
+            }
+        });
+    }
+
+    const btnCalculateStatsLocal = document.getElementById('btnCalculateStatsLocal');
+    if (btnCalculateStatsLocal) {
+        btnCalculateStatsLocal.addEventListener('click', async () => {
+            if (operationRunning) return;
+
+            const statsRangeRadio = document.querySelector('input[name="statsRange"]:checked');
+            const rangeMode = statsRangeRadio ? statsRangeRadio.value : 'year';
+            const yearSelect = document.getElementById('statsYearSelect');
+            const optionSelect = document.getElementById('statsOptionSelect');
+            const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
+
+            let year = yearSelect ? yearSelect.value : "2026";
+            const option = optionSelect ? optionSelect.value : "مكتب الخبرة";
+            let start_date = null;
+            let end_date = null;
+
+            if (rangeMode === 'custom') {
+                const startDateInput = document.getElementById('statsStartDateInput');
+                const endDateInput = document.getElementById('statsEndDateInput');
+                const rawStart = startDateInput ? startDateInput.value.trim() : '';
+                const rawEnd = endDateInput ? endDateInput.value.trim() : '';
+                const parseDMY = (str) => {
+                    if (!str) return null;
+                    const parts = str.split('/');
+                    if (parts.length !== 3) return null;
+                    const day = parts[0].trim().padStart(2, '0');
+                    const month = parts[1].trim().padStart(2, '0');
+                    const yr = parts[2].trim();
+                    if (day.length !== 2 || month.length !== 2 || yr.length !== 4) return null;
+                    return `${yr}-${month}-${day}`;
+                };
+                start_date = parseDMY(rawStart);
+                end_date = parseDMY(rawEnd);
+                if (!start_date || !end_date) {
+                    showAlert('يرجى إدخال التاريخ بالصيغة الصحيحة (يوم/شهر/سنة) مثال: 01/01/2026');
+                    return;
+                }
+                try { year = end_date.split('-')[0]; } catch (e) { }
+            }
+
+            btnCalculateStatsLocal.disabled = true;
+            const originalText = btnCalculateStatsLocal.innerText;
+            btnCalculateStatsLocal.innerText = 'جاري القراءة من المحلي...';
+
+            resetOperationUI('جاري قراءة الملفات المحلية واحتساب الإحصائيات...');
+
+            try {
+                const res = await fetch('/api/calculate-stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        year: year,
+                        option: option,
+                        directory: folderPath,
+                        start_date: start_date,
+                        end_date: end_date,
+                        local_only: true
+                    })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    showAlert(data.error);
+                    if (overlay) overlay.style.display = 'none';
+                    btnCalculateStatsLocal.disabled = false;
+                    btnCalculateStatsLocal.innerText = originalText;
+                    operationRunning = false;
+                } else if (data.success) {
+                    startStatsPolling(rangeMode === 'custom' && start_date ? 'فترة مخصصة' : year, originalText);
+                }
+            } catch (error) {
+                showAlert('حدث خطأ أثناء الاتصال بالخادم.');
+                if (overlay) overlay.style.display = 'none';
+                btnCalculateStatsLocal.disabled = false;
+                btnCalculateStatsLocal.innerText = originalText;
                 operationRunning = false;
             }
         });
@@ -1702,6 +1836,498 @@ document.addEventListener('DOMContentLoaded', () => {
                 statsResultModal.style.display = 'none';
             }
         });
+    }
+
+    const dossierListModal = document.getElementById('dossierListModal');
+    const btnCloseDossierListModal = document.getElementById('btnCloseDossierListModal');
+    
+    if (btnCloseDossierListModal) {
+        btnCloseDossierListModal.addEventListener('click', () => {
+            if (dossierListModal) dossierListModal.style.display = 'none';
+        });
+    }
+    if (dossierListModal) {
+        dossierListModal.addEventListener('click', (e) => {
+            if (e.target === dossierListModal) {
+                dossierListModal.style.display = 'none';
+            }
+        });
+    }
+
+    window.showStatDossiers = function(type) {
+        if (!window.lastStatsResult) return;
+        
+        let list = [];
+        let title = "قائمة الملفات";
+        const isRemaining = type === 'remaining';
+        
+        switch(type) {
+            case 'registered':
+                list = window.lastStatsResult.registered_list || [];
+                title = "قائمة الملفات المسجلة";
+                break;
+            case 'active':
+                list = window.lastStatsResult.active_list || [];
+                title = "قائمة الملفات الرائجة";
+                break;
+            case 'completed':
+                list = window.lastStatsResult.completed_list || [];
+                title = "قائمة الملفات المنجزة";
+                break;
+            case 'closed':
+                list = window.lastStatsResult.closed_list || [];
+                title = "قائمة الملفات المغلقة";
+                break;
+            case 'remaining':
+                list = window.lastStatsResult.remaining_list || [];
+                title = "قائمة الملفات المتبقية";
+                break;
+        }
+        
+        document.getElementById('dossierListModalTitle').textContent = title;
+        
+        // Show/hide the next_session column header & adjust col widths
+        const headerCells = document.querySelectorAll('#dossierListModal .dossiers-table th');
+        if (headerCells.length >= 6) {
+            headerCells[5].style.display = isRemaining ? '' : 'none';
+        }
+        const colgroup = document.querySelector('#dossierListModal .dossiers-table colgroup');
+        if (colgroup) {
+            const cols = colgroup.querySelectorAll('col');
+            if (isRemaining && cols.length >= 6) {
+                cols[0].style.width = '15%';
+                cols[1].style.width = '18%';
+                cols[2].style.width = '12%';
+                cols[3].style.width = '20%';
+                cols[4].style.width = '18%';
+                cols[5].style.width = '17%';
+            } else if (cols.length >= 6) {
+                cols[0].style.width = '18%';
+                cols[1].style.width = '22%';
+                cols[2].style.width = '15%';
+                cols[3].style.width = '23%';
+                cols[4].style.width = '22%';
+                cols[5].style.width = '0%';
+            }
+        }
+        
+        const tbody = document.getElementById('dossierListTbody');
+        tbody.innerHTML = '';
+        const colspan = isRemaining ? 6 : 5;
+        
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="' + colspan + '" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
+        } else {
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                const ph = (v) => (v && v.trim()) ? v : '<span class="dossier-empty-placeholder">&mdash;</span>';
+                const td = (content, raw, dir) => {
+                    const d = dir || 'right';
+                    const display = raw && raw.trim() ? raw : (content === '&mdash;' ? '' : content);
+                    const title = raw && raw.trim() ? raw.replace(/<[^>]+>/g, '') : (content === '&mdash;' ? '' : content.replace(/<[^>]+>/g, ''));
+                    return '<td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: ' + d + '; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0;" title="' + title.replace(/"/g, '&quot;') + '">' + content + '</td>';
+                };
+                const cells = [
+                    td(item.expert_code || '', item.expert_code, 'ltr'),
+                    td(item.code || '', item.code, 'ltr'),
+                    td(item.date || '', item.date),
+                    td(ph(item.judge), item.judge),
+                    td(ph(item.expert), item.expert)
+                ];
+                if (isRemaining) {
+                    cells.push(td(ph(item.next_session), item.next_session));
+                }
+                tr.innerHTML = cells.join('');
+                tbody.appendChild(tr);
+            });
+        }
+        
+        if (dossierListModal) {
+            dossierListModal.style.display = 'flex';
+        }
+    };
+
+    window.showStatDossiersSection = function(type) {
+        if (!window.lastStatsResult) return;
+        
+        let list = [];
+        let label = "";
+        let count = 0;
+        const isRemaining = type === 'remaining';
+        
+        switch(type) {
+            case 'registered':
+                list = window.lastStatsResult.registered_list || [];
+                label = "المسجلة";
+                count = window.lastStatsResult.registered || 0;
+                break;
+            case 'active':
+                list = window.lastStatsResult.active_list || [];
+                label = "الرائجة";
+                count = window.lastStatsResult.active || 0;
+                break;
+            case 'completed':
+                list = window.lastStatsResult.completed_list || [];
+                label = "المنجرة";
+                count = window.lastStatsResult.completed || 0;
+                break;
+            case 'closed':
+                list = window.lastStatsResult.closed_list || [];
+                label = "المغلقة";
+                count = window.lastStatsResult.closed || 0;
+                break;
+            case 'remaining':
+                list = window.lastStatsResult.remaining_list || [];
+                label = "المتبقية";
+                count = window.lastStatsResult.remaining || 0;
+                break;
+        }
+
+        const year = document.getElementById('statsYearTitleSection').textContent;
+        const titleEl = document.getElementById('statsDossierListTitle');
+        if (titleEl) {
+            titleEl.textContent = `قائمة الملفات ${label} - مكتب الخبرة - سنة ${year} (${count})`;
+        }
+        
+        // Show/hide the next_session column header in inline table & adjust col widths
+        const headerCells = document.querySelectorAll('#statsDossierListContainer .dossiers-table th');
+        if (headerCells.length >= 6) {
+            headerCells[5].style.display = isRemaining ? '' : 'none';
+        }
+        const colgroup = document.querySelector('#statsDossierListContainer .dossiers-table colgroup');
+        if (colgroup) {
+            const cols = colgroup.querySelectorAll('col');
+            if (isRemaining && cols.length >= 6) {
+                cols[0].style.width = '15%';
+                cols[1].style.width = '18%';
+                cols[2].style.width = '12%';
+                cols[3].style.width = '20%';
+                cols[4].style.width = '18%';
+                cols[5].style.width = '17%';
+            } else if (cols.length >= 6) {
+                cols[0].style.width = '18%';
+                cols[1].style.width = '22%';
+                cols[2].style.width = '15%';
+                cols[3].style.width = '23%';
+                cols[4].style.width = '22%';
+                cols[5].style.width = '0%';
+            }
+        }
+        
+        const tbody = document.getElementById('statsDossierListTbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const colspan = isRemaining ? 6 : 5;
+        
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="' + colspan + '" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
+        } else {
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                const ph = (v) => (v && v.trim()) ? v : '<span class="dossier-empty-placeholder">&mdash;</span>';
+                const td = (content, raw, dir) => {
+                    const d = dir || 'right';
+                    const title = raw && raw.trim() ? raw.replace(/<[^>]+>/g, '') : (content === '&mdash;' ? '' : content.replace(/<[^>]+>/g, ''));
+                    return '<td style="padding: 12px; border-bottom: 1px solid var(--mahakim-border); text-align: ' + d + '; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0;" title="' + title.replace(/"/g, '&quot;') + '">' + content + '</td>';
+                };
+                const cells = [
+                    td(item.expert_code || '', item.expert_code, 'ltr'),
+                    td(item.code || '', item.code, 'ltr'),
+                    td(item.date || '', item.date),
+                    td(ph(item.judge), item.judge),
+                    td(ph(item.expert), item.expert)
+                ];
+                if (isRemaining) {
+                    cells.push(td(ph(item.next_session), item.next_session));
+                }
+                tr.innerHTML = cells.join('');
+                tbody.appendChild(tr);
+            });
+        }
+        
+        const container = document.getElementById('statsDossierListContainer');
+        if (container) {
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    const btnCloseStatsDossierList = document.getElementById('btnCloseStatsDossierList');
+    if (btnCloseStatsDossierList) {
+        btnCloseStatsDossierList.addEventListener('click', () => {
+            const container = document.getElementById('statsDossierListContainer');
+            if (container) container.style.display = 'none';
+        });
+    }
+
+    function getActiveDossierListTable() {
+        const modal = document.getElementById('dossierListModal');
+        if (modal && modal.style.display !== 'none' && modal.style.display !== '') {
+            const tbody = document.getElementById('dossierListTbody');
+            const titleEl = document.getElementById('dossierListModalTitle');
+            const isRemaining = modal.querySelector('.dossiers-table th:nth-child(6)')?.style.display !== 'none';
+            return { tbody, title: titleEl ? titleEl.textContent.trim() : 'قائمة الملفات', isRemaining };
+        }
+        const container = document.getElementById('statsDossierListContainer');
+        if (container && container.style.display !== 'none' && container.style.display !== '') {
+            const tbody = document.getElementById('statsDossierListTbody');
+            const titleEl = document.getElementById('statsDossierListTitle');
+            const isRemaining = container.querySelector('.dossiers-table th:nth-child(6)')?.style.display !== 'none';
+            return { tbody, title: titleEl ? titleEl.textContent.trim() : 'قائمة الملفات', isRemaining };
+        }
+        return null;
+    }
+
+    function triggerStatsDossierListPrint() {
+        const table = getActiveDossierListTable();
+        if (!table || !table.tbody) return;
+        const rows = Array.from(table.tbody.querySelectorAll('tr'));
+        if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) {
+            showAlert('لا توجد بيانات لطباعتها.');
+            return;
+        }
+
+        const { isRemaining, title: listTitle } = table;
+        const now = new Date();
+        const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+        const totalPrinted = rows.length;
+
+        let tableRowsHtml = '';
+        rows.forEach((row, idx) => {
+            const cells = row.querySelectorAll('td');
+            if (!cells || cells.length < 5) return;
+            let rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+            const expertCode = cells[0] ? cells[0].innerText.trim() : '-';
+            const fullCode = cells[1] ? cells[1].innerText.trim() : '-';
+            const regDate = cells[2] ? cells[2].innerText.trim() : '-';
+            const judge = cells[3] ? cells[3].innerText.trim() : '-';
+            const expert = cells[4] ? cells[4].innerText.trim() : '-';
+            const nextSession = (isRemaining && cells[5]) ? cells[5].innerText.trim() : '';
+
+            tableRowsHtml += `
+                <tr style="background:${rowBg};">
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;font-weight:700;text-align:center;">${expertCode}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;direction:ltr;">${fullCode}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${regDate}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${judge}</td>
+                    <td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${expert}</td>
+                    ${isRemaining ? `<td style="border:1px solid #d1d5db;padding:6px 10px;text-align:center;">${nextSession}</td>` : ''}
+                </tr>`;
+        });
+
+        const printContainer = document.getElementById('printContainer');
+        if (!printContainer) return;
+
+        const originalTitle = document.title;
+        document.title = `إدارة ملفات المحاكم - ${listTitle} - ${dateStr}`;
+
+        printContainer.innerHTML = `
+            <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #fff;">
+                <thead><tr><td style="border: none; height: 35px;"></td></tr></thead>
+                <tbody>
+                    <tr>
+                        <td style="border: none; padding: 15px 36px;">
+                            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:10px;margin-bottom:16px;">
+                                <div style="text-align:right;font-size:0.88rem;font-weight:700;line-height:1.9;">
+                                    المملكة المغربية<br>وزارة العدل<br>محكمة الاستئناف الادارية فاس
+                                </div>
+                                <div style="text-align:center;padding:0 16px;">
+                                    <img src="/static/img/Picture1.png" style="height:62px;width:auto;object-fit:contain;">
+                                </div>
+                                <div style="text-align:left;font-size:0.75rem;font-weight:700;line-height:1.9;font-family:'Ebrima',sans-serif;direction:ltr;">
+                                    ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
+                                </div>
+                            </div>
+                            <div style="text-align:center;margin-bottom:14px;">
+                                <h2 style="font-size:1.1rem;font-weight:700;color:#1e3a8a;margin:0 0 3px 0;text-decoration:underline;">${listTitle}</h2>
+                                <div style="font-size:0.82rem;color:#64748b;">حرر في: ${dateStr}</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:8px;font-size:0.9rem;font-weight:700;color:#1e3a8a;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;margin-bottom:16px;">
+                                إجمالي الملفات: <span style="font-size:1.2rem;color:#0f172a;border:1.5px solid #1e3a8a;border-radius:6px;padding:0 10px;">${totalPrinted}</span>
+                            </div>
+                            <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+                                <thead>
+                                    <tr style="background:#1e3a8a;">
+                                        <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">رقم ملف الخبرة</th>
+                                        <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الرقم الكامل للملف</th>
+                                        <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">تاريخ التسجيل</th>
+                                        <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">القاضي أو المستشار المقرّر</th>
+                                        <th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">الخبير المعين</th>
+                                        ${isRemaining ? '<th style="border:1px solid #93c5fd;padding:8px 10px;color:#fff;text-align:center;font-weight:700;">تاريخ الجلسة المقبلة</th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRowsHtml}
+                                </tbody>
+                            </table>
+                            <div style="margin-top:24px;display:flex;justify-content:space-between;font-size:0.82rem;color:#475569;border-top:1px dashed #e2e8f0;padding-top:10px;">
+                                <span>تم التحرير بواسطة نظام إدارة ملفات المحاكم</span>
+                                <span>${dateStr}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot><tr><td style="border: none; height: 15px;"></td></tr></tfoot>
+            </table>
+        `;
+
+        const printImg = printContainer.querySelector('img');
+        const doPrint = () => {
+            window.print();
+            setTimeout(() => {
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
+            }, 600);
+        };
+        if (printImg && !printImg.complete) {
+            printImg.onload = doPrint;
+            printImg.onerror = doPrint;
+        } else {
+            setTimeout(doPrint, 200);
+        }
+    }
+
+    const btnPrintStatsDossierList = document.getElementById('btnPrintStatsDossierList');
+    if (btnPrintStatsDossierList) {
+        btnPrintStatsDossierList.addEventListener('click', triggerStatsDossierListPrint);
+    }
+
+    function exportActiveDossierList() {
+        const table = getActiveDossierListTable();
+        if (!table || !table.tbody) return;
+        const rows = Array.from(table.tbody.querySelectorAll('tr'));
+        if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) {
+            showAlert('لا توجد بيانات لتصديرها.');
+            return;
+        }
+
+        const { isRemaining, title: listTitle } = table;
+            const now = new Date();
+            const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+            const totalPrinted = rows.length;
+
+            const headers = [
+                'رقم ملف الخبرة',
+                'الرقم الكامل للملف',
+                'تاريخ التسجيل',
+                'القاضي أو المستشار المقرّر',
+                'الخبير المعين'
+            ];
+            if (isRemaining) headers.push('تاريخ الجلسة المقبلة');
+
+            let rowsHtml = '';
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (!cells || cells.length < 5) return;
+                rowsHtml += '<tr>';
+                const indices = isRemaining ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
+                indices.forEach(idx => {
+                    const txt = cells[idx] ? cells[idx].innerText.trim() : '-';
+                    rowsHtml += `<td style="border:1px solid #cbd5e1;padding:6px;text-align:center;">${txt}</td>`;
+                });
+                rowsHtml += '</tr>';
+            });
+
+            const colspan = isRemaining ? 6 : 5;
+            const excelTemplate = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                <!--[if gte mso 9]>
+                <xml>
+                <x:ExcelWorkbook>
+                <x:ExcelWorksheets>
+                <x:ExcelWorksheet>
+                <x:Name>القائمة</x:Name>
+                <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+                </x:WorksheetOptions>
+                </x:ExcelWorksheet>
+                </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; }
+                    table { border-collapse: collapse; width: 100%; }
+                    th { background-color: #1e3a8a; color: #ffffff; border: 1px solid #cbd5e1; padding: 10px; font-weight: bold; text-align: center; }
+                </style>
+                </head>
+                <body>
+                    <table dir="rtl">
+                        <tr>
+                            <td colspan="${colspan}" style="font-weight:bold; font-size:14pt; text-align:right; border:none; padding-bottom:5px;">
+                                المملكة المغربية
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="${colspan}" style="font-weight:bold; font-size:12pt; text-align:right; border:none; padding-bottom:5px;">
+                                وزارة العدل
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="${colspan}" style="font-weight:bold; font-size:12pt; text-align:right; border:none; padding-bottom:15px;">
+                                محكمة الاستئناف الادارية فاس
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="${colspan}" style="font-weight:bold; font-size:16pt; color:#1e3a8a; text-align:center; border:none; padding-bottom:5px;">
+                                ${listTitle}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="${colspan}" style="font-size:10pt; color:#64748b; text-align:center; border:none; padding-bottom:15px;">
+                                حرر في: ${dateStr}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="${colspan}" style="background-color:#f8fafc; border:1px solid #e2e8f0; font-weight:bold; padding:10px; text-align:right;">
+                                إجمالي الملفات: ${totalPrinted}
+                            </td>
+                        </tr>
+                        <tr><td colspan="${colspan}" style="border:none; height:15px;"></td></tr>
+                        <thead>
+                            <tr>
+                                ${headers.map(h => `<th>${h}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const filename = `قائمة_الملفات_${stamp}.xls`;
+
+            fetch('/api/export-excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: excelTemplate, filename })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
+                    } else if (data.cancelled) {
+                        console.log('Export cancelled by user.');
+                    } else {
+                        showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
+                    }
+                })
+                .catch(err => showAlert('❌ فشل تصدير الملف: ' + err.message));
+    }
+
+    const btnPrintDossierListModal = document.getElementById('btnPrintDossierListModal');
+    if (btnPrintDossierListModal) {
+        btnPrintDossierListModal.addEventListener('click', triggerStatsDossierListPrint);
+    }
+
+    const btnExportDossierListModal = document.getElementById('btnExportDossierListModal');
+    if (btnExportDossierListModal) {
+        btnExportDossierListModal.addEventListener('click', exportActiveDossierList);
     }
 
     if (btnStatsCopyReport) {
@@ -1868,6 +2494,157 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnStatsPrintReport) {
         btnStatsPrintReport.addEventListener('click', () => triggerPrint());
+    }
+
+    const btnStatsCopyReportSection = document.getElementById('btnStatsCopyReportSection');
+    if (btnStatsCopyReportSection) {
+        btnStatsCopyReportSection.addEventListener('click', () => {
+            const year = document.getElementById('statsYearTitleSection').textContent;
+            const reg = document.getElementById('statRegisteredSection').textContent;
+            const act = document.getElementById('statActiveSection').textContent;
+            const comp = document.getElementById('statCompletedSection').textContent;
+            const cls = document.getElementById('statClosedSection').textContent;
+            const rem = document.getElementById('statRemainingSection').textContent;
+            const avgTime = document.getElementById('statAverageTimeSection') ? document.getElementById('statAverageTimeSection').textContent : '0 يوم';
+
+            const reportText = `تقرير إحصائيات مكتب الخبرة لسنة ${year}:\n` +
+                `- المسجل: ${reg}\n` +
+                `- الرائج: ${act}\n` +
+                `- المنجز: ${comp}\n` +
+                `- المغلق: ${cls}\n` +
+                `- الباقي (في طور الإنجاز): ${rem}\n` +
+                `- متوسط مدة الإنجاز: ${avgTime}`;
+
+            fetch('/api/log-client-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `نسخ التقرير الإحصائي للحافظة (القسم): ${year.trim()}` })
+            }).catch(() => { });
+
+            navigator.clipboard.writeText(reportText).then(() => {
+                showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح!');
+            }).catch(err => {
+                const textArea = document.createElement("textarea");
+                textArea.value = reportText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showAlert('تم نسخ التقرير الإحصائي إلى الحافظة بنجاح!');
+                } catch (e) {
+                    showAlert('فشل في نسخ التقرير.');
+                }
+                document.body.removeChild(textArea);
+            });
+        });
+    }
+
+    const btnStatsPrintReportSection = document.getElementById('btnStatsPrintReportSection');
+    if (btnStatsPrintReportSection) {
+        btnStatsPrintReportSection.addEventListener('click', () => {
+            const startDate = document.getElementById('statsStartDateSection').textContent;
+            const endDate = document.getElementById('statsEndDateSection').textContent;
+            const reg = document.getElementById('statRegisteredSection').textContent;
+            const act = document.getElementById('statActiveSection').textContent;
+            const comp = document.getElementById('statCompletedSection').textContent;
+            const cls = document.getElementById('statClosedSection').textContent;
+            const rem = document.getElementById('statRemainingSection').textContent;
+
+            const printContainer = document.getElementById('printContainer');
+            if (printContainer) {
+                const statsYearTitle = document.getElementById('statsYearTitleSection');
+                const selectedYear = statsYearTitle ? statsYearTitle.textContent.trim() : '';
+
+                let pdfTitle = 'إدارة ملفات المحاكم _ إحصائيات';
+                if (selectedYear) {
+                    pdfTitle += ` ${selectedYear}`;
+                }
+
+                const originalTitle = document.title;
+                document.title = pdfTitle.trim();
+
+                printContainer.innerHTML = `
+    <table style="width: 100%; border: none; border-collapse: collapse; direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif;">
+        <thead><tr><td style="border: none; height: 35px;"></td></tr></thead>
+        <tbody>
+            <tr>
+                <td style="border: none; padding: 0;">
+                    <div class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-top: 10px; padding-bottom: 10px; margin-bottom: 15px;">
+                        <div class="right-header" style="text-align: right; font-size: 1.1rem; font-weight: bold; line-height: 2.2;">
+                            المملكة المغربية<br>وزارة العدل<br>محكمة الاستئناف الادارية فاس
+                        </div>
+                        <div class="middle-header" style="text-align: center; padding: 0 20px;">
+                            <img src="/static/img/Picture1.png" style="height: 80px; width: auto; object-fit: contain;">
+                        </div>
+                        <div class="left-header" style="text-align: left; font-size: 0.95rem; font-weight: bold; line-height: 2.1; font-family: 'Ebrima', sans-serif;">
+                            ⵜⴰⴳⵍⴷⵉⵜ ⵏ ⵍⵎⵖⵔⵉⴱ<br>ⵜⴰⵎⴰⵡⵙⵜ ⵏ ⵜⵥⵔⴼⵜ<br>ⵜⴰⵙⵏⴱⴹⴰⵢⵜ ⵏ ⵡⴰⵍⴰⵙ ⵜⴰⵎⵙⵙⵓⴳⵓⵔⵜ ⴷⵉ ⴼⴰⵙ
+                        </div>
+                    </div>
+                    <div class="report-title" style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #000; text-decoration: underline;">
+                        نشاط شعبة الخبرة من ${startDate} إلى غاية ${endDate}
+                    </div>
+                    <table style="width: 80%; margin: 30px auto 0 auto; border-collapse: collapse; font-size: 1.25rem;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff; font-weight: bold; width: 50%;">الحالة</th>
+                <th style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #f3f4f6; font-weight: bold; width: 50%;">العدد</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المسجل</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${reg}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الرائج</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${act}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المنجز</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${comp}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>المغلق (تم صرف النظر عنه)</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${cls}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center; background-color: #92D050; color: #ffffff;"><strong>الباقي (في طور الإنجاز)</strong></td>
+                <td style="border: 1px solid #000; padding: 10px 15px; text-align: center;">${rem}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="footer" style="margin-top: 25px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
+        حرر في: ${(() => {
+                    const d = new Date();
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    return `${day}/${month}/${year}`;
+                })()}
+    </div>
+                `;
+
+            fetch('/api/log-client-event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `طباعة تقرير إحصائي (القسم): ${pdfTitle.trim()}` })
+            }).catch(() => { });
+
+            const printImg = printContainer.querySelector('img');
+            const doPrint = () => {
+                window.print();
+                printContainer.innerHTML = '';
+                document.title = originalTitle;
+            };
+
+            if (printImg && !printImg.complete) {
+                printImg.onload = doPrint;
+                printImg.onerror = doPrint;
+            } else {
+                setTimeout(doPrint, 250);
+            }
+            }
+        });
     }
 
     // ─────────────────────────────────────────────────────────────
