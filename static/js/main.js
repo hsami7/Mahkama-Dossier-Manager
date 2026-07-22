@@ -1726,7 +1726,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     operationRunning = false;
                 } else if (data.success) {
-                    startStatsPolling(uniqueYears, originalText);
+                    startStatsPolling(displayTitle, originalText);
                 }
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم لاحتساب الإحصائيات.');
