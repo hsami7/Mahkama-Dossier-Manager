@@ -224,7 +224,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             
     return downloaded_files, registered_count_target
 
-def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None, username=None, password=None):
+def calculate_expert_stats(target_year, download_dir="data/stats_downloads", debug=False, log_callback=None, start_date=None, end_date=None, username=None, password=None, local_only=False):
     if start_date is None:
         start_date = os.environ.get("START_DATE")
     if end_date is None:
@@ -260,6 +260,8 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
             missing_years.append(yr)
 
     if missing_years:
+        if local_only:
+            raise Exception(f"الملفات المحلية غير موجودة للسنوات: {missing_years}. قم باستخدام 'بدء العمل' لتحميلها أولاً.")
         log_msg(f"[*] السنوات المطلوب تحميلها: {missing_years}", log_callback)
         downloaded_files, registered = download_stats_files(target_year, download_dir, debug, log_callback, start_date, end_date, username, password)
         files.update(downloaded_files)
@@ -567,10 +569,11 @@ if __name__ == '__main__':
     parser.add_argument('download_dir', type=str, help='مجلد الحفظ')
     parser.add_argument('--username', type=str, default=None, help='اسم المستخدم للبوابة')
     parser.add_argument('--password', type=str, default=None, help='كلمة المرور للبوابة')
+    parser.add_argument('--local-only', action='store_true', help='استخدام الملفات المحلية فقط دون تحميل')
     args = parser.parse_args()
     
     try:
-        res = calculate_expert_stats(args.year, args.download_dir, debug=False, log_callback=None, username=args.username, password=args.password)
+        res = calculate_expert_stats(args.year, args.download_dir, debug=False, log_callback=None, username=args.username, password=args.password, local_only=args.local_only)
         print(f"RESULT:{json.dumps(res)}")
     except Exception as e:
         print(f"ERROR:{str(e)}")

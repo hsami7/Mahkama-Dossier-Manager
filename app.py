@@ -507,7 +507,7 @@ stats_lock = threading.Lock()
 stats_result = None
 stats_process = None
 
-def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None, username=None, password=None):
+def run_stats_calculation(target_year, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
     global stats_active, stats_logs, stats_result, stats_process, stats_error
     with stats_lock:
         stats_logs.clear()
@@ -555,6 +555,8 @@ def run_stats_calculation(target_year, base_download_dir, start_date=None, end_d
                     cmd.extend(['--username', username])
                 if password:
                     cmd.extend(['--password', password])
+                if local_only:
+                    cmd.append('--local-only')
                 
                 with stats_lock:
                     if not stats_active:
@@ -614,6 +616,7 @@ def api_calculate_stats():
     end_date = data.get('end_date')
     username = data.get('username')
     password = data.get('password')
+    local_only = data.get('local_only', False)
     
     if not year and end_date:
         try:
@@ -641,7 +644,7 @@ def api_calculate_stats():
         stats_thread = threading.Thread(
             target=run_stats_calculation, 
             args=(year, base_download_dir),
-            kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password}
+            kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password, "local_only": local_only}
         )
         stats_thread.daemon = True
         stats_thread.start()

@@ -99,6 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnCalculateStats.disabled = false;
                 btnCalculateStats.innerText = 'بدء العمل';
             }
+            const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+            if (btnCalcStatsLocal) {
+                btnCalcStatsLocal.disabled = false;
+                btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+            }
 
             try {
                 await fetch('/api/abort', { method: 'POST' });
@@ -1576,6 +1581,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
+                    const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                    if (btnCalcStatsLocal) {
+                        btnCalcStatsLocal.disabled = false;
+                        btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                    }
 
                     if (data.error || !data.result) {
                         showAlert(data.error || 'حدث خطأ أثناء احتساب الإحصائيات. يرجى مراجعة سجل العمليات.');
@@ -1709,15 +1719,105 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlay) overlay.style.display = 'none';
                     btnCalculateStats.disabled = false;
                     btnCalculateStats.innerText = originalText;
+                    const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                    if (btnCalcStatsLocal) {
+                        btnCalcStatsLocal.disabled = false;
+                        btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                    }
                     operationRunning = false;
                 } else if (data.success) {
-                    startStatsPolling(displayTitle, originalText);
+                    startStatsPolling(uniqueYears, originalText);
                 }
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم لاحتساب الإحصائيات.');
                 if (overlay) overlay.style.display = 'none';
                 btnCalculateStats.disabled = false;
                 btnCalculateStats.innerText = originalText;
+                const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                if (btnCalcStatsLocal) {
+                    btnCalcStatsLocal.disabled = false;
+                    btnCalcStatsLocal.innerText = 'الرفع اليدوي';
+                }
+                operationRunning = false;
+            }
+        });
+    }
+
+    const btnCalculateStatsLocal = document.getElementById('btnCalculateStatsLocal');
+    if (btnCalculateStatsLocal) {
+        btnCalculateStatsLocal.addEventListener('click', async () => {
+            if (operationRunning) return;
+
+            const statsRangeRadio = document.querySelector('input[name="statsRange"]:checked');
+            const rangeMode = statsRangeRadio ? statsRangeRadio.value : 'year';
+            const yearSelect = document.getElementById('statsYearSelect');
+            const optionSelect = document.getElementById('statsOptionSelect');
+            const folderPath = folderPathInput ? folderPathInput.value.trim() : "";
+
+            let year = yearSelect ? yearSelect.value : "2026";
+            const option = optionSelect ? optionSelect.value : "مكتب الخبرة";
+            let start_date = null;
+            let end_date = null;
+
+            if (rangeMode === 'custom') {
+                const startDateInput = document.getElementById('statsStartDateInput');
+                const endDateInput = document.getElementById('statsEndDateInput');
+                const rawStart = startDateInput ? startDateInput.value.trim() : '';
+                const rawEnd = endDateInput ? endDateInput.value.trim() : '';
+                const parseDMY = (str) => {
+                    if (!str) return null;
+                    const parts = str.split('/');
+                    if (parts.length !== 3) return null;
+                    const day = parts[0].trim().padStart(2, '0');
+                    const month = parts[1].trim().padStart(2, '0');
+                    const yr = parts[2].trim();
+                    if (day.length !== 2 || month.length !== 2 || yr.length !== 4) return null;
+                    return `${yr}-${month}-${day}`;
+                };
+                start_date = parseDMY(rawStart);
+                end_date = parseDMY(rawEnd);
+                if (!start_date || !end_date) {
+                    showAlert('يرجى إدخال التاريخ بالصيغة الصحيحة (يوم/شهر/سنة) مثال: 01/01/2026');
+                    return;
+                }
+                try { year = end_date.split('-')[0]; } catch (e) { }
+            }
+
+            btnCalculateStatsLocal.disabled = true;
+            const originalText = btnCalculateStatsLocal.innerText;
+            btnCalculateStatsLocal.innerText = 'جاري القراءة من المحلي...';
+
+            resetOperationUI('جاري قراءة الملفات المحلية واحتساب الإحصائيات...');
+
+            try {
+                const res = await fetch('/api/calculate-stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        year: year,
+                        option: option,
+                        directory: folderPath,
+                        start_date: start_date,
+                        end_date: end_date,
+                        local_only: true
+                    })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    showAlert(data.error);
+                    if (overlay) overlay.style.display = 'none';
+                    btnCalculateStatsLocal.disabled = false;
+                    btnCalculateStatsLocal.innerText = originalText;
+                    operationRunning = false;
+                } else if (data.success) {
+                    startStatsPolling(rangeMode === 'custom' && start_date ? 'فترة مخصصة' : year, originalText);
+                }
+            } catch (error) {
+                showAlert('حدث خطأ أثناء الاتصال بالخادم.');
+                if (overlay) overlay.style.display = 'none';
+                btnCalculateStatsLocal.disabled = false;
+                btnCalculateStatsLocal.innerText = originalText;
                 operationRunning = false;
             }
         });
