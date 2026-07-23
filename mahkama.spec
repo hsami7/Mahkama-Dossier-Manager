@@ -12,6 +12,7 @@ a = Analysis(
     binaries=[] + pw_binaries,
     datas=[
         ('app.py', '.'),
+        ('version.ini', '.'),
         ('engine.py', '.'),
         ('sync_dossiers.py', '.'),
         ('sync_stats.py', '.'),

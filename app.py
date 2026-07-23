@@ -15,8 +15,15 @@ import urllib.request
 import json
 
 _config = configparser.ConfigParser()
-_config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.ini'))
-CURRENT_VERSION = "v" + _config['Version']['AppVersion']
+try:
+    if getattr(sys, 'frozen', False):
+        base_dir = sys._MEIPASS
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+    _config.read(os.path.join(base_dir, 'version.ini'))
+    CURRENT_VERSION = "v" + _config['Version']['AppVersion']
+except Exception as e:
+    CURRENT_VERSION = "v1.2.7"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
