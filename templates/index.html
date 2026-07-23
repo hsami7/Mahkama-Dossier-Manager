@@ -100,7 +100,7 @@
                     <div style="font-size: 3rem; margin-bottom: 15px; color: var(--mahakim-primary);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cpu"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 15h3"/><path d="M1 9h3"/><path d="M1 15h3"/></svg>
                     </div>
-                    <h3>الجلب التلقائي (الذكي)</h3>
+                    <h3>مراقبة أجالات الملفات (الجلب التلقائي)</h3>
                     <p style="color: var(--mahakim-text-secondary); margin-bottom: 20px; font-size: 0.95rem;">سيقوم النظام بالدخول لبوابة محاكم وتحميل السجلات تلقائياً.</p>
                     
                     <div style="margin-bottom: 20px; margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
@@ -118,7 +118,10 @@
                         </div>
                         <button class="btn-secondary" id="btnAddYear" style="width: 100%; padding: 8px; font-size: 0.9rem;">+ إضافة سنة أخرى</button>
                     </div>
-                    <button class="btn-mahakim" id="btnAutoSync" style="width: 100%; margin-top: auto;">سحب السجلات الآن</button>
+                    <div style="display: flex; gap: 10px; width: 100%; margin-top: auto;">
+                        <button class="btn-mahakim" id="btnAutoSync" style="flex: 2;">تحديث</button>
+                        <button class="btn-secondary" id="btnAutoSyncLocal" style="flex: 1.5; font-size: 0.85rem; padding: 8px 12px;">آخر حفظ</button>
+                    </div>
                 </div>
 
                 <!-- الخيار الثاني: إحصائيات -->
@@ -173,22 +176,22 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px; width: 100%; margin-top: auto;">
-                        <button class="btn-mahakim" id="btnCalculateStats" style="flex: 2;">بدء العمل</button>
+                        <button class="btn-mahakim" id="btnCalculateStats" style="flex: 2;">تحديث</button>
                         <button class="btn-secondary" id="btnCalculateStatsLocal" style="flex: 1.5; font-size: 0.85rem; padding: 8px 12px;">آخر حفظ</button>
                     </div>
                 </div>
 
             </div>
 
-            <!-- الصف الثاني: الرفع اليدوي -->
+            <!-- الصف الثاني: مراقبة أجالات الملفات (الرفع اليدوي) -->
             <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
                 
-                <!-- الخيار الثالث: الرفع اليدوي -->
+                <!-- الخيار الثالث: مراقبة أجالات الملفات (الرفع اليدوي) -->
                 <div class="landing-card search-folder-card" style="max-width: 600px; width: 100%; text-align: center; display: flex; flex-direction: column;">
                     <div style="font-size: 3rem; margin-bottom: 15px; color: var(--mahakim-primary);">
                         <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-open"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>
                     </div>
-                    <h3>الرفع اليدوي</h3>
+                    <h3>مراقبة أجالات الملفات (الرفع اليدوي)</h3>
                     <p style="color: var(--mahakim-text-secondary); margin-bottom: 20px; font-size: 0.95rem;">قم بتحديد مسار المجلد الذي قمت بتحميل الملفات فيه مسبقاً.</p>
                     
                     <div class="folder-input-wrapper" style="flex-direction: column; gap: 12px; margin-top: auto; width: 100%;">
@@ -485,7 +488,7 @@
                             <!-- Dossiers Card -->
                             <div style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                 <h4 style="margin-top: 0; margin-bottom: 15px; color: var(--mahakim-primary); display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 1.2rem;">📂</span> حساب المزامنة
+                                    <span style="font-size: 1.2rem;">📂</span> حساب مراقبة أجالات الملفات
                                 </h4>
                                 <div class="input-group" style="margin-bottom: 15px;">
                                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: var(--mahakim-text);">اسم المستخدم</label>
@@ -609,7 +612,7 @@
                 </div>
             </div>
             <div class="modal-footer" style="justify-content: center; gap: 15px;">
-                <button class="btn-mahakim" id="btnLoginStart" style="min-width: 100px;">بدء العمل</button>
+                <button class="btn-mahakim" id="btnLoginStart" style="min-width: 100px;">تحديث</button>
                 <button class="btn-secondary" id="btnLoginCancel" style="min-width: 100px;">إلغاء</button>
             </div>
         </div>

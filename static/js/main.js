@@ -92,17 +92,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnAutoSync = document.getElementById('btnAutoSync');
             if (btnAutoSync) {
                 btnAutoSync.disabled = false;
-                btnAutoSync.innerText = 'سحب السجلات الآن';
+                btnAutoSync.innerText = 'تحديث';
+            }
+            const btnAutoSyncLocal = document.getElementById('btnAutoSyncLocal');
+            if (btnAutoSyncLocal) {
+                btnAutoSyncLocal.disabled = false;
+                btnAutoSyncLocal.innerText = 'آخر حفظ';
             }
             const btnCalculateStats = document.getElementById('btnCalculateStats');
             if (btnCalculateStats) {
                 btnCalculateStats.disabled = false;
-                btnCalculateStats.innerText = 'بدء العمل';
+                btnCalculateStats.innerText = 'تحديث';
             }
             const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
             if (btnCalcStatsLocal) {
                 btnCalcStatsLocal.disabled = false;
-                btnCalcStatsLocal.innerText = 'آخر حفظ';
+                btnCalcStatsLocal.innerText = 'تحديث';
             }
 
             try {
@@ -817,32 +822,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 const codeSet = settings[code] || { limit: 30, red: 5, orange: 15 };
 
                 const groupLim = document.createElement('div');
-                groupLim.className = 'input-group';
+                groupLim.style.cssText = 'background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; transition: all 0.2s ease; cursor: default;';
                 groupLim.innerHTML = `
-                    <label for="limit_${code}">الفئة ${code} (الأقصى):</label>
-                    <input type="number" id="limit_${code}" data-code="${code}" data-type="limit" value="${codeSet.limit}" min="1" required style="width:100%; padding:8px; border:1px solid #dfe7ef; border-radius:4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <label for="limit_${code}" style="font-weight: 600; color: #1e293b; margin: 0; font-size: 0.95rem;">الفئة ${code}</label>
+                        <span style="font-size: 0.75rem; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 12px; font-weight: bold;">الحد الأقصى</span>
+                    </div>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="number" id="limit_${code}" data-code="${code}" data-type="limit" value="${codeSet.limit}" min="1" required style="width: 100%; padding: 10px 12px; padding-left: 40px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; color: #0f172a; outline: none; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#cbd5e1'">
+                        <span style="position: absolute; left: 12px; color: #64748b; font-size: 0.85rem;">يوم</span>
+                    </div>
                 `;
                 formLimits.appendChild(groupLim);
 
                 const groupThresh = document.createElement('div');
-                groupThresh.className = 'input-group';
-                groupThresh.style.border = '1px solid #e2e8f0';
-                groupThresh.style.padding = '10px';
-                groupThresh.style.borderRadius = '6px';
-                groupThresh.style.background = 'white';
+                groupThresh.style.cssText = 'background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 12px; transition: all 0.2s ease; cursor: default;';
                 groupThresh.innerHTML = `
-                    <div style="font-weight:bold; margin-bottom:8px;">الفئة ${code}</div>
-                    <div style="display:flex; gap:10px;">
-                        <div style="flex:1;">
-                            <label style="font-size:0.85rem; color:#dc3545;">أحمر (أيام):</label>
-                            <input type="number" data-code="${code}" data-type="red" value="${codeSet.red}" min="1" required style="width:100%; padding:6px; border:1px solid #dfe7ef; border-radius:4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                        <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">الفئة ${code}</div>
+                        <span style="font-size: 0.75rem; background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-weight: bold;">مؤشر الخطر</span>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items: center;">
+                        <div style="flex:1; position: relative;">
+                            <label style="font-size:0.8rem; color:#64748b; margin-bottom: 4px; display: block;">أقل من (أحمر):</label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <input type="number" data-code="${code}" data-type="red" value="${codeSet.red}" min="1" required style="width:100%; padding:8px 10px; padding-left: 35px; border:1px solid #fecaca; border-radius:6px; font-size: 0.95rem; color: #991b1b; outline: none; background: #fffcfc; transition: border-color 0.2s; box-sizing: border-box;" onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#fecaca'">
+                                <span style="position: absolute; left: 10px; color: #ef4444; font-size: 0.8rem;">أيام</span>
+                            </div>
                         </div>
                     </div>
-                </td>
-            </tr>
-        </tbody>
-        <tfoot><tr><td style="border: none; height: 15px;"></td></tr></tfoot>
-    </table>
                 `;
                 formThresholds.appendChild(groupThresh);
             }
@@ -1372,6 +1380,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnAutoSync.innerText = originalText;
                 operationRunning = false;
             }
+        });
+    }
+
+    const btnAutoSyncLocal = document.getElementById('btnAutoSyncLocal');
+    if (btnAutoSyncLocal) {
+        btnAutoSyncLocal.addEventListener('click', async () => {
+            if (operationRunning) return;
+
+            const selects = document.querySelectorAll('.sync-year-select');
+            const years = Array.from(selects).map(s => s.value.trim()).filter(y => y);
+            const uniqueYears = [...new Set(years)];
+
+            if (uniqueYears.length === 0) {
+                showAlert('الرجاء إدخال سنة واحدة على الأقل.');
+                return;
+            }
+
+            if (!folderPathInput || !folderPathInput.value.trim()) {
+                showAlert('يرجى كتابة أو اختيار مسار مجلد أولاً في قسم الرفع اليدوي.');
+                return;
+            }
+
+            await performScan(uniqueYears);
         });
     }
 
