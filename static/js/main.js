@@ -2240,7 +2240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const colspan = isRemaining ? 6 : 5;
             const excelTemplate = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
                 <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <!--[if gte mso 9]>
@@ -2250,6 +2250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <x:ExcelWorksheet>
                 <x:Name>القائمة</x:Name>
                 <x:WorksheetOptions>
+                <x:DisplayRightToLeft/>
                 <x:DisplayGridlines/>
                 </x:WorksheetOptions>
                 </x:ExcelWorksheet>
@@ -2914,7 +2915,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // XML/HTML template for Excel (.xls) compatibility with RTL
             const excelTemplate = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
                 <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <!--[if gte mso 9]>
@@ -2924,6 +2925,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <x:ExcelWorksheet>
                 <x:Name>${tabLabel}</x:Name>
                 <x:WorksheetOptions>
+                <x:DisplayRightToLeft/>
                 <x:DisplayGridlines/>
                 </x:WorksheetOptions>
                 </x:ExcelWorksheet>
@@ -3120,4 +3122,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
 
