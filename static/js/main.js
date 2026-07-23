@@ -1225,6 +1225,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Pre-fill if we have saved credentials
             if (type === 'dossier') {
+                if (savedCredentials && savedCredentials.dossier_username && savedCredentials.dossier_password) {
+                    const hint = document.getElementById('loginHintText');
+                    if (hint) hint.style.display = 'block';
+                    return resolve({ username: savedCredentials.dossier_username, password: savedCredentials.dossier_password });
+                }
                 if (savedCredentials && savedCredentials.dossier_username) {
                     usernameInput.value = savedCredentials.dossier_username;
                 }
@@ -1232,6 +1237,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     passwordInput.value = savedCredentials.dossier_password;
                 }
             } else if (type === 'stats') {
+                if (savedCredentials && savedCredentials.stats_username && savedCredentials.stats_password) {
+                    const hint = document.getElementById('loginHintText');
+                    if (hint) hint.style.display = 'block';
+                    return resolve({ username: savedCredentials.stats_username, password: savedCredentials.stats_password });
+                }
                 if (savedCredentials && savedCredentials.stats_username) {
                     usernameInput.value = savedCredentials.stats_username;
                 }
@@ -3110,3 +3120,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
