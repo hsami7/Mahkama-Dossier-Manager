@@ -8,7 +8,14 @@ test_app_integration.py
 # AI and Planning files (kept local only)
 .planning/
 GEMINI.md
-.agents/
+.agent/
+
+# Build and Data folders
+build/
+dist/
+data/
+*.spec
+*.log
 .claude/
 .cursor/
 .github/skills/
