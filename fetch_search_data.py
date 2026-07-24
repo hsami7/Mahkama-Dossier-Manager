@@ -36,7 +36,6 @@ def main():
                 target_year=args.year,
                 output_dir=args.download_dir,
                 debug=False,
-                log_callback=lambda m: print(m),
                 start_date=args.start_date,
                 end_date=args.end_date,
                 username=args.username,
