@@ -3273,13 +3273,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const year = document.getElementById('searchYearSelect').value;
         const startDate = document.getElementById('searchStartDateInput')?.value;
         const endDate = document.getElementById('searchEndDateInput')?.value;
-        
-        const credentials = getStatsCredentials();
+        const usernameInput = document.getElementById('savedUsernameStats');
+        const passwordInput = document.getElementById('savedPasswordStats');
         
         const payload = {
             local_only: localOnly,
-            username: credentials.username,
-            password: credentials.password
+            username: usernameInput ? usernameInput.value.trim() : '',
+            password: passwordInput ? passwordInput.value.trim() : ''
         };
 
         if (isCustom) {
