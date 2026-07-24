@@ -1,0 +1,920 @@
+<html lang="ar" dir="rtl" class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers no-applicationcache svg inlinesvg smil svgclippaths" style=""><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عدد الملفات المسجلة</title>
+    <link href="/Content/css?v=84tzM2msl0FcQHaE7LBarpeh3bsOw7AoHEV2X1GZlow1" rel="stylesheet">
+
+    <script src="/bundles/jquery?v=0yzntN3j3K-pe0ABiSxAjFXHC5rfHgB07hGLtQIKxKA1"></script>
+
+
+    
+    
+    <link rel="shortcut icon" href="/images/favicon.ico">
+    <script src="/Scripts/divers/CascadeDDL.js?v=10"></script>
+
+            <script type="text/javascript">
+                $(document).ready(function () { $("#NumberOfSignatureElectroniqueRequestId").hide(); CheckifHasSE(); });
+                //nav navbar-nav sm
+                var ReCallTime = 100;
+                function CheckifHasSE() {
+
+                    //if ($("#NumberOfSignatureElectroniqueRequestId").text()==="") {
+
+                    //}
+                    var hasSignatureElectronique = checkListForURLContains("dropdown-menu", "/ConsultationSignatureElectroniqueDecisions");
+
+                    if (hasSignatureElectronique) {
+
+                        var currenturl = window.location.origin
+                        var AudienceURL = currenturl + "/AudienceCivil/SignatureElectroniqueDecisions/";
+
+                        $.ajax({
+                            type: "POST",
+                            url: AudienceURL + "HasPersonelAnySignatureElectronique",
+                            contentType: "application/json",
+                            dataType: "json",
+                            success: function (d) {
+
+                                if (d.HasSE) {
+                                    GetNumberOfCancelRequestSignatureElectronique()
+                                }
+                                else {
+                                    $("#SignatureElectroniqueCancelRequestUlId").hide();
+                                }
+
+
+                            }
+                        });
+                    }
+                    else {
+                        $("#SignatureElectroniqueCancelRequestUlId").hide();
+                    }
+
+                }
+                function GetNumberOfCancelRequestSignatureElectronique() {
+
+
+                    try {
+
+                        $("#NumberOfSignatureElectroniqueRequestId").show();
+
+                        var currenturl = window.location.origin
+
+
+                        var AudienceURL = currenturl + "/AudienceCivil/SignatureElectroniqueDecisions/";
+
+                        $.ajax({
+                            type: "POST",
+                            url: AudienceURL + "GetNumberOfCancelRequest",
+                            contentType: "application/json",
+                            dataType: "json",
+                            success: function (d) {
+
+                                $("#NumberOfSignatureElectroniqueRequestId").text(d.NumberOfCancelRequest);
+
+                            }
+                        });
+
+                    }
+                    catch (e) {
+                        alert(e)
+                    }
+
+                    //
+                }
+                // Function to check if the menu contains an item with a URL containing a specific string
+                function checkListForURLContains(listClass, urlSubstring) {
+                    // Get all <ul> elements by class name
+                    const lists = document.getElementsByClassName(listClass);
+
+                    if (lists.length === 0) {
+                        console.error(`List with class '${listClass}' not found.`);
+                        return false;
+                    }
+
+                    // Iterate through all <ul> elements with the specified class
+                    for (let list of lists) {
+                        // Get all <li> elements within the <ul>
+                        const listItems = list.getElementsByTagName('li');
+
+                        // Check each <li> for a link (<a>) containing the substring in the href
+                        for (let listItem of listItems) {
+                            const link = listItem.querySelector('a'); // Get the <a> tag inside the <li>
+
+                            if (link && link.href.includes(urlSubstring)) {
+                                return true; // Return true if a match is found
+                            }
+                        }
+                    }
+
+                    return false; // Return false if no match is found
+                }
+
+
+
+                setInterval(CheckifHasSE, 600000);
+
+            </script>
+
+    <style>
+        .notification {
+            /* circle shape, size and position */
+            position: absolute;
+            right: 0em;
+            top: 0.5em;
+            width: 1.3em; /* or width, explained below. */
+            height: 1.3em;
+            border-radius: 0.8em; /* or 50%, explained below. */
+            border: 0.05em solid white;
+            background-color: red;
+            /* number size and position */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            color: white;
+            font-style: normal;
+        }
+
+        .tooltipCancelRequestSE {
+            position: relative;
+            display: inline-block;
+            /*border-bottom: 1px dotted black;*/
+        }
+
+            .tooltipCancelRequestSE .tooltiptext {
+                visibility: hidden;
+                /*width: 180px;*/
+                background-color: lightyellow;
+                color: black;
+                text-align: center;
+                border-radius: 6px;
+                padding: 5px 0;
+                /* Position the tooltip */
+                position: absolute;
+                z-index: 1;
+                top: 100%;
+                left: 50%;
+                margin-left: -100px;
+                font-weight: normal
+            }
+
+            .tooltipCancelRequestSE:hover .tooltiptext {
+                visibility: visible;
+            }
+    </style>
+
+    <script type="text/javascript">
+        $(document).ajaxError(function (e, xhr) {
+            if (xhr.status == 401)
+                window.location = "/Account/Login";
+
+        });
+
+        $(document).ready(function () {
+
+
+            
+
+            $("#menu__toggle").prop('checked', false);
+            $("#btn_nav_rapid_exec").on("click", function () {
+                var listItem = {
+                    checkboxval: $("#menu__toggle").is(":checked")
+                };
+/*                alert($("#menu__toggle").is("checked"));*/
+
+               /* $("#menu__toggle").prop('checked', true);*/
+
+
+       /*         alert($("#menu__toggle").is("checked"));*/
+                $.ajax({
+                    type: "POST",
+                    url: "/Civil/DossierCivil/ToogleMenuExecRapid",
+                    data: $.toJSON(listItem),
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function (data) {
+
+
+
+                    }
+                    , error: function (data) {
+
+                     }
+                });
+            });
+
+
+
+
+
+            //fix localizationIssues in chrome
+            jQuery.extend(jQuery.validator.methods, {
+            date: function (value, element) {
+            var isChrome = window.chrome;
+            // make correction for chrome
+            if (isChrome) {
+            var d = new Date();
+
+            var d = value.split("/");
+
+            return this.optional(element) ||
+            !/Invalid|NaN/.test(new Date(d[1] + "/" + d[0] + "/" + d[2]));
+
+            }
+            // leave default behavior
+            else {
+            return this.optional(element) ||
+            !/Invalid|NaN/.test(new Date(value));
+            }
+            }
+            });
+            });
+
+            //fab  08-01-2018 Notification des demandes Avocats Payées
+            function CountDemandesAvocatsPayees(CodeTypeRequete,NomDivNotif) {
+            //alert(CodeTypeRequete);
+                var element = document.getElementById(NomDivNotif);
+                if (typeof (element) != 'undefined' && element != null) {
+                    $.ajax({
+                        type: "GET",
+                        url: "/Civil/DossierCivil/EchangeAvocatListeDemandesPayesNonCresDansSAJCount/?CodeTypeRequete="+CodeTypeRequete,
+                        contentType: "application/json",
+                        dataType: "json",
+                        async: true,
+                        success: function (data) {
+                            if ((data.Nombre) >= 0) {
+                            $("#"+ NomDivNotif).html(data.Nombre);
+                            }
+                            else {
+                            NotAlert(data.Message);
+                            }
+
+                        },
+                        error: function (req) {
+                        $("#"+ NomDivNotif).html("يجب تحديث النظام");
+
+                        }
+                    });
+                }
+            }
+
+            //fab  19-05-2020 Notification des Notes et Enregistrement de délagation des  avovats
+            function CountNotes(TypeNote,NomDivNotif) {
+            var element1 = document.getElementById(NomDivNotif);
+            //alert(element1 + " " + NomDivNotif);
+            if(typeof (element1) != 'undefined' && element1 != null) {
+            $.ajax({
+            type: "GET",
+            url: "/Notes/Note/GetListNotesCount?TypeNote=" + TypeNote,
+            contentType: "application/json",
+            dataType: "json",
+            async: true,
+            success: function (data) {
+            if ((data.Nombre) >= 0) {
+            // alert(data.Nombre);
+            $("#" + NomDivNotif).html(data.Nombre);
+            //return data.Nombre;
+            }
+            else {
+            NotAlert("Pb ds CountNotes:" + data.Message);
+            }
+
+            },
+            error: function (req) {
+            $("#" + NomDivNotif).html("يجب تحديث النظام");
+            }
+            });
+            }
+            }
+
+            //ale 2021
+            function CountDemandesDossierNotifAvocatsPayees(CodeTypeRequete, NomDivNotif) {
+            //alert(CodeTypeRequete);
+            var element = document.getElementById('DivNotifDossNotif');
+            if (typeof (element) != 'undefined' && element != null) {
+            $.ajax({
+            type: "GET",
+            url: "/Civil/DossierCivil/EchangeAvocatListeDemandesDossierNotifPayesNonCresDansSAJCount/?CodeTypeRequete=" + CodeTypeRequete,
+            contentType: "application/json",
+            dataType: "json",
+            async: true,
+            success: function (data) {
+            if ((data.Nombre) >= 0) {
+            $("#" + NomDivNotif).html(data.Nombre);
+            }
+            else {
+            NotAlert(data.Message);
+            }
+
+            },
+            error: function (req) {
+            $("#" + NomDivNotif).html("يجب تحديث النظام");
+
+            }
+            });
+            }
+            }
+
+            //ale 2021
+            function CountDemandesDossierExecAvocatsPayees(CodeTypeRequete, NomDivNotif) {
+            //alert(CodeTypeRequete);
+            var element = document.getElementById('DivNotifDossExec');
+            if (typeof (element) != 'undefined' && element != null) {
+            $.ajax({
+            type: "GET",
+            url: "/Civil/DossierCivil/EchangeAvocatListeDemandesDossierExecPayesNonCresDansSAJCount/?CodeTypeRequete=" + CodeTypeRequete,
+            contentType: "application/json",
+            dataType: "json",
+            async: true,
+            success: function (data) {
+            if ((data.Nombre) >= 0) {
+            $("#" + NomDivNotif).html(data.Nombre);
+            }
+            else {
+            NotAlert(data.Message);
+            }
+
+            },
+            error: function (req) {
+            $("#" + NomDivNotif).html("يجب تحديث النظام");
+
+            }
+            });
+            }
+        }
+        function GetCountDemandeRetraitCopieNumeriqueJugement() {
+            var element = document.getElementById('DivNotifCopieNumerique');
+            if (typeof (element) != 'undefined' && element != null) {
+                try {
+                    var currenturl = window.location.origin;
+                    var url = currenturl + "/Civil/DossierCivil/GetCountDemandeRetraitCopieNumeriqueJugement";
+
+                    $.ajax({
+                        type: "GET",
+                        url: url,
+                        contentType: "application/json",
+                        dataType: "json",
+                        success: function (data) {
+                            if (data > 0) {
+                                $("#DivNotifCopieNumerique").html(data);
+                                $("#DivNotifCopieNumerique").show();
+                            }
+                            else if (data < 0) {
+                                $("#DivNotifCopieNumerique").html("⚠️");
+                            }
+                        },
+                        error: function (error) {
+                            $("#DivNotifCopieNumerique").hide();
+                            console.error('Error fetching GetCountDemandeRetraitCopieNumeriqueJugement :', error);
+                        }
+                    });
+                } catch (e) {
+                    $("#DivNotifCopieNumerique").html("⚠️");
+                    console.error(e);
+                }
+            }
+        }
+            function FctNotifications()
+            {
+
+            CountDemandesAvocatsPayees("AllSaufDepotRequeteAppel","DivNotifEchangeAvocat");
+            CountDemandesAvocatsPayees('DP',"DivNotifDepotAppel");
+            CountNotes("Note","DivNotifNote");
+            CountNotes("Demande", "DivNotifDemande");
+
+            CountDemandesDossierNotifAvocatsPayees('N', "DivNotifDossNotif"); // ale 2021
+            CountDemandesDossierExecAvocatsPayees('E', "DivNotifDossExec"); // ale 2021
+        }
+
+
+
+    </script>
+
+            <script type="text/javascript">
+                var hasAccessToCopieNumeriqueJugement = false;
+
+                $(document).ready(function () {
+                    CheckIfHasAccessToCopieNumerique();
+                });
+
+                function CheckIfHasAccessToCopieNumerique() {
+                    // Check once and store the result
+                    hasAccessToCopieNumeriqueJugement = checkListForURLContains("dropdown-menu", "/EchangeAvocatRechercherDemRetraitCopieNum");
+
+                    if (hasAccessToCopieNumeriqueJugement) {
+                        // Show the notification element
+                        $("#DivNotifCopieNumeriqueContainer").show();
+                        // Call the count function immediately
+                        GetCountDemandeRetraitCopieNumeriqueJugement();
+                    } else {
+                        // Hide the notification element if no access
+                        $("#DivNotifCopieNumeriqueContainer").hide();
+                    }
+                }
+
+                // Refresh every 10 minutes - only call GetCount if user has access
+                setInterval(function () {
+                    if (hasAccessToCopieNumeriqueJugement) {
+                        GetCountDemandeRetraitCopieNumeriqueJugement();
+                    }
+                }, 600000);
+            </script>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    setInterval(FctNotifications, 30000);
+
+
+
+
+
+                });
+
+            </script>
+
+    
+    
+            <link href="/Content/custom1.css?v=1" rel="stylesheet">
+            <link href="/Content/custom2.css?v=6" rel="stylesheet">
+            <link href="/Content/themes/theme.css" rel="stylesheet">
+
+
+</head>
+<body class="bg">
+    <!--======================= Fixed navbar ============================-->
+            <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">
+                            <img src="/images/royaume.png" class="img-responsive logo">
+                            <b class="brand1">
+                                تدبير القضايا 
+                                <span class="brand">المدنية</span>
+                            </b>
+                        </a>
+                    </div>
+
+
+                    <div class="collapse navbar-collapse">
+
+
+                        <!--======== multi-level-menu-1 ===========-->
+                        <ul class="nav navbar-nav sm" data-smartmenus-id="1784884543711529">
+                            <li><a href="#" class="has-submenu">تدبير الملفات  <span class="sub-arrow">...</span></a><ul class="dropdown-menu"><li><a href="#" class="has-submenu"> اجراءات التحقيق<span class="sub-arrow">...</span></a><ul class="dropdown-menu">
+	<li><a tabindex="-1" href="/MesuresInstructions/DossierMI/AjoutModifDossierMI">إضافة أو تحيين ملف خبرة</a></li><li><a tabindex="-1" href="/MesuresInstructions/DiligenceMI/DisplayViewSearchDossMIForDiligence">الإجراءات في ملف خبرة </a></li><li><a tabindex="-1" href="/MesuresInstructions/DiligenceMI/SearchDiligencesMI">البحث في إجراءات ملف خبرة   </a></li><li><a tabindex="-1" href="/MesuresInstructions/DiligenceMI/DisplayViewSearchDossMIForDemande">الطلبات في ملف خبرة</a></li>
+</ul></li><li><a href="#" class="has-submenu"> <span class="NouveauMenu">الملف القضائي الرقمي</span><span class="sub-arrow">...</span></a><ul class="dropdown-menu">
+	<li><a tabindex="-1" href="/Outils/GestionNumeriqueDossier/UploadFileToGED"><span class="NouveauMenu">تحميل الوثائق الممسوحة ضوئيا</span></a></li><li><a tabindex="-1" href="/Outils/GestionNumeriqueDossier/SuiviGED"><span class="NouveauMenu">تتبع الوثائق الممسوحة ضوئيا</span></a></li><li><a tabindex="-1" href="/Outils/GestionNumeriqueDossier/Documents"><span class="NouveauMenu">الوثائق الممسوحة ضوئيا</span></a></li>
+</ul></li></ul></li><li><a href="#" class="has-submenu">الإحصائيات <span class="sub-arrow">...</span></a><ul class="dropdown-menu"><li><a href="#" class="has-submenu"> إحصائيات الخبرة<span class="sub-arrow">...</span></a><ul class="dropdown-menu">
+	<li><a tabindex="-1" href="/Outils/Productivite/DelaisDepotRapportDossierMI">مراقبة وضع تقريرالخبير</a></li><li><a tabindex="-1" href="/Outils/Productivite/DelaisDepotConsigDossierMI">مراقبة إيداع المصاريف</a></li><li><a tabindex="-1" href="/Outils/Productivite/BilanAffairesExpertise">إحصائيات ملفات الخبرة غير المنجزة</a></li><li><a tabindex="-1" href="/Outils/Productivite/RegistreDossierMI">مراقبة سجلات الخبرة للمستعمل</a></li><li><a tabindex="-1" href="/MesuresInstructions/ControleNumerosDossMI/ControleNumerosDossMI">مراقبة أرقام ملفات الخبرة</a></li>
+</ul></li></ul></li><li><a href="#" class="has-submenu">المساعدة <span class="sub-arrow">...</span></a><ul class="dropdown-menu"><li> <a tabindex="-1" href="/home/GuideUtilisation">دليل المستعمل</a></li><li> <a tabindex="-1" href="/home/Utilisateurs">معلومات حول مستعملي النظام </a></li></ul></li><li><a href="#" class="has-submenu"><div style="float:right;display:inline">مذكرة إلكترونية</div><div id="DivNotifNote" style="color:red">0</div> <span class="sub-arrow">...</span></a><ul class="dropdown-menu"><li> <a tabindex="-1" href="/Notes/Note/EchangeAvocatNote">بحث عن مذكرة</a></li></ul></li><li><a href="#" class="has-submenu"><div style="float:right;display:inline">طلب إلكتروني</div><div id="DivNotifDemande" style="color:red">0</div> <span class="sub-arrow">...</span></a><ul class="dropdown-menu"><li> <a tabindex="-1" href="/Notes/Note/EchangeAvocatDemande">بحث عن طلب</a></li></ul></li>
+                            
+
+
+                        </ul>
+
+                        <!--========== user navbar ===========-->
+                        <ul class="nav navbar-nav navbar-left navbar-user sm" data-smartmenus-id="17848845437137288">
+                            
+                            <li class="dropdown user-dropdown">
+                                <a href="#" class="dropdown-toggle has-submenu" data-toggle="dropdown"><i class="fa fa-user"></i> العيساوي  نوفل <span class="sub-arrow">...</span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#"> شعبة الخبرة:</a></li>
+                                    <li><a href="#"> محكمة الاستئناف الادارية بفاس</a></li>
+                                    <li><a href="/Account/DisplayViewChangePassword"><i class="fa fa-user"></i> تغيير كلمة المرور</a></li>
+                                        <li>
+                                            <a href="/Account/AjoutNumeroSomme">
+                                                <i class="fa fa-user"></i> تحيين رقم التأجير
+                                            </a>
+                                        </li>
+                                    <li><a href="/Account/DisplayViewSettings"><i class="fa fa-gear"></i> إعدادات</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="/Account/LogOff"><i class="fa fa-power-off"></i> خروج</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-left navbar-user sm" id="DivNotifCopieNumeriqueContainer" style="display:none;" data-smartmenus-id="1784884543714835">
+                            <li class="dropdown user-dropdown">
+                                <a href="/Civil/DossierCivil/EchangeAvocatRechercherDemRetraitCopieNum">
+                                    طلبات نسخ الأحكام الرقمية
+                                    <span id="DivNotifCopieNumerique" style="color:red"></span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tooltipCancelRequestSE">
+                            <ul id="SignatureElectroniqueCancelRequestUlId" class="nav navbar-nav navbar-left navbar-user sm" data-smartmenus-id="17848845437156633" style="display: none;">
+                                <li class="dropdown user-dropdown">
+                                    
+                                    <a href="/AudienceCivil/SignatureElectroniqueDecisions/ConsultationDemandeAnuulationSignatureElectroniqueDecisions"><i class="fa fa-bell-o"></i><span class="tooltiptext">   طلبات إلغاء التوقيع الإلكتروني   </span>  <i id="NumberOfSignatureElectroniqueRequestId" class="notification" style="display: none;"></i> </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div><!--/.nav-collapse -->
+
+                </div>
+            </div>
+
+    <!--====================== Begin page content ==========================-->
+    <div class="container-fluid body-content" style="margin-top: 53px;">
+        
+
+
+<h3 class="page-header gray">
+مراقبة السجلات للمسؤول</h3>
+<form action="/Outils/Productivite/ExportRegistreDossiers" method="post" name="ExportRegistres" novalidate="novalidate"><div class="validation-summary-valid" data-valmsg-summary="true" id="DivValidationSummary" style="display:none"><ul><li style="display:none"></li>
+</ul></div>    <input type="hidden" id="Year" name="Year">
+    <input type="hidden" id="YearToExcel" name="YearToExcel" value="2026">
+    <input type="hidden" id="download_token_value" name="DownloadToken">
+    <input type="hidden" id="listIdNatAffaire" name="listIdNatAffaire">
+    <input type="hidden" id="IdRegistre" name="IdRegistre">
+    <fieldset id="infosField" class="parentfieldset infoDossier ">
+        <div class="fieldsetTitle">السجلات العامة</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+
+            <div id="divFormRecherche" style="display: flex; align-items: center; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <label for="AnneeEnregistrement">السنة</label>
+                    <select data-val="true" data-val-number="The field السنة must be a number." id="AnneeEnregistrement" name="AnneeEnregistrement"><option value="">اختيار</option>
+<option>2026</option>
+<option>2025</option>
+<option>2024</option>
+<option>2023</option>
+<option>2022</option>
+<option>2021</option>
+<option>2020</option>
+<option>2019</option>
+<option>2018</option>
+<option>2017</option>
+<option>2016</option>
+<option>2015</option>
+<option>2014</option>
+<option>2013</option>
+<option>2012</option>
+<option>2011</option>
+<option>2010</option>
+<option>2009</option>
+<option>2008</option>
+<option>2007</option>
+<option>2006</option>
+<option>2005</option>
+<option>2004</option>
+<option>2003</option>
+<option>2002</option>
+<option>2001</option>
+</select>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input class="submitbutton" type="button" name="charger" id="charger" value="تحميل لائحة السجلات">
+                </div>
+            </div>
+
+            <!--<div id="DivActivation" style="display: flex; align-items: center; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <label for="dateActivation">تاريخ الربط :</label>-->
+                    
+                    <!--<input data-required="false" data-val="true" data-val-date="The field dateLiaisonCaisse must be a date." id="dateLiaisonCaisse" name="dateLiaisonCaisse" type="text" value="" /><script type="text/javascript">dateField("#dateLiaisonCaisse");</script>
+
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input class="submitbutton" type="button" name="btnToggleLiaison" id="btnToggleLiaison" value="" onclick="toggleLiaisonState()" />
+                </div>
+            </div>-->
+
+        </div>
+
+
+    </fieldset>
+    <div id="gridDossiersEnregistres">
+
+
+<table class="grid table table-responsive table-striped table-bordered table-hover"><thead><tr><td><div>السجل</div></td><td><div>أنواع القضايا</div></td><td><div>رقم آخر ملف</div></td><td><div>عدد الملفات المسجلة</div></td><td><div>عدد الأرقام الشاغرة</div></td><td><div>تحميل الأرقام الشاغرة</div></td><td><div>تحميل السجل العام</div></td></tr></thead><tbody><tr class="gridrow"><td>السجل العام للقضايا الاستعجالية اختصاص الرئيس الأول ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="37">(7201)  الإستعجالي (اختصاص الرئيس الأول)</option>
+</select></td><td>2</td><td>2</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(217,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(217,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام للقضايا الاستعجالية المستأنفة ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="38">(7202)  الإستعجالي "مستأنف"	</option>
+</select></td><td>103</td><td>103</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(218,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(218,this);"> </td></tr><tr class="gridrow"><td>السجل العام الغرفة المشورة ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="39">(7203)  غرفة المشورة</option>
+</select></td><td>6</td><td>6</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(219,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(219,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام للمساعدة القضائية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="61">(7204)  المساعدة القضائية</option>
+</select></td><td>6</td><td>6</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(220,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(220,this);"> </td></tr><tr class="gridrow"><td>السجل العام لقضايا الالغاء ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="40">(7205)   قضاء الإلغاء</option>
+</select></td><td>306</td><td>306</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(222,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(222,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام لقضايا المسؤولية الادارية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="48">(7206)  المسؤولية الإدارية</option>
+</select></td><td>385</td><td>385</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(223,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(223,this);"> </td></tr><tr class="gridrow"><td>السجل العام لقضايا العقود الادارية و الصفقات ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="49">(7207)  العقود الإدارية والصفقات</option>
+</select></td><td>121</td><td>121</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(224,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(224,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام لقضايا الوضعية الفردية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="60">(7208)  الوضعية الفردية </option>
+</select></td><td>33</td><td>33</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(225,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(225,this);"> </td></tr><tr class="gridrow"><td>السجل العام لقضايا المنازعات الضريبية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="43">(7209)  المنازعات الضريبية</option>
+</select></td><td>186</td><td>186</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(226,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(226,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام لقضايا المعاشات المدنية و العسكرية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="44">(7210)  المعاشات المدنية والعسكرية</option>
+</select></td><td>6</td><td>6</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(227,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(227,this);"> </td></tr><tr class="gridrow"><td>السجل العام لقضايا نزع الملكية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="45">(7211)  نزع الملكية</option>
+</select></td><td>161</td><td>161</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(228,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(228,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام لقضايا المنازعات الانتخابية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="46">(7212)  المنازعات الإنتخابية</option>
+</select></td><td></td><td>0</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(229,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(229,this);"> </td></tr><tr class="gridrow"><td>السجل العام لقضايا تحصيل ديون الخزينة ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="47">(7213)  تحصيل ديون الخزينة </option>
+</select></td><td>46</td><td>46</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(230,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(230,this);"> </td></tr><tr class="gridrow_alternate"><td>السجل العام لقضايا إيقاف تنفيذ القرارات الادارية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="41">(7214)   إيقاف تنفيذ القرارات الإدارية</option>
+</select></td><td>68</td><td>68</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(231,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(231,this);"> </td></tr><tr class="gridrow"><td>السجل العام لقضايا فحص الشرعية ( 01/01/2024 -   ) </td><td><select id="NatureAffaire" name="NatureAffaire"><option value="">لائحة أنواع القضايا  بالسجل</option>
+<option value="42">(7215)  فحص الشرعية</option>
+</select></td><td></td><td>0</td><td>0</td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportDcManquantsToExcel(232,this);"> </td><td><input type="button" class="button_exportToExcel" value="" onclick="ExportToExcel(232,this);"> </td></tr></tbody></table>
+<span id="Grid_DossierEnregistre"></span>
+
+ 
+<div class="pagination"><span class="paginationLeft">1 - 15 على 15</span></div>
+
+</div>
+</form>
+
+    </div>
+    <!--============================= footer =============================-->
+        <div class="footer visible-lg visible-md">
+            <div class="container">
+                <p class="text-muted centred"> وزارة العدل Copyright&nbsp;&nbsp; © &nbsp;&nbsp; 2011-2026</p>
+            </div>
+        </div>
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+
+
+    <script type="text/javascript" language="javascript">
+
+
+        $(document).ready(function () {
+            $.datepicker.setDefaults($.datepicker.regional["ar"]);
+
+            //------------------------
+            if (!$.isBlank('')) {
+                noty({
+                    type: 'success',
+                    text: ''
+                });
+            }
+            if (!$.isBlank('')) {
+                noty({
+                    type: 'warning',
+                    text: ''
+                });
+            }
+            if (!$.isBlank('')) {
+                noty({
+                    type: 'error',
+                    text: ''
+                });
+            }
+            var HtmlNotif = "";
+            $('#DivValidationSummary').bind('DOMNodeInserted', function (event) {
+                var element = $("#DivValidationSummary ul:first-child");
+                var list = "";
+                var elmnt_li = $(element).children("li");
+                if (elmnt_li.length == 1) {
+                    HtmlNotif = "";
+                }
+                $.each(elmnt_li, function (index, itemdata) {
+
+                    if ($(elmnt_li).text().length != 0 &&
+                (($(elmnt_li).length - 1) == index)) {
+                        HtmlNotif = HtmlNotif + "  *  " + $(itemdata).text();
+                    }
+                });
+
+
+
+                noty({
+
+                    type: 'warning',
+                    text: HtmlNotif
+
+                 });
+            });
+
+
+            $("a.close-notify").click(function () {
+                $(this).parent().slideUp(1000);
+                return false;
+            });
+            if (HtmlNotif != "") {
+                noty({
+                    type: 'error',
+                    text: HtmlNotif
+                });
+            }
+
+
+            //-----------------------------------------------------
+
+
+           //Colorier le menu en Activite
+            $('.navbar-collapse a').each(function (i, ob) {
+                if ($(ob).attr('href') == '/Outils/Productivite/RegistreDossierResponsable') {
+                    $(ob).attr('style', 'color:#ddd;');
+                }
+                });
+        });
+                FctNotifications();
+
+    </script>
+    <script>
+        $(document).ready(function () {
+            function adjustMargin() {
+                var navbarHeight = $('.navbar-fixed-top').outerHeight();
+                $('.body-content').css('margin-top', navbarHeight);
+            }
+            adjustMargin();
+            $(window).resize(function () {
+                adjustMargin();
+            });
+        });
+    </script>
+    
+    <script type="text/javascript" language="javascript">
+ var isCaisseLiaisonActivated = true;
+var dateLiaisonCaisse = '2026-04-24';
+    $(document).ready(function () {
+        $('#LibelledateLiaisonCaisse').text(dateLiaisonCaisse ? dateLiaisonCaisse : 'غير مربوط');
+        if (dateLiaisonCaisse) {
+            // Remplir le champ DateTimeBoxFor avec la valeur de la dateLiaisonCaisse
+            $('#dateLiaisonCaisse').val(dateLiaisonCaisse);
+        }
+        // Mise à jour du texte du bouton en fonction de l'état de isCaisseLiaisonActivated
+        updateLiaisonButton();
+ 
+
+     
+
+
+        $("#DateEnregistrementA").hide();
+        $("#afficherDateEnd").change(function () {
+            hideShowDateEnd(this);
+        });
+        $('#charger').click(function () {
+            var Year = $("#AnneeEnregistrement").val();
+            var Entite = '151';
+            var b = 'True';
+             if (Year && Year != 0) {
+                 $("#YearToExcel").val(Year);
+                  var valide = validerChampSaisi();
+                  if (valide) {
+
+                     //var DateEnregistrementDe = $("#DateEnregistrementDe").val();
+                     //var DateEnregistrementA  = $("#DateEnregistrementA").val();
+                     params = {
+                         x: Entite, y: b, z: Year
+                     }
+                      //
+                     //if (DateEnregistrementDe && DateEnregistrementDe != undefined && DateEnregistrementDe != "") {
+                     //   params = {
+                     //       x: Entite, y: b, z: Year, DateEnregistrementDe: DateEnregistrementDe
+                     //   }
+                     //   if (DateEnregistrementA && DateEnregistrementA != undefined && DateEnregistrementA != "") {
+                     //        params = {
+                     //            x: Entite, y: b, z: Year, DateEnregistrementDe: DateEnregistrementDe, DateEnregistrementA: DateEnregistrementA
+                     //        }
+                     //   }
+                     //}
+                      //
+                     $("#gridDossiersEnregistres").mvcajax("/Outils/Productivite/GridDossiersEnregistres", "Productivite/GridDossiersEnregistres", {}, params);
+                 }
+               } else {
+                    noty({
+                        type: 'warning',
+                        text: 'المرجو إختيار السنة'
+                    });
+              }
+        });
+    });
+
+        function updateLiaisonButton() {
+            var $btn = $('#btnToggleLiaison');
+            if (isCaisseLiaisonActivated === true || isCaisseLiaisonActivated === 'true') {
+                $btn.val('إلغاء الربط'); // Texte pour désactiver
+                $btn.removeClass('btn-active').addClass('btn-inactive'); // Rouge
+            } else {
+                $btn.val('تفعيل الربط'); // Texte pour activer
+                $btn.removeClass('btn-inactive').addClass('btn-active'); // Vert
+            }
+        }
+    function ExportToExcel(IdRegistre, element) {
+        var YearToExcel = $("#YearToExcel").val();
+        var obj = $(element);
+        var row = $(obj).parent().parent();
+        values = $.map($(row).find("td:eq(1)").find("#NatureAffaire option"), function (e) { return e.value; });
+        var idFileUpload = $("#download_token_value").val();
+        if (YearToExcel && YearToExcel !=0 && values && values.length > 0 )  {
+            $("#AnneeEnregistrement").val(YearToExcel);
+            $("#IdRegistre").val(IdRegistre);
+            $("#listIdNatAffaire").val(values);
+            document.forms["ExportRegistres"].action = "ExportRegistreDossiers";
+            document.forms["ExportRegistres"].submit();
+        }
+    }
+
+    /* تحميل الأرقام الشاغرة  */
+    function ExportDcManquantsToExcel(IdRegistre, element) {
+        var YearToExcel = $("#YearToExcel").val();
+        var obj = $(element);
+        var row = $(obj).parent().parent();
+        values = $.map($(row).find("td:eq(1)").find("#NatureAffaire option"), function (e) { return e.value; });
+        var idFileUpload = $("#download_token_value").val();
+        if (YearToExcel && YearToExcel != 0 && values && values.length > 0) {
+            $("#AnneeEnregistrement").val(YearToExcel);
+            $("#IdRegistre").val(IdRegistre);
+            $("#listIdNatAffaire").val(values);
+            document.forms["ExportRegistres"].action = "ExportDossiersManquantsByRegistre";
+            document.forms["ExportRegistres"].submit();
+        }
+    }
+
+
+
+    function BlockUI() {
+        blockUIForDownload();
+    }
+    /*Afficher/Ou non la Date de fin */
+    function hideShowDateEnd(elem) {
+        if (elem.checked) {
+            $("#DateEnregistrementA").show();
+        } else {
+            $("#DateEnregistrementA").val("");
+            $("#DateEnregistrementA").hide();
+        }
+    }
+    function validerChampSaisi() {
+
+            var AnneeEnregistrement  = $("#AnneeEnregistrement").val();
+            ////////////////////////
+            var DateEnregistrementDe = $("#DateEnregistrementDe").val();
+            var DateEnregistrementA  = $("#DateEnregistrementA").val();
+
+            if (!DateEnregistrementDe) DateEnregistrementDe = "";
+            if (!DateEnregistrementA)  DateEnregistrementA = "";
+            var continuer    = true;
+            var dateBorneInf = AnneeEnregistrement + "/12/31";
+            var dateBorneSup = AnneeEnregistrement + "/1/1";
+            ////////////////////////
+            if (DateEnregistrementDe && DateEnregistrementDe != "") {
+                var arrayDate = DateEnregistrementDe.split('/');
+                var fullYear  = arrayDate[2];
+                if (AnneeEnregistrement != fullYear) {
+                    continuer = false;
+                }
+            }
+            ////////////////////////
+            if (DateEnregistrementA && DateEnregistrementA != "" && continuer) {
+                var arrayDate = DateEnregistrementA.split('/');
+                var fullYear  = arrayDate[2];
+                if (AnneeEnregistrement != fullYear) {
+                    continuer = false;
+                }
+            }
+            if (continuer == false) {
+                afficherMsg('تاريخ من  و تاريخ إلى يجب أن يكونا محصورين بين  ' + dateBorneSup + 'و' + dateBorneInf);
+            }
+            return continuer;
+        //}
+        }
+
+        function toggleLiaisonState() {
+
+
+            var dateLiaisonCaisse = $('#dateLiaisonCaisse').val();
+
+            var listItem = { dateLiaison: dateLiaisonCaisse  };
+            $.ajax({
+                type: "POST",
+                url: '../GestionSysteme/ToggleLiaisonCaisseState',
+                data: $.toJSON(listItem),
+                contentType: "application/json",
+                dataType: "json",
+                success: function (data) {
+                    var Result = data;
+                    if (Result) {
+                        isCaisseLiaisonActivated = !isCaisseLiaisonActivated;
+                        updateLiaisonButton();
+
+                    }
+                    else {
+                        alert('مشكل في التفعيل');
+                    }
+                    //                alert("Result2 : " + Result);
+                },
+                error: function (request, textStatus, errorThrown) {
+                    alert("AJAX error :" + request.statusText);
+                }
+            });
+        }
+    </script>
+
+
+
+
+<div class="blockUI" style="display:none"></div><div class="blockUI blockOverlay" style="z-index: 1000; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; padding: 0px; width: 100%; height: 100%; top: 0px; left: 0px; background-color: rgb(0, 0, 0); opacity: 0.394101; cursor: default; position: fixed;"></div><div class="blockUI blockMsg blockPage" style="z-index: 1011; position: fixed; padding: 10px; margin: 0px; width: 30%; top: 40%; left: 35%; text-align: center; color: rgb(85, 85, 85); border: 3px solid rgb(187, 187, 187); background-color: rgb(221, 221, 221); cursor: default; border-radius: 6px; font-weight: bold; opacity: 0.985253;"><div class="waiting"></div>&nbsp;&nbsp;المرجو الإنتظار جاري معالجة طلبكم...</div></body></html>

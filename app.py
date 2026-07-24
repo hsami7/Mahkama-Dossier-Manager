@@ -686,7 +686,7 @@ search_result = None
 search_error = False
 search_lock = threading.Lock()
 
-def run_search_process(year, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
+def run_search_process(years, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
     global search_active, search_logs, search_result, search_error
     with search_lock:
         search_logs.clear()
@@ -698,7 +698,8 @@ def run_search_process(year, base_download_dir, start_date=None, end_date=None, 
             search_logs.append(msg)
         write_log(msg)
             
-    msg = f"[*] بدء جلب جميع الملفات للفترة: {start_date} إلى {end_date}" if start_date and end_date else f"[*] بدء جلب جميع الملفات للسنة: {year}"
+    years_str = ', '.join(str(y) for y in years) if years else 'غير محدد'
+    msg = f"[*] بدء جلب جميع الملفات للفترة: {start_date} إلى {end_date}" if start_date and end_date else f"[*] بدء جلب جميع الملفات للسنوات: {years_str}"
     write_log("\n" + msg)
     try:
         import subprocess
@@ -713,8 +714,9 @@ def run_search_process(year, base_download_dir, start_date=None, end_date=None, 
             env.pop(var, None)
             
         cmd = [sys.executable, script_path, '--download-dir', base_download_dir]
-        if year:
-            cmd.extend(['--year', str(year)])
+        if years:
+            for y in years:
+                cmd.extend(['--year', str(y)])
         if start_date:
             cmd.extend(['--start-date', start_date])
         if end_date:
@@ -759,14 +761,18 @@ def run_search_process(year, base_download_dir, start_date=None, end_date=None, 
 def api_search_all_dossiers():
     global search_thread, search_active
     data = request.get_json() or {}
-    year = data.get('year')
+    years = data.get('years')
+    if not years:
+        year = data.get('year')
+        if year:
+            years = [year]
     start_date = data.get('start_date')
     end_date = data.get('end_date')
     username = data.get('username')
     password = data.get('password')
     local_only = data.get('local_only', False)
     
-    if not year and not end_date:
+    if not years and not end_date:
         return jsonify({"error": "الرجاء تحديد السنة أو الفترة."}), 400
         
     with search_lock:
@@ -785,7 +791,7 @@ def api_search_all_dossiers():
         
         search_thread = threading.Thread(
             target=run_search_process, 
-            args=(year, base_download_dir),
+            args=(years, base_download_dir),
             kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password, "local_only": local_only}
         )
         search_thread.daemon = True

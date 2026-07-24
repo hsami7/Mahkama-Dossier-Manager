@@ -21,7 +21,7 @@ def main():
         sys.stderr.reconfigure(encoding='utf-8')
         
     parser = argparse.ArgumentParser()
-    parser.add_argument('--year', type=int)
+    parser.add_argument('--year', type=int, action='append')
     parser.add_argument('--start-date', type=str)
     parser.add_argument('--end-date', type=str)
     parser.add_argument('--username', type=str)
@@ -30,22 +30,25 @@ def main():
     parser.add_argument('--download-dir', type=str, required=True)
     args = parser.parse_args()
     
-    if args.start_date and args.end_date:
-        try:
-            end_year = int(args.end_date.split('-')[0])
-            years = [y for y in [2024, 2025, 2026] if y <= end_year]
-        except:
-            years = [args.year] if args.year else [2026]
-    else:
-        years = [y for y in [2024, 2025, 2026] if y <= (args.year or 2026)]
+    years = args.year
+    if not years:
+        if args.start_date and args.end_date:
+            try:
+                end_year = int(args.end_date.split('-')[0])
+                years = [y for y in engine.AVAILABLE_YEARS if y <= end_year]
+            except:
+                years = [engine.AVAILABLE_YEARS[0]]
+        else:
+            years = [engine.AVAILABLE_YEARS[0]]
 
     if not args.local_only:
         print("[*] بدء جلب البيانات من محاكم...")
         try:
             print("[*] جلب ملفات الإحصائيات (Stats)...")
             try:
+                target_year = years[0] if years else engine.AVAILABLE_YEARS[0]
                 download_stats_files(
-                    target_year=args.year,
+                    target_year=target_year,
                     output_dir=args.download_dir,
                     debug=False,
                     start_date=args.start_date,
