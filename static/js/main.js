@@ -3170,7 +3170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSearchAllReturnHome) {
         btnSearchAllReturnHome.addEventListener('click', () => {
             searchAllSection.style.display = 'none';
-            document.querySelector('.hero-section').style.display = 'block';
+            document.getElementById('landingSection').style.display = 'block';
         });
     }
 
@@ -3303,7 +3303,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         showAlert('حدث خطأ أثناء جلب البيانات الشاملة. يرجى مراجعة السجل.');
                     } else if (data.result) {
                         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
-                        document.querySelector('.hero-section').style.display = 'none';
+                        document.getElementById('landingSection').style.display = 'none';
                         searchAllSection.style.display = 'block';
                         initSearchAllTable(data.result);
                     }
