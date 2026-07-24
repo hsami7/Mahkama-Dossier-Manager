@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
             if (btnCalcStatsLocal) {
                 btnCalcStatsLocal.disabled = false;
-                btnCalcStatsLocal.innerText = 'تحديث';
+                btnCalcStatsLocal.innerText = 'آخر حفظ';
             }
 
             try {
