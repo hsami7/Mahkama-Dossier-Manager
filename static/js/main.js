@@ -3229,22 +3229,67 @@ document.addEventListener('DOMContentLoaded', () => {
         // but basic search is powerful enough.
     }
 
+    let lastSearchLogCount = 0;
     function startSearchPolling() {
         const overlay = document.getElementById('loadingOverlay');
-        const overlayText = document.getElementById('loadingText');
+        const overlayText = document.getElementById('loadingOverlayText');
+        const liveSyncLogsWrapper = document.getElementById('liveSyncLogsWrapper');
+        const liveSyncLogs = document.getElementById('liveSyncLogs');
+        const logsConsole = document.getElementById('logsConsole');
+        const btnMinimizeLiveLogs = document.getElementById('btnMinimizeLiveLogs');
+
+        lastSearchLogCount = 0;
+        if (liveSyncLogs) {
+            liveSyncLogs.innerHTML = '';
+            liveSyncLogs.style.display = 'none';
+        }
+        if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
+        if (btnMinimizeLiveLogs) {
+            btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
+        }
         
         searchPollInterval = setInterval(async () => {
             try {
                 const res = await fetch('/api/search-all-dossiers/status');
                 const data = await res.json();
                 
-                if (data.logs && data.logs.length > 0) {
-                    overlayText.textContent = data.logs[data.logs.length - 1];
+                // Append new logs
+                if (data.logs && data.logs.length > lastSearchLogCount) {
+                    const isLiveSyncAtBottom = liveSyncLogs && (liveSyncLogs.scrollHeight - liveSyncLogs.clientHeight - liveSyncLogs.scrollTop < 50);
+                    const isConsoleAtBottom = logsConsole && (logsConsole.scrollHeight - logsConsole.clientHeight - logsConsole.scrollTop < 50);
+
+                    const newLogs = data.logs.slice(lastSearchLogCount);
+                    newLogs.forEach(logLine => {
+                        const div = document.createElement('div');
+                        div.textContent = logLine;
+                        if (logLine.includes('[-]')) {
+                            div.style.color = '#f87171';
+                        } else if (logLine.includes('[+]')) {
+                            div.style.color = '#4ade80';
+                        }
+                        if (liveSyncLogs) liveSyncLogs.appendChild(div);
+
+                        // Also append to global history console
+                        const historyDiv = document.createElement('div');
+                        historyDiv.textContent = logLine;
+                        if (logLine.includes('[-]')) historyDiv.style.color = '#f87171';
+                        else if (logLine.includes('[+]')) historyDiv.style.color = '#4ade80';
+                        if (logsConsole) logsConsole.appendChild(historyDiv);
+                    });
+                    lastSearchLogCount = data.logs.length;
+                    
+                    if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
+                    if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
+                    
+                    if (overlayText) {
+                        overlayText.textContent = data.logs[data.logs.length - 1];
+                    }
                 }
                 
                 if (!data.active) {
                     clearInterval(searchPollInterval);
-                    overlay.style.display = 'none';
+                    searchPollInterval = null;
+                    if (overlay) overlay.style.display = 'none';
                     if (btnSearchAll) {
                         btnSearchAll.disabled = false;
                         btnSearchAll.innerText = 'تحديث';
@@ -3254,9 +3299,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnSearchAllLocal.innerText = 'آخر حفظ';
                     }
                     
-                    if (data.error) {
+                    if (data.error || !data.result) {
                         showAlert('حدث خطأ أثناء جلب البيانات الشاملة. يرجى مراجعة السجل.');
                     } else if (data.result) {
+                        if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
                         document.querySelector('.hero-section').style.display = 'none';
                         searchAllSection.style.display = 'block';
                         initSearchAllTable(data.result);
