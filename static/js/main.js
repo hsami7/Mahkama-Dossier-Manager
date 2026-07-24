@@ -1787,6 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const statsSection = document.getElementById('statsResultsSection');
                         if (statsSection) {
                             if (landingSection) landingSection.style.display = 'none';
+                            window.scrollTo(0, 0);
                             statsSection.style.display = 'block';
                         }
                     }
@@ -1876,7 +1877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showAlert(data.error);
                     if (overlay) overlay.style.display = 'none';
                     btnCalculateStats.disabled = false;
-                    btnCalculateStats.innerText = originalText;
+                    btnCalculateStats.innerText = 'تحديث';
                     const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
                     if (btnCalcStatsLocal) {
                         btnCalcStatsLocal.disabled = false;
@@ -1884,7 +1885,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     operationRunning = false;
                 } else if (data.success) {
-                    startStatsPolling(displayTitle, originalText);
+                    startStatsPolling(displayTitle);
                 }
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم لاحتساب الإحصائيات.');
@@ -1966,16 +1967,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     showAlert(data.error);
                     if (overlay) overlay.style.display = 'none';
                     btnCalculateStatsLocal.disabled = false;
-                    btnCalculateStatsLocal.innerText = originalText;
+                    btnCalculateStatsLocal.innerText = 'آخر حفظ';
                     operationRunning = false;
                 } else if (data.success) {
-                    startStatsPolling(rangeMode === 'custom' && start_date ? 'فترة مخصصة' : year, originalText);
+                    startStatsPolling(rangeMode === 'custom' && start_date ? 'فترة مخصصة' : year);
                 }
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم.');
                 if (overlay) overlay.style.display = 'none';
                 btnCalculateStatsLocal.disabled = false;
-                btnCalculateStatsLocal.innerText = originalText;
+                btnCalculateStatsLocal.innerText = 'آخر حفظ';
                 operationRunning = false;
             }
         });
@@ -3581,7 +3582,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let lastSearchLogCount = 0;
-    function startSearchPolling() {
+    function startSearchPolling(localOnly = false) {
         const overlay = document.getElementById('loadingOverlay');
         const overlayText = document.getElementById('loadingOverlayText');
         const liveSyncLogsWrapper = document.getElementById('liveSyncLogsWrapper');
@@ -3597,6 +3598,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
         if (btnMinimizeLiveLogs) {
             btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
+        }
+
+        // For local-only search, show a brief status message
+        if (localOnly && liveSyncLogs) {
+            liveSyncLogs.style.display = 'block';
+            const msg = document.createElement('div');
+            msg.textContent = '[+] جاري القراءة من الملفات المحلية...';
+            msg.style.color = '#4ade80';
+            liveSyncLogs.appendChild(msg);
+            lastSearchLogCount = 1;
         }
         
         searchPollInterval = setInterval(async () => {
@@ -3654,6 +3665,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         showAlert('حدث خطأ أثناء جلب البيانات الشاملة. يرجى مراجعة السجل.');
                     } else if (data.result) {
                         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
+                        window.scrollTo(0, 0);
                         document.getElementById('landingSection').style.display = 'none';
                         searchAllSection.style.display = 'block';
                         initSearchAllTable(data.result);
@@ -3696,11 +3708,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (btnSearchAll) {
                 btnSearchAll.disabled = true;
-                btnSearchAll.innerText = 'جاري العمل...';
+                btnSearchAll.innerText = localOnly ? 'جاري القراءة من المحلي...' : 'جاري التحديث من البوابة...';
             }
             if (btnSearchAllLocal) {
                 btnSearchAllLocal.disabled = true;
-                btnSearchAllLocal.innerText = 'جاري العمل...';
+                btnSearchAllLocal.innerText = localOnly ? 'جاري القراءة من المحلي...' : 'جاري التحديث من البوابة...';
             }
             
             const overlay = document.getElementById('loadingOverlay');
@@ -3725,7 +3737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnSearchAllLocal.innerText = 'آخر حفظ';
                 }
             } else {
-                startSearchPolling();
+                startSearchPolling(localOnly);
             }
         } catch (err) {
             console.error(err);
