@@ -3,6 +3,7 @@ import json
 import sys
 import argparse
 from sync_stats import download_stats_files
+from sync_dossiers import sync_dossiers
 import engine
 from datetime import datetime
 
@@ -29,9 +30,19 @@ def main():
     parser.add_argument('--download-dir', type=str, required=True)
     args = parser.parse_args()
     
+    if args.start_date and args.end_date:
+        try:
+            end_year = int(args.end_date.split('-')[0])
+            years = [y for y in [2024, 2025, 2026] if y <= end_year]
+        except:
+            years = [args.year] if args.year else [2026]
+    else:
+        years = [y for y in [2024, 2025, 2026] if y <= (args.year or 2026)]
+
     if not args.local_only:
         print("[*] بدء جلب البيانات من محاكم...")
         try:
+            print("[*] جلب ملفات الإحصائيات (Stats)...")
             download_stats_files(
                 target_year=args.year,
                 output_dir=args.download_dir,
@@ -41,6 +52,17 @@ def main():
                 username=args.username,
                 password=args.password
             )
+            
+            print("[*] جلب ملفات السجلات (Dossiers)...")
+            for yr in years:
+                sync_dossiers(
+                    year=yr,
+                    output_dir=args.download_dir,
+                    debug=False,
+                    username=args.username,
+                    password=args.password
+                )
+                
             print("[+] تم جلب البيانات بنجاح.")
         except Exception as e:
             print(f"[-] خطأ أثناء جلب البيانات: {str(e)}")
@@ -49,15 +71,6 @@ def main():
             
     print("[*] جاري قراءة الملفات المحلية...")
     all_rows = []
-    
-    if args.start_date and args.end_date:
-        try:
-            end_year = int(args.end_date.split('-')[0])
-            years = [y for y in [2024, 2025, 2026] if y <= end_year]
-        except:
-            years = [args.year] if args.year else [2026]
-    else:
-        years = [y for y in [2024, 2025, 2026] if y <= (args.year or 2026)]
         
     # parse dates for filtering
     sd = parse_date(args.start_date)
