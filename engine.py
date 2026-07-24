@@ -287,6 +287,80 @@ def parse_excel_file(file_path):
         print(f"Error parsing {file_path}: {e}")
         return []
 
+def parse_excel_file_with_headers(file_path):
+    """
+    Dependency-free Excel reader using zipfile and xml.etree.ElementTree.
+    Returns a list of dicts where keys are the actual header names (from row 1).
+    """
+    if not os.path.exists(file_path):
+        return []
+        
+    try:
+        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            # Load shared strings
+            shared_strings = []
+            if 'xl/sharedStrings.xml' in zip_ref.namelist():
+                ss_data = zip_ref.read('xl/sharedStrings.xml')
+                root = ET.fromstring(ss_data)
+                for si in root.findall('{http://schemas.openxmlformats.org/spreadsheetml/2006/main}si'):
+                    t_elms = si.findall('{http://schemas.openxmlformats.org/spreadsheetml/2006/main}t')
+                    t_text = "".join([t.text for t in t_elms if t.text])
+                    shared_strings.append(t_text)
+            
+            # Load worksheet
+            sheet_file = 'xl/worksheets/sheet1.xml'
+            if sheet_file not in zip_ref.namelist():
+                sheet_files = [name for name in zip_ref.namelist() if name.startswith('xl/worksheets/')]
+                if sheet_files:
+                    sheet_file = sheet_files[0]
+                else:
+                    return []
+                    
+            sheet_data = zip_ref.read(sheet_file)
+            root = ET.fromstring(sheet_data)
+            
+            ns = {'ns': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+            rows_xml = root.findall('.//ns:row', ns)
+            
+            headers = {}
+            parsed_rows = []
+            
+            for i, row in enumerate(rows_xml):
+                cells = row.findall('ns:c', ns)
+                row_data = {}
+                for cell in cells:
+                    r_ref = cell.get('r')
+                    col_letter = "".join([c for c in r_ref if c.isalpha()])
+                    t_type = cell.get('t')
+                    
+                    v_elem = cell.find('ns:v', ns)
+                    val = None
+                    if v_elem is not None:
+                        raw_val = v_elem.text
+                        if t_type == 's' and raw_val is not None:
+                            try:
+                                val = shared_strings[int(raw_val)]
+                            except Exception:
+                                val = ""
+                        else:
+                            val = raw_val
+                    row_data[col_letter] = val
+                
+                if i == 0:
+                    headers = row_data
+                else:
+                    mapped_row = {}
+                    for col_letter, val in row_data.items():
+                        # Use header name if available, otherwise fallback to column letter
+                        key_name = headers.get(col_letter, col_letter)
+                        mapped_row[key_name] = val
+                    parsed_rows.append(mapped_row)
+                    
+            return parsed_rows
+    except Exception as e:
+        print(f"Error parsing with headers {file_path}: {e}")
+        return []
+
 def rename_file_safely(file_path, year, category):
     """
     Rename Excel file to Year_Category.xlsx format.

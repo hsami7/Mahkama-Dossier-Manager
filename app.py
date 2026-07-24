@@ -679,6 +679,138 @@ def api_calculate_stats_status():
             "error": globals().get('stats_error', False)
         })
 
+search_thread = None
+search_active = False
+search_logs = []
+search_result = None
+search_error = False
+search_lock = threading.Lock()
+
+def run_search_process(year, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
+    global search_active, search_logs, search_result, search_error
+    with search_lock:
+        search_logs.clear()
+        search_result = None
+        search_error = False
+        
+    def log_cb(msg):
+        with search_lock:
+            search_logs.append(msg)
+        write_log(msg)
+            
+    msg = f"[*] بدء جلب جميع الملفات للفترة: {start_date} إلى {end_date}" if start_date and end_date else f"[*] بدء جلب جميع الملفات للسنة: {year}"
+    write_log("\n" + msg)
+    try:
+        import subprocess
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fetch_search_data.py')
+        
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
+        if "PLAYWRIGHT_BROWSERS_PATH" in env and not getattr(sys, 'frozen', False):
+            del env["PLAYWRIGHT_BROWSERS_PATH"]
+            
+        for var in ['TCL_LIBRARY', 'TK_LIBRARY', 'PYI_CHILD_FILE', '_MEIPASS2']:
+            env.pop(var, None)
+            
+        cmd = [sys.executable, script_path, '--download-dir', base_download_dir]
+        if year:
+            cmd.extend(['--year', str(year)])
+        if start_date:
+            cmd.extend(['--start-date', start_date])
+        if end_date:
+            cmd.extend(['--end-date', end_date])
+        if username:
+            cmd.extend(['--username', username])
+        if password:
+            cmd.extend(['--password', password])
+        if local_only:
+            cmd.append('--local-only')
+            
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+        
+        for line in iter(process.stdout.readline, ''):
+            line_str = line.strip()
+            if not line_str:
+                continue
+            if line_str.startswith("RESULT:"):
+                try:
+                    res_json = line_str[7:]
+                    search_result = json.loads(res_json)
+                except Exception as e:
+                    log_cb(f"[-] خطأ في قراءة النتيجة: {e}")
+            elif line_str.startswith("ERROR:"):
+                log_cb(f"[-] خطأ: {line_str[6:]}")
+                search_error = True
+            else:
+                log_cb(line_str)
+                
+        process.stdout.close()
+        process.wait()
+        
+    except Exception as e:
+        with search_lock:
+            search_error = True
+        log_cb(f"[-] خطأ أثناء البحث: {e}")
+    finally:
+        with search_lock:
+            search_active = False
+
+@app.route('/api/search-all-dossiers', methods=['POST'])
+def api_search_all_dossiers():
+    global search_thread, search_active
+    data = request.get_json() or {}
+    year = data.get('year')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    username = data.get('username')
+    password = data.get('password')
+    local_only = data.get('local_only', False)
+    
+    if not year and not end_date:
+        return jsonify({"error": "الرجاء تحديد السنة أو الفترة."}), 400
+        
+    with search_lock:
+        if search_active:
+            return jsonify({"error": "عملية الجلب جارية بالفعل."}), 400
+        search_active = True
+            
+    try:
+        directory = data.get('directory')
+        if not directory or not directory.strip():
+            directory = get_default_workspace()
+        else:
+            directory = os.path.abspath(os.path.expanduser(directory.strip()))
+            
+        base_download_dir = os.path.join(directory, 'stats_downloads')
+        
+        search_thread = threading.Thread(
+            target=run_search_process, 
+            args=(year, base_download_dir),
+            kwargs={"start_date": start_date, "end_date": end_date, "username": username, "password": password, "local_only": local_only}
+        )
+        search_thread.daemon = True
+        search_thread.start()
+        
+        return jsonify({
+            "success": True,
+            "message": "بدأ جلب البيانات."
+        })
+    except Exception as e:
+        with search_lock:
+            search_active = False
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/search-all-dossiers/status', methods=['GET'])
+def api_search_all_dossiers_status():
+    with search_lock:
+        return jsonify({
+            "active": search_active,
+            "logs": list(search_logs),
+            "result": search_result,
+            "error": search_error
+        })
+
+
 @app.route('/api/logs', methods=['GET'])
 def api_get_logs():
     log_path = os.path.join(engine.get_data_dir(), 'operations.log')

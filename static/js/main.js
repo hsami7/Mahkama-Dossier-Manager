@@ -3139,6 +3139,231 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCredentials();
     checkUpdate();
 
+    // --- Search All Logic ---
+    const searchRangeRadios = document.querySelectorAll('input[name="searchRange"]');
+    const searchYearWrapper = document.getElementById('searchYearWrapper');
+    const searchCustomDateWrapper = document.getElementById('searchCustomDateWrapper');
+    const btnSearchAll = document.getElementById('btnSearchAll');
+    const btnSearchAllLocal = document.getElementById('btnSearchAllLocal');
+    const searchAllSection = document.getElementById('searchAllSection');
+    const btnSearchAllReturnHome = document.getElementById('btnSearchAllReturnHome');
+    const searchAllTableHeadRow = document.getElementById('searchAllTableHeadRow');
+    const searchAllTableBody = document.getElementById('searchAllTableBody');
+    
+    let searchAllDataTable = null;
+    let searchPollInterval = null;
+
+    if (searchRangeRadios.length) {
+        searchRangeRadios.forEach(r => {
+            r.addEventListener('change', function() {
+                if (this.value === 'year') {
+                    searchYearWrapper.style.display = 'block';
+                    searchCustomDateWrapper.style.display = 'none';
+                } else {
+                    searchYearWrapper.style.display = 'none';
+                    searchCustomDateWrapper.style.display = 'flex';
+                }
+            });
+        });
+    }
+
+    if (btnSearchAllReturnHome) {
+        btnSearchAllReturnHome.addEventListener('click', () => {
+            searchAllSection.style.display = 'none';
+            document.querySelector('.hero-section').style.display = 'block';
+        });
+    }
+
+    function initSearchAllTable(data) {
+        if (searchAllDataTable) {
+            searchAllDataTable.destroy();
+            searchAllTableHeadRow.innerHTML = '';
+            searchAllTableBody.innerHTML = '';
+        }
+        
+        if (!data || data.length === 0) {
+            searchAllTableHeadRow.innerHTML = '<th>لا توجد بيانات</th>';
+            searchAllTableBody.innerHTML = '<tr><td>لا توجد بيانات لعرضها</td></tr>';
+            return;
+        }
+
+        // Get all unique keys across all objects to form columns
+        const columnsSet = new Set();
+        data.forEach(row => {
+            Object.keys(row).forEach(key => columnsSet.add(key));
+        });
+        const columns = Array.from(columnsSet);
+
+        // Build header
+        columns.forEach(col => {
+            const th = document.createElement('th');
+            th.textContent = col;
+            searchAllTableHeadRow.appendChild(th);
+        });
+
+        // Build body
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            columns.forEach(col => {
+                const td = document.createElement('td');
+                td.textContent = row[col] || '';
+                tr.appendChild(td);
+            });
+            searchAllTableBody.appendChild(tr);
+        });
+
+        // Initialize DataTable
+        searchAllDataTable = $('#searchAllTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json'
+            },
+            scrollX: true,
+            pageLength: 25,
+            order: [], // no initial sort
+            dom: '<"top"f>rt<"bottom"lip><"clear">'
+        });
+        
+        // Highlight logic happens natively using DataTables search if needed,
+        // but user wanted 'cntrl f' like highlighting.
+        // DataTables has a plugin for highlight (datatables.mark.js), 
+        // but basic search is powerful enough.
+    }
+
+    function startSearchPolling() {
+        const overlay = document.getElementById('loadingOverlay');
+        const overlayText = document.getElementById('loadingText');
+        
+        searchPollInterval = setInterval(async () => {
+            try {
+                const res = await fetch('/api/search-all-dossiers/status');
+                const data = await res.json();
+                
+                if (data.logs && data.logs.length > 0) {
+                    overlayText.textContent = data.logs[data.logs.length - 1];
+                }
+                
+                if (!data.active) {
+                    clearInterval(searchPollInterval);
+                    overlay.style.display = 'none';
+                    if (btnSearchAll) {
+                        btnSearchAll.disabled = false;
+                        btnSearchAll.innerText = 'تحديث';
+                    }
+                    if (btnSearchAllLocal) {
+                        btnSearchAllLocal.disabled = false;
+                        btnSearchAllLocal.innerText = 'آخر حفظ';
+                    }
+                    
+                    if (data.error) {
+                        showAlert('حدث خطأ أثناء جلب البيانات الشاملة. يرجى مراجعة السجل.');
+                    } else if (data.result) {
+                        document.querySelector('.hero-section').style.display = 'none';
+                        searchAllSection.style.display = 'block';
+                        initSearchAllTable(data.result);
+                    }
+                }
+            } catch (err) {
+                console.error('Error polling search status:', err);
+            }
+        }, 1500);
+    }
+
+    async function handleSearchAll(localOnly = false) {
+        const isCustom = document.querySelector('input[name="searchRange"]:checked').value === 'custom';
+        const year = document.getElementById('searchYearSelect').value;
+        const startDate = document.getElementById('searchStartDateInput')?.value;
+        const endDate = document.getElementById('searchEndDateInput')?.value;
+        
+        const credentials = getStatsCredentials();
+        
+        const payload = {
+            local_only: localOnly,
+            username: credentials.username,
+            password: credentials.password
+        };
+
+        if (isCustom) {
+            if (!startDate || !endDate) {
+                showAlert('الرجاء إدخال تاريخ البداية والنهاية.');
+                return;
+            }
+            payload.start_date = startDate;
+            payload.end_date = endDate;
+        } else {
+            payload.year = parseInt(year);
+        }
+
+        try {
+            if (btnSearchAll) {
+                btnSearchAll.disabled = true;
+                btnSearchAll.innerText = 'جاري العمل...';
+            }
+            if (btnSearchAllLocal) {
+                btnSearchAllLocal.disabled = true;
+                btnSearchAllLocal.innerText = 'جاري العمل...';
+            }
+            
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'flex';
+            
+            const res = await fetch('/api/search-all-dossiers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if (data.error) {
+                showAlert(data.error);
+                if (overlay) overlay.style.display = 'none';
+                if (btnSearchAll) {
+                    btnSearchAll.disabled = false;
+                    btnSearchAll.innerText = 'تحديث';
+                }
+                if (btnSearchAllLocal) {
+                    btnSearchAllLocal.disabled = false;
+                    btnSearchAllLocal.innerText = 'آخر حفظ';
+                }
+            } else {
+                startSearchPolling();
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert('فشل الاتصال بالخادم لبدء البحث.');
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+            if (btnSearchAll) {
+                btnSearchAll.disabled = false;
+                btnSearchAll.innerText = 'تحديث';
+            }
+            if (btnSearchAllLocal) {
+                btnSearchAllLocal.disabled = false;
+                btnSearchAllLocal.innerText = 'آخر حفظ';
+            }
+        }
+    }
+
+    if (btnSearchAll) {
+        btnSearchAll.addEventListener('click', () => handleSearchAll(false));
+    }
+    if (btnSearchAllLocal) {
+        btnSearchAllLocal.addEventListener('click', () => handleSearchAll(true));
+    }
+
+    // Initialize Flatpickr for search inputs if they exist
+    if (document.getElementById('searchStartDateInput')) {
+        flatpickr("#searchStartDateInput", {
+            dateFormat: "Y-m-d",
+            allowInput: true
+        });
+    }
+    if (document.getElementById('searchEndDateInput')) {
+        flatpickr("#searchEndDateInput", {
+            dateFormat: "Y-m-d",
+            allowInput: true
+        });
+    }
+
     // Fix for Ctrl+C text copying in PyWebView
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
