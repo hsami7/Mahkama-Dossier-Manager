@@ -54,7 +54,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
     downloaded_files = {}
     registered_count_target = 0
     
-    log_msg(f"[*] Starting scraper for years: {years_to_download}", log_callback)
+    log_msg(f"[*] بدء جلب البيانات للسنوات: {years_to_download}", log_callback)
     
     with sync_playwright() as p:
         chromium_args = [
@@ -72,7 +72,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             )
         except Exception as e:
             if "Executable doesn't exist" in str(e) or "Looks like Playwright was just installed" in str(e) or "playwright install" in str(e):
-                log_msg("[*] Chromium browser not found. Installing, please wait... (This may take a few minutes)", log_callback)
+                log_msg("[*] متصفح Chromium غير موجود. جاري التثبيت، يرجى الانتظار... (قد يستغرق بضع دقائق)", log_callback)
                 try:
                     import sys
                     import playwright.__main__
@@ -80,14 +80,14 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                     sys.argv = ["playwright", "install", "chromium"]
                     playwright.__main__.main()
                     sys.argv = orig_argv
-                    log_msg("[+] Chromium browser installed successfully! Retrying launch...", log_callback)
+                    log_msg("[+] تم تثبيت المتصفح بنجاح! جاري إعادة التشغيل...", log_callback)
                     browser = p.chromium.launch(
                         headless=not debug,
                         slow_mo=500 if debug else 0,
                         args=chromium_args
                     )
                 except Exception as install_err:
-                    log_msg(f"[-] Browser installation failed: {install_err}", log_callback)
+                    log_msg(f"[-] فشل تثبيت المتصفح: {install_err}", log_callback)
                     raise e
             else:
                 raise e
@@ -95,11 +95,11 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
         page = context.new_page()
         
         try:
-            log_msg("[*] Opening login page...", log_callback)
+            log_msg("[*] جاري فتح صفحة تسجيل الدخول...", log_callback)
             page.goto("http://10.250.1.26/Outils/Productivite/RegistreDossierMI", wait_until="domcontentloaded", timeout=60000)
             
             # --- Login ---
-            log_msg(f"[*] Logging in with {username}...", log_callback)
+            log_msg(f"[*] جاري تسجيل الدخول باسم {username}...", log_callback)
             page.locator('input:not([type="hidden"]):not([type="submit"])').first.wait_for(timeout=10000)
             all_inputs = page.locator('input:not([type="hidden"]):not([type="submit"])').all()
             
@@ -129,7 +129,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
             if "Outils" not in page.url and page.url == "http://10.250.1.26/":
                 raise Exception("فشل تسجيل الدخول. يرجى التحقق من اسم المستخدم وكلمة المرور.")
                         
-            log_msg("[+] Logged in successfully.", log_callback)
+            log_msg("[+] تم تسجيل الدخول بنجاح.", log_callback)
             
             # Navigate explicitly if needed
             if "RegistreDossierMI" not in page.url:
@@ -145,7 +145,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
 
             for yr in years_to_download:
                 log_msg(get_year_art(yr), log_callback)
-                log_msg(f"[*] Loading data for year {yr}...", log_callback)
+                log_msg(f"[*] جاري تحميل بيانات السنة {yr}...", log_callback)
                 select_element = page.locator('select#AnneeEnregistrement, select').first
                 if select_element.count() > 0:
                     select_element.select_option(label=str(yr))
@@ -161,13 +161,13 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                         try:
                             page.wait_for_selector("#gridDossiersEnregistres table, #gridDossiersEnregistres a", timeout=20000)
                         except PlaywrightTimeoutError:
-                            log_msg(f"[-] Timeout waiting for year {yr} grid.", log_callback)
+                            log_msg(f"[-] انتهى وقت الانتظار لجدول السنة {yr}.", log_callback)
                             continue
                     else:
-                        log_msg("[-] Load button not found.", log_callback)
+                        log_msg("[-] زر التحميل غير موجود.", log_callback)
                         continue
                 else:
-                    log_msg("[-] Year dropdown not found.", log_callback)
+                    log_msg("[-] قائمة السنوات غير موجودة.", log_callback)
                     continue
                 
                 # Search for the expertise registry row
@@ -193,7 +193,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                 if target_row:
                     link = target_row.locator('*[onclick*="ExportToExcel"], img[src*="excel"], a:has-text("تحميل"), input[type="image"]').first
                     if link.count() > 0:
-                        log_msg(f"[*] Downloading file for {yr}...", log_callback)
+                        log_msg(f"[*] جاري تنزيل ملف السنة {yr}...", log_callback)
                         try:
                             with page.expect_download(timeout=90000) as download_info:
                                 link.click(force=True)
@@ -202,7 +202,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                             file_path = os.path.join(output_dir, file_name)
                             download.save_as(file_path)
                             downloaded_files[yr] = file_path
-                            log_msg(f"[+] Downloaded: {file_name}", log_callback)
+                            log_msg(f"[+] تم التنزيل: {file_name}", log_callback)
                         except Exception as e:
                             error_msg = f"فشل تحميل ملف الإحصائيات لسنة {yr}: {e}. يرجى التحقق من الاتصال والمحاولة مرة أخرى."
                             log_msg(f"[-] {error_msg}", log_callback)
@@ -217,7 +217,7 @@ def download_stats_files(target_year, output_dir="data/stats_downloads", debug=F
                     raise RuntimeError(error_msg)
                     
         except Exception as e:
-            log_msg(f"[-] Scraper error: {e}", log_callback)
+            log_msg(f"[-] خطأ في الجلب: {e}", log_callback)
             raise e
         finally:
             browser.close()
@@ -532,13 +532,13 @@ def calculate_expert_stats(target_year, download_dir="data/stats_downloads", deb
                             
         avg_duration = round(sum(durations) / len(durations)) if durations else 0
 
-    log_msg(f"[+] Total Registered (المسجل): {registered}", log_callback)
-    log_msg(f"[+] Total Active (الرائج): {active}", log_callback)
-    log_msg(f"[+] Total Completed (المنجز): {munjaz}", log_callback)
-    log_msg(f"[+] Total Closed (المغلق): {muglaq}", log_callback)
-    log_msg(f"[+] Total Remaining (الباقي): {remaining}", log_callback)
-    log_msg(f"[+] Average Duration (متوسط المدة): {avg_duration} days", log_callback)
-    log_msg(f"[+] Date Range: {start_date_str} to {end_date_str}", log_callback)
+    log_msg(f"[+] إجمالي المسجل: {registered}", log_callback)
+    log_msg(f"[+] إجمالي الرائج: {active}", log_callback)
+    log_msg(f"[+] إجمالي المنجز: {munjaz}", log_callback)
+    log_msg(f"[+] إجمالي المغلق: {muglaq}", log_callback)
+    log_msg(f"[+] إجمالي الباقي: {remaining}", log_callback)
+    log_msg(f"[+] متوسط المدة: {avg_duration} يوم", log_callback)
+    log_msg(f"[+] الفترة من: {start_date_str} إلى {end_date_str}", log_callback)
     
     return {
         "registered": registered,

@@ -32,7 +32,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 pass
 
     # Clear existing xlsx files in the target directory to avoid stale duplicates
-    log(f"[*] Cleaning download directory: {target_dir}")
+    log(f"[*] جاري تنظيف مجلد التحميل: {target_dir}")
     if os.path.exists(target_dir):
         for item in os.listdir(target_dir):
             if item.lower().endswith('.xlsx'):
@@ -43,8 +43,8 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                     log(f"[-] {error_msg}")
                     sys.exit(1)
                     
-    log(f"[*] Starting sync for year {year}...")
-    log(f"[*] Target directory: {target_dir}")
+    log(f"[*] بدء المزامنة للسنة {year}...")
+    log(f"[*] المجلد المستهدف: {target_dir}")
     
     with sync_playwright() as p:
         # Launch browser (headless=False if debug is True so user can see what's happening)
@@ -64,7 +64,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             )
         except Exception as e:
             if "Executable doesn't exist" in str(e) or "Looks like Playwright was just installed" in str(e) or "playwright install" in str(e):
-                log("[*] Chromium browser not found. Installing, please wait... (This may take a few minutes)")
+                log("[*] متصفح Chromium غير موجود. جاري التثبيت، يرجى الانتظار... (قد يستغرق بضع دقائق)")
                 try:
                     import sys
                     import playwright.__main__
@@ -72,14 +72,14 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                     sys.argv = ["playwright", "install", "chromium"]
                     playwright.__main__.main()
                     sys.argv = orig_argv
-                    log("[+] Chromium browser installed successfully! Retrying launch...")
+                    log("[+] تم تثبيت المتصفح بنجاح! جاري إعادة التشغيل...")
                     browser = p.chromium.launch(
                         headless=not debug, 
                         slow_mo=500 if debug else 0,
                         args=chromium_args
                     )
                 except Exception as install_err:
-                    log(f"[-] Browser installation failed: {install_err}")
+                    log(f"[-] فشل تثبيت المتصفح: {install_err}")
                     raise e
             else:
                 raise e
@@ -87,11 +87,11 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
         page = context.new_page()
         
         try:
-            log("[*] Opening login page...")
+            log("[*] جاري فتح صفحة تسجيل الدخول...")
             page.goto("http://10.250.1.26/", wait_until="domcontentloaded", timeout=60000)
             
             # --- 1. Login ---
-            log(f"[*] Attempting to log in with {username}...")
+            log(f"[*] محاولة تسجيل الدخول باسم {username}...")
             # Wait for all visible inputs
             page.locator('input:not([type="hidden"]):not([type="submit"])').first.wait_for(timeout=10000)
             all_inputs = page.locator('input:not([type="hidden"]):not([type="submit"])').all()
@@ -110,7 +110,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 else:
                     password_input.press("Enter")
             else:
-                log("[-] Could not find enough input fields. Trying fallback method...")
+                log("[-] لم يتم العثور على الحقول الكافية. جاري محاولة طريقة بديلة...")
                 page.get_by_placeholder("اسم المستخدم").fill(username)
                 page.get_by_placeholder("كلمة المرور").fill(password)
                 page.keyboard.press("Enter")
@@ -121,7 +121,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             except PlaywrightTimeoutError:
                 # If networkidle times out, check if we moved past the login page
                 if page.locator('input[type="password"]').count() > 0:
-                    log("[-] Still on login page, forcing submit button click...")
+                    log("[-] لا نزال في صفحة تسجيل الدخول، جاري محاولة النقر الإجباري على زر الدخول...")
                     # Fallback click
                     page.locator('input[type="submit"], button:has-text("دخول"), input[value="دخول"]').first.click(force=True)
                     try:
@@ -132,10 +132,10 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             if page.locator('input[type="password"]').count() > 0 or "Login" in page.url:
                 raise Exception("فشل تسجيل الدخول. يرجى التحقق من اسم المستخدم وكلمة المرور.")
                         
-            log("[+] Logged in successfully.")
+            log("[+] تم تسجيل الدخول بنجاح.")
             
             # --- 2. Navigate to RegistreDossier ---
-            log("[*] Navigating to Registries page...")
+            log("[*] جاري الانتقال إلى صفحة السجلات...")
             page.goto("http://10.250.1.26/Outils/Productivite/RegistreDossierResponsable", wait_until="domcontentloaded", timeout=30000)
             try:
                 page.wait_for_load_state("networkidle", timeout=3000)
@@ -143,35 +143,35 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                 pass # Just proceed if networkidle hangs
             
             # --- 3. Select Year ---
-            log(f"[*] Selecting year {year}...")
+            log(f"[*] جاري اختيار السنة {year}...")
             # Try to find a select element
             select_element = page.locator('select#AnneeEnregistrement, select').first
             if select_element.count() > 0:
                 select_element.select_option(label=str(year))
-                log(f"[+] Year {year} selected.")
+                log(f"[+] تم اختيار السنة {year}.")
                 
                 # Now we must click the load button
                 load_btn = page.locator('#charger, input[value="تحميل لائحة السجلات"]').first
                 if load_btn.count() > 0:
                     load_btn.click()
-                    log("[*] Loading registries grid, please wait...")
+                    log("[*] جاري تحميل جدول السجلات، يرجى الانتظار...")
                     # Wait for the grid to populate (it should have a table inside)
                     try:
                         page.wait_for_selector("#gridDossiersEnregistres table, #gridDossiersEnregistres a", timeout=20000)
                     except PlaywrightTimeoutError:
-                        log("[-] Timeout waiting for grid. It might be empty or there's a connection issue.")
+                        log("[-] انتهى وقت الانتظار للجدول. قد يكون فارغاً أو هناك مشكلة في الاتصال.")
                 else:
-                    log("[-] Could not find the load button.")
+                    log("[-] لم يتم العثور على زر التحميل.")
             else:
-                log("[-] Could not find the year dropdown.")
+                log("[-] لم يتم العثور على قائمة اختيار السنة.")
             
             # --- DEBUG: Save HTML to inspect if needed ---
             with open("debug_registre_page.html", "w", encoding="utf-8") as f:
                 f.write(page.content())
-            log("[*] Saved debug_registre_page.html in case of errors.")
+            log("[*] تم حفظ ملف debug_registre_page.html للفحص في حالة حدوث أخطاء.")
             
             # --- 4. Download Files ---
-            log("[*] Searching for download links...")
+            log("[*] جاري البحث عن روابط التحميل...")
             
             # Let's find headers first
             headers = []
@@ -244,7 +244,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                         'count': None
                     })
             
-            log(f"[*] Found {len(download_tasks)} potential registries.")
+            log(f"[*] تم العثور على {len(download_tasks)} سجل محتمل.")
             
             downloaded_count = 0
             import re
@@ -268,10 +268,10 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                         is_empty = True
                 
                 if is_empty:
-                    log(f"[*] Registry {display_index} ({reg_name}): Skipped (empty - 0 files).")
+                    log(f"[*] السجل {display_index} ({reg_name}): تم التخطي (فارغ - 0 ملفات).")
                     continue
                 
-                log(f"[*] Registry {display_index} ({reg_name}): Downloading...")
+                log(f"[*] السجل {display_index} ({reg_name}): جاري التنزيل...")
                 
                 try:
                     with page.expect_download(timeout=15000) as download_info:
@@ -288,25 +288,25 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
                         
                     file_path = os.path.join(target_dir, file_name)
                     download.save_as(file_path)
-                    log(f"[+] Registry {display_index} ({reg_name}): Successfully downloaded: {file_name}")
+                    log(f"[+] السجل {display_index} ({reg_name}): تم التنزيل بنجاح: {file_name}")
                     downloaded_count += 1
                     
                 except PlaywrightTimeoutError:
-                    error_msg = f"Registry {display_index} ({reg_name}): Did not trigger a download (Timeout). Please check your connection or try again."
+                    error_msg = f"السجل {display_index} ({reg_name}): لم يتم بدء التنزيل (انتهى الوقت). يرجى التحقق من الاتصال والمحاولة مرة أخرى."
                     log(f"[-] {error_msg}")
                     raise RuntimeError(error_msg)
                 except Exception as e:
-                    error_msg = f"Registry {display_index} ({reg_name}): Error during download: {e}. Please check and try again."
+                    error_msg = f"السجل {display_index} ({reg_name}): خطأ أثناء التنزيل: {e}. يرجى التحقق والمحاولة مرة أخرى."
                     log(f"[-] {error_msg}")
                     raise RuntimeError(error_msg)
                     
-            log(f"\n[+] Operation completed. Downloaded {downloaded_count} files successfully into {target_dir}")
+            log(f"\n[+] اكتملت العملية. تم تنزيل {downloaded_count} ملف بنجاح إلى المجلد {target_dir}")
             
         except Exception as e:
             log(f"[-] خطأ غير متوقع: {e}")
             # Take screenshot for debugging
             page.screenshot(path="debug_error.png")
-            log("[*] Captured error screenshot in debug_error.png")
+            log("[*] تم التقاط صورة للخطأ وحفظها في debug_error.png")
             sys.exit(1)
             
         finally:
