@@ -3194,12 +3194,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const columns = Array.from(columnsSet);
 
-        // Build header
+        // Build header (two rows: one for titles, one for filters)
+        searchAllTableHeadRow.innerHTML = ''; // Ensure it's empty
+        const filterRow = document.createElement('tr');
+        
         columns.forEach(col => {
             const th = document.createElement('th');
             th.textContent = col;
             searchAllTableHeadRow.appendChild(th);
+            
+            // Create filter input for this column
+            const filterTh = document.createElement('th');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = `بحث في ${col}...`;
+            input.className = 'form-control';
+            input.style.width = '100%';
+            input.style.minWidth = '120px';
+            input.style.padding = '4px 8px';
+            input.style.fontSize = '0.85rem';
+            input.style.fontWeight = 'normal';
+            filterTh.appendChild(input);
+            filterRow.appendChild(filterTh);
         });
+        
+        // Append the filter row to the thead (which already contains searchAllTableHeadRow)
+        const thead = document.querySelector('#searchAllTable thead');
+        // Remove any existing secondary rows to avoid duplicates on re-init
+        while (thead.children.length > 1) {
+            thead.removeChild(thead.lastChild);
+        }
+        thead.appendChild(filterRow);
 
         // Build body
         data.forEach(row => {
@@ -3219,14 +3244,21 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             scrollX: true,
             pageLength: 25,
+            orderCellsTop: true, // Crucial for column filters to work with sorting
             order: [], // no initial sort
-            dom: '<"top"f>rt<"bottom"lip><"clear">'
+            dom: '<"top"f>rt<"bottom"lip><"clear">',
+            mark: true // Enable datatables.mark.js highlighting
         });
         
-        // Highlight logic happens natively using DataTables search if needed,
-        // but user wanted 'cntrl f' like highlighting.
-        // DataTables has a plugin for highlight (datatables.mark.js), 
-        // but basic search is powerful enough.
+        // Apply column specific search
+        searchAllDataTable.columns().every(function () {
+            const that = this;
+            $('input', filterRow.children[this.index()]).on('keyup change clear', function () {
+                if (that.search() !== this.value) {
+                    that.search(this.value).draw();
+                }
+            });
+        });
     }
 
     let lastSearchLogCount = 0;
