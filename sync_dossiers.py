@@ -35,7 +35,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
     log(f"[*] جاري تنظيف مجلد التحميل: {target_dir}")
     if os.path.exists(target_dir):
         for item in os.listdir(target_dir):
-            if item.lower().endswith('.xlsx'):
+            if item.lower().endswith('.xlsx') and not item.startswith('stats_'):
                 try:
                     os.remove(os.path.join(target_dir, item))
                 except Exception as e:
@@ -307,7 +307,7 @@ def sync_dossiers(year, output_dir="data/downloads", debug=False, log_callback=N
             # Take screenshot for debugging
             page.screenshot(path="debug_error.png")
             log("[*] تم التقاط صورة للخطأ وحفظها في debug_error.png")
-            sys.exit(1)
+            raise Exception(str(e))
             
         finally:
             browser.close()

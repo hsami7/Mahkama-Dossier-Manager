@@ -43,31 +43,35 @@ def main():
         print("[*] بدء جلب البيانات من محاكم...")
         try:
             print("[*] جلب ملفات الإحصائيات (Stats)...")
-            download_stats_files(
-                target_year=args.year,
-                output_dir=args.download_dir,
-                debug=False,
-                start_date=args.start_date,
-                end_date=args.end_date,
-                username=args.username,
-                password=args.password
-            )
-            
-            print("[*] جلب ملفات السجلات (Dossiers)...")
-            for yr in years:
-                sync_dossiers(
-                    year=yr,
+            try:
+                download_stats_files(
+                    target_year=args.year,
                     output_dir=args.download_dir,
                     debug=False,
+                    start_date=args.start_date,
+                    end_date=args.end_date,
                     username=args.username,
                     password=args.password
                 )
+            except Exception as e:
+                print(f"[-] تحذير: خطأ في جلب الإحصائيات: {str(e)}")
+            
+            print("[*] جلب ملفات السجلات (Dossiers)...")
+            for yr in years:
+                try:
+                    sync_dossiers(
+                        year=yr,
+                        output_dir=args.download_dir,
+                        debug=False,
+                        username=args.username,
+                        password=args.password
+                    )
+                except Exception as e:
+                    print(f"[-] تحذير: خطأ في جلب السجلات لسنة {yr}: {str(e)}")
                 
-            print("[+] تم جلب البيانات بنجاح.")
+            print("[+] انتهت محاولة جلب البيانات.")
         except Exception as e:
-            print(f"[-] خطأ أثناء جلب البيانات: {str(e)}")
-            print("ERROR:" + str(e))
-            sys.exit(1)
+            print(f"[-] خطأ غير متوقع أثناء جلب البيانات: {str(e)}")
             
     print("[*] جاري قراءة الملفات المحلية...")
     all_rows = []
