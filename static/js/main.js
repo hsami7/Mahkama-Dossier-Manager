@@ -1737,7 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlay) overlay.style.display = 'none';
 
                     btnCalculateStats.disabled = false;
-                    btnCalculateStats.innerText = originalText;
+                    btnCalculateStats.innerText = 'تحديث';
                     const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
                     if (btnCalcStatsLocal) {
                         btnCalcStatsLocal.disabled = false;
