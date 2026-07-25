@@ -3337,7 +3337,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const columnsSet = new Set();
         data.forEach(row => Object.keys(row).forEach(key => columnsSet.add(key)));
-        searchAllTableColumns = Array.from(columnsSet);
+        
+        const priorityCols = [
+            'الرقم الترتيبي',
+            'الرقم الكامل للملف',
+            'رقم الملف',
+            'نوع الملف',
+            'تاريخ التسجيل',
+            'القاضي/المستشار المقرر',
+            'تاريخ الجلسة',
+            'مآل الملف'
+        ];
+        searchAllTableColumns = Array.from(columnsSet).sort((a, b) => {
+            const indexA = priorityCols.indexOf(a);
+            const indexB = priorityCols.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return 0;
+        });
         searchAllTableData = data;
 
         // Build header row with filter button hint (dropdowns created dynamically on click)
