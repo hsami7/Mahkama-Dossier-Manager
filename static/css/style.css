@@ -867,8 +867,9 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus {
 .search-all-table-card .dataTables_info,
 .search-all-table-card .dataTables_paginate {
     position: sticky !important;
-    right: 0 !important;
-    left: 0 !important;
-    width: calc(100vw - 120px) !important;
+    right: 20px !important;
+    left: 20px !important;
     z-index: 100;
+    width: max-content !important;
+    display: inline-block;
 }
