@@ -3367,7 +3367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize DataTable (ordering disabled — we handle it manually)
         searchAllDataTable = $('#searchAllTable').DataTable({
             language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json' },
-            scrollX: true,
+            scrollX: false,
             pageLength: 25,
             ordering: false,
             order: [],
@@ -3496,7 +3496,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dd = document.createElement('div');
         dd.className = 'search-filter-dropdown open';
         dd.setAttribute('data-col', colIdx);
-        dd.style.cssText = `position:fixed;top:${rect.bottom + 4}px;left:${Math.max(4, rect.left)}px;right:auto;z-index:10000;`;
+        let leftStyle = `left:${Math.max(4, rect.left + window.scrollX)}px;right:auto;`;
+        if (rect.left + 300 > window.innerWidth) {
+            leftStyle = `right:${Math.max(4, window.innerWidth - rect.right - window.scrollX)}px;left:auto;`;
+        }
+        dd.style.cssText = `position:absolute;top:${rect.bottom + window.scrollY + 4}px;${leftStyle}z-index:10000;`;
 
         const activeDir = (searchAllSort && searchAllSort.colIdx === colIdx) ? searchAllSort.dir : null;
         const ascActive = activeDir === 'asc' ? 'active' : '';
