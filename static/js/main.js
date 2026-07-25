@@ -708,16 +708,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentAbout = document.getElementById('settingsContentAbout');
     const formLimits = document.getElementById('settingsFormLimits');
     const formThresholds = document.getElementById('settingsFormThresholds');
-    
+
     // Account settings elements
     const savedUsernameDossier = document.getElementById('savedUsernameDossier');
     const savedPasswordDossier = document.getElementById('savedPasswordDossier');
     const savedUsernameStats = document.getElementById('savedUsernameStats');
     const savedPasswordStats = document.getElementById('savedPasswordStats');
     const btnSaveAccount = document.getElementById('btnSaveAccount');
-    
+
     // Global var to store credentials
-    let savedCredentials = { 
+    let savedCredentials = {
         dossier_username: '', dossier_password: '',
         stats_username: '', stats_password: ''
     };
@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
             savedCredentials.dossier_password = data.dossier_password || '';
             savedCredentials.stats_username = data.stats_username || '';
             savedCredentials.stats_password = data.stats_password || '';
-            
+
             if (savedUsernameDossier) savedUsernameDossier.value = savedCredentials.dossier_username;
             if (savedPasswordDossier) savedPasswordDossier.value = savedCredentials.dossier_password;
             if (savedUsernameStats) savedUsernameStats.value = savedCredentials.stats_username;
@@ -1159,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     populateSearchYearSelects(data.years);
                 }
             })
-            .catch(() => {});
+            .catch(() => { });
 
         const updateSearchYearOptions = () => {
             const selects = Array.from(searchYearsContainer.querySelectorAll('.search-year-select'));
@@ -1283,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logsConsole) logsConsole.appendChild(historyDiv);
                     });
                     lastLogCount = data.logs.length;
-                    
+
                     if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
                     if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
                 }
@@ -1337,16 +1337,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise((resolve) => {
             const modal = document.getElementById('loginModal');
             if (!modal) return resolve(null);
-            
+
             const usernameInput = document.getElementById('loginUsername');
             const passwordInput = document.getElementById('loginPassword');
-            
+
             usernameInput.value = '';
             passwordInput.value = '';
-            
+
             const saveCheckbox = document.getElementById('loginSaveCredentials');
             if (saveCheckbox) saveCheckbox.checked = false;
-            
+
             // Pre-fill if we have saved credentials
             if (type === 'dossier') {
                 if (savedCredentials && savedCredentials.dossier_username && savedCredentials.dossier_password) {
@@ -1373,25 +1373,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     passwordInput.value = savedCredentials.stats_password;
                 }
             }
-            
+
             modal.style.display = 'flex';
-            
+
             const closeBtn = document.getElementById('btnLoginClose');
             const cancelBtn = document.getElementById('btnLoginCancel');
             const startBtn = document.getElementById('btnLoginStart');
-            
+
             const cleanup = () => {
                 modal.style.display = 'none';
                 closeBtn.removeEventListener('click', onCancel);
                 cancelBtn.removeEventListener('click', onCancel);
                 startBtn.removeEventListener('click', onStart);
             };
-            
+
             const onCancel = () => {
                 cleanup();
                 resolve(null);
             };
-            
+
             const onStart = async () => {
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value;
@@ -1399,7 +1399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور.');
                     return;
                 }
-                
+
                 if (saveCheckbox && saveCheckbox.checked) {
                     let payload = { ...savedCredentials };
                     if (type === 'dossier') {
@@ -1409,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         payload.stats_username = username;
                         payload.stats_password = password;
                     }
-                    
+
                     try {
                         const res = await fetch('/api/credentials', {
                             method: 'POST',
@@ -1433,11 +1433,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Failed to save credentials from modal:', e);
                     }
                 }
-                
+
                 cleanup();
                 resolve({ username, password });
             };
-            
+
             closeBtn.addEventListener('click', onCancel);
             cancelBtn.addEventListener('click', onCancel);
             startBtn.addEventListener('click', onStart);
@@ -1471,11 +1471,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        years: uniqueYears, 
+                    body: JSON.stringify({
+                        years: uniqueYears,
                         directory: folderPath,
                         username: credentials.username,
-                        password: credentials.password 
+                        password: credentials.password
                     })
                 });
                 const data = await res.json();
@@ -1723,7 +1723,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logsConsole) logsConsole.appendChild(historyDiv);
                     });
                     lastStatsLogCount = data.logs.length;
-                    
+
                     if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
                     if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
                 }
@@ -1781,7 +1781,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         document.getElementById('statsStartDateSection').textContent = data.result.start_date || '--';
                         document.getElementById('statsEndDateSection').textContent = data.result.end_date || '--';
-                        
+
                         window.lastStatsResult = data.result;
 
                         const statsSection = document.getElementById('statsResultsSection');
@@ -1890,13 +1890,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 showAlert('حدث خطأ أثناء الاتصال بالخادم لاحتساب الإحصائيات.');
                 if (overlay) overlay.style.display = 'none';
-                    btnCalculateStats.disabled = false;
-                    btnCalculateStats.innerText = 'تحديث';
-                    const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
-                    if (btnCalcStatsLocal) {
-                        btnCalcStatsLocal.disabled = false;
-                        btnCalcStatsLocal.innerText = 'آخر حفظ';
-                    }
+                btnCalculateStats.disabled = false;
+                btnCalculateStats.innerText = 'تحديث';
+                const btnCalcStatsLocal = document.getElementById('btnCalculateStatsLocal');
+                if (btnCalcStatsLocal) {
+                    btnCalcStatsLocal.disabled = false;
+                    btnCalcStatsLocal.innerText = 'آخر حفظ';
+                }
                 operationRunning = false;
             }
         });
@@ -1998,7 +1998,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dossierListModal = document.getElementById('dossierListModal');
     const btnCloseDossierListModal = document.getElementById('btnCloseDossierListModal');
-    
+
     if (btnCloseDossierListModal) {
         btnCloseDossierListModal.addEventListener('click', () => {
             if (dossierListModal) dossierListModal.style.display = 'none';
@@ -2029,14 +2029,14 @@ document.addEventListener('DOMContentLoaded', () => {
     bindDossierListSearch('dossierListSearch', 'dossierListTbody');
     bindDossierListSearch('statsDossierListSearch', 'statsDossierListTbody');
 
-    window.showStatDossiers = function(type) {
+    window.showStatDossiers = function (type) {
         if (!window.lastStatsResult) return;
-        
+
         let list = [];
         let title = "قائمة الملفات";
         const isRemaining = type === 'remaining';
-        
-        switch(type) {
+
+        switch (type) {
             case 'registered':
                 list = window.lastStatsResult.registered_list || [];
                 title = "قائمة الملفات المسجلة";
@@ -2058,9 +2058,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 title = "قائمة الملفات المتبقية";
                 break;
         }
-        
+
         document.getElementById('dossierListModalTitle').textContent = title;
-        
+
         // Show/hide the next_session column header & adjust col widths
         const headerCells = document.querySelectorAll('#dossierListModal .dossiers-table th');
         if (headerCells.length >= 6) {
@@ -2085,11 +2085,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 cols[5].style.width = '0%';
             }
         }
-        
+
         const tbody = document.getElementById('dossierListTbody');
         tbody.innerHTML = '';
         const colspan = isRemaining ? 6 : 5;
-        
+
         if (list.length === 0) {
             tbody.innerHTML = '<tr><td colspan="' + colspan + '" style="text-align: center; padding: 15px;">لا توجد ملفات</td></tr>';
         } else {
@@ -2116,7 +2116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.appendChild(tr);
             });
         }
-        
+
         const searchInput = document.getElementById('dossierListSearch');
         if (searchInput) { searchInput.value = ''; searchInput.dispatchEvent(new Event('input')); }
         if (dossierListModal) {
@@ -2124,15 +2124,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.showStatDossiersSection = function(type) {
+    window.showStatDossiersSection = function (type) {
         if (!window.lastStatsResult) return;
-        
+
         let list = [];
         let label = "";
         let count = 0;
         const isRemaining = type === 'remaining';
-        
-        switch(type) {
+
+        switch (type) {
             case 'registered':
                 list = window.lastStatsResult.registered_list || [];
                 label = "المسجلة";
@@ -2165,7 +2165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (titleEl) {
             titleEl.textContent = `قائمة الملفات ${label} - مكتب الخبرة - سنة ${year} (${count})`;
         }
-        
+
         // Show/hide the next_session column header in inline table & adjust col widths
         const headerCells = document.querySelectorAll('#statsDossierListContainer .dossiers-table th');
         if (headerCells.length >= 6) {
@@ -2190,12 +2190,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 cols[5].style.width = '0%';
             }
         }
-        
+
         const tbody = document.getElementById('statsDossierListTbody');
         if (!tbody) return;
         tbody.innerHTML = '';
         const colspan = isRemaining ? 6 : 5;
-        
+
         if (list.length === 0) {
             tbody.innerHTML = '<tr><td colspan="' + colspan + '" style="text-align: center; padding: 30px; color: #94a3b8; font-size: 1.05rem;">لا توجد ملفات</td></tr>';
         } else {
@@ -2221,7 +2221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.appendChild(tr);
             });
         }
-        
+
         const container = document.getElementById('statsDossierListContainer');
         if (container) {
             container.style.display = 'block';
@@ -2381,34 +2381,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const { isRemaining, title: listTitle } = table;
-            const now = new Date();
-            const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-            const totalPrinted = rows.length;
+        const now = new Date();
+        const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+        const totalPrinted = rows.length;
 
-            const headers = [
-                'رقم ملف الخبرة',
-                'الرقم الكامل للملف',
-                'تاريخ التسجيل',
-                'القاضي أو المستشار المقرّر',
-                'الخبير المعين'
-            ];
-            if (isRemaining) headers.push('تاريخ الجلسة المقبلة');
+        const headers = [
+            'رقم ملف الخبرة',
+            'الرقم الكامل للملف',
+            'تاريخ التسجيل',
+            'القاضي أو المستشار المقرّر',
+            'الخبير المعين'
+        ];
+        if (isRemaining) headers.push('تاريخ الجلسة المقبلة');
 
-            let rowsHtml = '';
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (!cells || cells.length < 5) return;
-                rowsHtml += '<tr>';
-                const indices = isRemaining ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
-                indices.forEach(idx => {
-                    const txt = cells[idx] ? cells[idx].innerText.trim() : '-';
-                    rowsHtml += `<td style="border:1px solid #cbd5e1;padding:6px;text-align:center;">${txt}</td>`;
-                });
-                rowsHtml += '</tr>';
+        let rowsHtml = '';
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (!cells || cells.length < 5) return;
+            rowsHtml += '<tr>';
+            const indices = isRemaining ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
+            indices.forEach(idx => {
+                const txt = cells[idx] ? cells[idx].innerText.trim() : '-';
+                rowsHtml += `<td style="border:1px solid #cbd5e1;padding:6px;text-align:center;">${txt}</td>`;
             });
+            rowsHtml += '</tr>';
+        });
 
-            const colspan = isRemaining ? 6 : 5;
-            const excelTemplate = `
+        const colspan = isRemaining ? 6 : 5;
+        const excelTemplate = `
                 <html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
                 <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -2479,25 +2479,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 </html>
             `;
 
-            const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            const filename = `قائمة_الملفات_${stamp}.xls`;
+        const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const filename = `قائمة_الملفات_${stamp}.xls`;
 
-            fetch('/api/export-excel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: excelTemplate, filename })
+        fetch('/api/export-excel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: excelTemplate, filename })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
+                } else if (data.cancelled) {
+                    console.log('Export cancelled by user.');
+                } else {
+                    showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
+                }
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
-                    } else if (data.cancelled) {
-                        console.log('Export cancelled by user.');
-                    } else {
-                        showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
-                    }
-                })
-                .catch(err => showAlert('❌ فشل تصدير الملف: ' + err.message));
+            .catch(err => showAlert('❌ فشل تصدير الملف: ' + err.message));
     }
 
     const btnPrintDossierListModal = document.getElementById('btnPrintDossierListModal');
@@ -2795,34 +2795,34 @@ document.addEventListener('DOMContentLoaded', () => {
     </table>
     <div class="footer" style="margin-top: 25px; text-align: left; font-size: 1.1rem; padding-left: 50px;">
         حرر في: ${(() => {
-                    const d = new Date();
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const year = d.getFullYear();
-                    return `${day}/${month}/${year}`;
-                })()}
+                        const d = new Date();
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        return `${day}/${month}/${year}`;
+                    })()}
     </div>
                 `;
 
-            fetch('/api/log-client-event', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `طباعة تقرير إحصائي (القسم): ${pdfTitle.trim()}` })
-            }).catch(() => { });
+                fetch('/api/log-client-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `طباعة تقرير إحصائي (القسم): ${pdfTitle.trim()}` })
+                }).catch(() => { });
 
-            const printImg = printContainer.querySelector('img');
-            const doPrint = () => {
-                window.print();
-                printContainer.innerHTML = '';
-                document.title = originalTitle;
-            };
+                const printImg = printContainer.querySelector('img');
+                const doPrint = () => {
+                    window.print();
+                    printContainer.innerHTML = '';
+                    document.title = originalTitle;
+                };
 
-            if (printImg && !printImg.complete) {
-                printImg.onload = doPrint;
-                printImg.onerror = doPrint;
-            } else {
-                setTimeout(doPrint, 250);
-            }
+                if (printImg && !printImg.complete) {
+                    printImg.onload = doPrint;
+                    printImg.onerror = doPrint;
+                } else {
+                    setTimeout(doPrint, 250);
+                }
             }
         });
     }
@@ -3287,13 +3287,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSearchAllReturnHome = document.getElementById('btnSearchAllReturnHome');
     const searchAllTableHeadRow = document.getElementById('searchAllTableHeadRow');
     const searchAllTableBody = document.getElementById('searchAllTableBody');
-    
+
     let searchAllDataTable = null;
     let searchPollInterval = null;
 
     if (searchRangeRadios.length) {
         searchRangeRadios.forEach(r => {
-            r.addEventListener('change', function() {
+            r.addEventListener('change', function () {
                 if (this.value === 'year') {
                     searchYearWrapper.style.display = 'block';
                     searchCustomDateWrapper.style.display = 'none';
@@ -3337,25 +3337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const columnsSet = new Set();
         data.forEach(row => Object.keys(row).forEach(key => columnsSet.add(key)));
-        
-        const priorityCols = [
-            'الرقم الترتيبي',
-            'الرقم الكامل للملف',
-            'رقم الملف',
-            'نوع الملف',
-            'تاريخ التسجيل',
-            'القاضي/المستشار المقرر',
-            'تاريخ الجلسة',
-            'مآل الملف'
-        ];
-        searchAllTableColumns = Array.from(columnsSet).sort((a, b) => {
-            const indexA = priorityCols.indexOf(a);
-            const indexB = priorityCols.indexOf(b);
-            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-            if (indexA !== -1) return -1;
-            if (indexB !== -1) return 1;
-            return 0;
-        });
+        searchAllTableColumns = Array.from(columnsSet);
         searchAllTableData = data;
 
         // Build header row with filter button hint (dropdowns created dynamically on click)
@@ -3631,12 +3613,12 @@ document.addEventListener('DOMContentLoaded', () => {
             liveSyncLogs.appendChild(msg);
             lastSearchLogCount = 1;
         }
-        
+
         searchPollInterval = setInterval(async () => {
             try {
                 const res = await fetch('/api/search-all-dossiers/status');
                 const data = await res.json();
-                
+
                 // Append new logs
                 if (data.logs && data.logs.length > lastSearchLogCount) {
                     const isLiveSyncAtBottom = liveSyncLogs && (liveSyncLogs.scrollHeight - liveSyncLogs.clientHeight - liveSyncLogs.scrollTop < 50);
@@ -3661,15 +3643,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logsConsole) logsConsole.appendChild(historyDiv);
                     });
                     lastSearchLogCount = data.logs.length;
-                    
+
                     if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
                     if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
-                    
+
                     if (overlayText) {
                         overlayText.textContent = data.logs[data.logs.length - 1];
                     }
                 }
-                
+
                 if (!data.active) {
                     clearInterval(searchPollInterval);
                     searchPollInterval = null;
@@ -3682,7 +3664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnSearchAllLocal.disabled = false;
                         btnSearchAllLocal.innerText = 'آخر حفظ';
                     }
-                    
+
                     if (data.error || !data.result) {
                         showAlert('حدث خطأ أثناء جلب البيانات الشاملة. يرجى مراجعة السجل.');
                     } else if (data.result) {
@@ -3704,12 +3686,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const yearSelects = document.querySelectorAll('.search-year-select');
         const years = Array.from(yearSelects).map(s => s.value.trim()).filter(y => y);
         const uniqueYears = [...new Set(years)].map(y => parseInt(y));
-        
+
         const startDate = document.getElementById('searchStartDateInput')?.value;
         const endDate = document.getElementById('searchEndDateInput')?.value;
         const usernameInput = document.getElementById('savedUsernameStats');
         const passwordInput = document.getElementById('savedPasswordStats');
-        
+
         const payload = {
             local_only: localOnly,
             username: usernameInput ? usernameInput.value.trim() : '',
@@ -3736,17 +3718,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnSearchAllLocal.disabled = true;
                 btnSearchAllLocal.innerText = localOnly ? 'جاري القراءة من المحلي...' : 'جاري التحديث من البوابة...';
             }
-            
+
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) overlay.style.display = 'flex';
-            
+
             const res = await fetch('/api/search-all-dossiers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            
+
             if (data.error) {
                 showAlert(data.error);
                 if (overlay) overlay.style.display = 'none';
