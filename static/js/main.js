@@ -3671,7 +3671,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'none';
                         window.scrollTo(0, 0);
                         document.getElementById('landingSection').style.display = 'none';
-                        searchAllSection.style.display = 'block';
+                        searchAllSection.style.display = 'flex';
                         initSearchAllTable(data.result);
                     }
                 }
