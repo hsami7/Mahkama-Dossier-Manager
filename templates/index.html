@@ -402,7 +402,7 @@
                 نتائج البحث الشامل
             </h2>
 
-            <div style="overflow-x: auto; width: 100%;">
+            <div style="overflow-x: auto; overflow-y: auto; width: 100%; max-height: calc(100vh - 250px);">
                 <table id="searchAllTable" class="display nowrap" style="width:100%">
                     <thead>
                         <tr id="searchAllTableHeadRow">
@@ -901,7 +901,8 @@
             display: none;
             position: absolute;
             top: calc(100% + 8px);
-            right: auto;
+            right: 0;
+            left: auto;
             z-index: 1000;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
@@ -1078,6 +1079,11 @@
             background: #fee2e2;
             transform: translateY(-1px);
         }
+        #searchAllTable th, #searchAllTable td {
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+
 /* Hide DataTable's default sort arrows */
         #searchAllTable thead th.sorting,
         #searchAllTable thead th.sorting_asc,
