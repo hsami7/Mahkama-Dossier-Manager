@@ -1440,15 +1440,6 @@
             flex-direction: column;
         }
 
-        .search-filter-dropdown .search-filter-sort-section {
-            flex-shrink: 0;
-        }
-        .search-filter-dropdown .search-filter-divider {
-            flex-shrink: 0;
-        }
-        .search-filter-dropdown .search-filter-search {
-            flex-shrink: 0;
-        }
         .search-filter-dropdown .search-filter-actions {
             flex-shrink: 0;
         }
@@ -1469,76 +1460,8 @@
             display: flex;
         }
 
-        .search-filter-sort-section {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding-bottom: 8px;
-        }
-
-        .search-filter-sort-section .search-filter-sort-btn {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .search-filter-sort-btn {
-            background: transparent;
-            border: none;
-            padding: 8px 6px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.8rem;
-            color: #475569;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .search-filter-sort-btn:hover {
-            background: #f8fafc;
-            color: #0f172a;
-        }
-
-        .search-filter-sort-btn.active {
-            background: #eff6ff;
-            color: #2563eb;
-            font-weight: 600;
-        }
-
-        .search-filter-sort-section .search-filter-sort-clear {
-            flex: 0 0 100%;
-        }
-
-        .search-filter-sort-clear {
-            background: transparent;
-            border: none;
-            padding: 6px 10px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.8rem;
-            color: #ef4444;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            opacity: 0.8;
-        }
-
-        .search-filter-sort-clear:hover {
-            background: #fef2f2;
-            opacity: 1;
-        }
-
-        .search-filter-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 8px 0;
-            border-radius: 1px;
-        }
-
         .search-filter-dropdown .search-filter-search {
+            flex-shrink: 0;
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
@@ -1695,6 +1618,13 @@
         #searchAllTable thead th .dt-column-order {
             display: none !important;
             content: none !important;
+        }
+
+        #searchAllTable thead th .sort-indicator {
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            font-size: 0.85rem;
         }
 
         #searchAllTable thead th.sort-asc {

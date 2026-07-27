@@ -3246,13 +3246,14 @@ document.addEventListener('DOMContentLoaded', () => {
         searchAllTableColumns = Array.from(columnsSet);
         searchAllTableData = rows;
 
-        // Build header row
+        // Build header row with sort toggle on click + filter button
         searchAllTableHeadRow.innerHTML = '';
         searchAllTableColumns.forEach((col, idx) => {
             const th = document.createElement('th');
             th.style.position = 'relative';
             th.style.cursor = 'pointer';
-            th.innerHTML = `${col} <button class="search-filter-btn" data-col="${idx}">▼</button>`;
+            th.setAttribute('data-col-idx', idx);
+            th.innerHTML = `<span class="sort-indicator"></span> ${col} <button class="search-filter-btn" data-col="${idx}">▼</button>`;
             searchAllTableHeadRow.appendChild(th);
         });
 
@@ -3281,7 +3282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ordering: false,
             order: [],
             dom: '<"top"f>rt<"bottom"lip><"clear">',
-            mark: false,
+            mark: true,
             searchDelay: 400
         });
 
@@ -3374,6 +3375,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const span = document.createElement('span');
                 span.className = 'search-opt-label';
                 span.textContent = val;
+                span.title = val;
                 label.appendChild(cb);
                 label.appendChild(span);
                 optsDiv.appendChild(label);
@@ -3427,9 +3429,17 @@ document.addEventListener('DOMContentLoaded', () => {
         searchAllDataTable.draw();
 
         // Update sort visuals on header
-        const ths = document.querySelectorAll('#searchAllSection thead th');
-        ths.forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
-        if (ths[colIdx]) ths[colIdx].classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
+        document.querySelectorAll('#searchAllSection thead th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+            const ind = th.querySelector('.sort-indicator');
+            if (ind) ind.textContent = '';
+        });
+        const activeTh = document.querySelector(`#searchAllSection thead th[data-col-idx="${colIdx}"]`);
+        if (activeTh) {
+            activeTh.classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
+            const ind = activeTh.querySelector('.sort-indicator');
+            if (ind) ind.textContent = dir === 'asc' ? '▲' : '▼';
+        }
     }
 
     // Reusable filter dropdown (avoids destroy/recreate per open)
@@ -3438,12 +3448,6 @@ document.addEventListener('DOMContentLoaded', () => {
     searchFilterDropdown.style.cssText = 'position:fixed;z-index:10000;display:none;';
     let searchFilterDropdownVisible = false;
     searchFilterDropdown.innerHTML = `
-      <div class="search-filter-sort-section">
-        <button class="search-filter-sort-btn" data-dir="asc">▲ ترتيب تصاعدي</button>
-        <button class="search-filter-sort-btn" data-dir="desc">▼ ترتيب تنازلي</button>
-        <button class="search-filter-sort-clear" style="display:none">إلغاء الترتيب</button>
-      </div>
-      <div class="search-filter-divider"></div>
       <input class="search-filter-search" type="text" placeholder="بحث...">
       <div class="search-filter-options"></div>
       <div class="search-filter-actions">
@@ -3479,30 +3483,54 @@ document.addEventListener('DOMContentLoaded', () => {
         searchFilterDropdown.classList.add('visible');
         searchFilterDropdownVisible = true;
 
-        // Update sort button visuals
-        const activeDir = (searchAllSort && searchAllSort.colIdx === colIdx) ? searchAllSort.dir : null;
-        searchFilterDropdown.querySelectorAll('.search-filter-sort-btn').forEach(b => {
-            b.classList.toggle('active', b.getAttribute('data-dir') === activeDir);
-        });
-        const clearBtn = searchFilterDropdown.querySelector('.search-filter-sort-clear');
-        clearBtn.style.display = activeDir ? '' : 'none';
-
         // Reset search input and clear options so they rebuild on first populate
         searchFilterDropdown.querySelector('.search-filter-search').value = '';
         searchFilterDropdown.querySelector('.search-filter-options').innerHTML = '';
         populateSearchFilter(colIdx);
     }
 
-    // Open dropdown on header mousedown (scoped to #searchAllSection thead)
-    document.querySelector('#searchAllSection thead').addEventListener('mousedown', (e) => {
+    // Click on header text toggles sort (3-state: none → asc → desc → none)
+    document.querySelector('#searchAllSection thead').addEventListener('click', (e) => {
+        // Don't toggle sort when clicking the filter button or inside the dropdown
+        if (e.target.closest('.search-filter-btn')) return;
+        if (e.target.closest('.search-filter-dropdown')) return;
+
         const th = e.target.closest('th');
         if (!th) return;
 
-        const colIdx = Array.from(th.parentElement.children).indexOf(th);
-        if (colIdx < 0) return;
+        const colIdx = parseInt(th.getAttribute('data-col-idx'), 10);
+        if (isNaN(colIdx)) return;
 
-        // Toggle: if clicking same column's th, just close
-        if (searchFilterDropdownVisible && !e.target.closest('.search-filter-dropdown')) {
+        // Hide dropdown if open
+        if (searchFilterDropdownVisible) hideSearchFilterDropdown();
+
+        // 3-state toggle
+        if (searchAllSort && searchAllSort.colIdx === colIdx) {
+            if (searchAllSort.dir === 'asc') {
+                applySearchSort(colIdx, 'desc');
+            } else {
+                applySearchSort(colIdx, null);
+            }
+        } else {
+            applySearchSort(colIdx, 'asc');
+        }
+    });
+
+    // Click on ▼ button opens filter dropdown
+    document.querySelector('#searchAllSection thead').addEventListener('click', (e) => {
+        const btn = e.target.closest('.search-filter-btn');
+        if (!btn) return;
+
+        e.stopPropagation();
+
+        const colIdx = parseInt(btn.getAttribute('data-col'), 10);
+        if (isNaN(colIdx)) return;
+
+        const th = btn.closest('th');
+        if (!th) return;
+
+        // Toggle: if same column dropdown already open, close it
+        if (searchFilterDropdownVisible) {
             const currentCol = searchFilterDropdown.getAttribute('data-col');
             if (currentCol === String(colIdx)) {
                 hideSearchFilterDropdown();
@@ -3511,8 +3539,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hideSearchFilterDropdown();
         }
 
-        e.stopPropagation();
-        e.preventDefault();
         showSearchFilterDropdown(th, colIdx);
     });
 
@@ -3524,10 +3550,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hideSearchFilterDropdown();
     });
 
-    // Delegation for dropdown actions (sort buttons + select/clear + checkboxes)
+    // Delegation for dropdown actions (select/clear + checkboxes)
     document.querySelector('#searchAllSection').addEventListener('click', (e) => {
-        const sortBtn = e.target.closest('.search-filter-sort-btn');
-        const sortClear = e.target.closest('.search-filter-sort-clear');
         const selectAllBtn = e.target.closest('.search-filter-select-all');
         const clearBtn = e.target.closest('.search-filter-clear');
         const okBtn = e.target.closest('.search-filter-ok');
@@ -3536,20 +3560,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (okBtn) {
             e.stopPropagation();
             hideSearchFilterDropdown();
-            return;
-        }
-
-        if (sortBtn || sortClear) {
-            e.stopPropagation();
-            const colIdx = parseInt(searchFilterDropdown.getAttribute('data-col'), 10);
-            hideSearchFilterDropdown();
-            if (isNaN(colIdx)) return;
-
-            if (sortClear) {
-                applySearchSort(colIdx, null);
-            } else if (sortBtn) {
-                applySearchSort(colIdx, sortBtn.getAttribute('data-dir'));
-            }
             return;
         }
 
@@ -3578,12 +3588,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const dd = e.target.closest('.search-filter-dropdown');
         if (!dd) return;
         const colIdx = parseInt(dd.getAttribute('data-col'), 10);
-        dd.querySelector('.search-filter-search').value = '';
+        const searchInput = dd.querySelector('.search-filter-search');
+        const query = (searchInput.value || '').toLowerCase();
+        const allVals = getAllValues(colIdx);
         if (selectAllBtn) {
-            delete searchAllColFilters[colIdx];
+            if (query) {
+                // Only select values matching the search query
+                const matching = allVals.filter(v => v.toLowerCase().includes(query));
+                searchAllColFilters[colIdx] = matching.length < allVals.length ? new Set(matching) : null;
+            } else {
+                delete searchAllColFilters[colIdx];
+            }
         } else {
             searchAllColFilters[colIdx] = new Set();
         }
+        searchInput.value = '';
         const btn = document.querySelector(`.search-filter-btn[data-col="${colIdx}"]`);
         if (btn) btn.classList.toggle('active', !!searchAllColFilters[colIdx]);
         populateSearchFilter(colIdx);
