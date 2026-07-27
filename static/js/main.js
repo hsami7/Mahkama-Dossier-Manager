@@ -132,6 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnCalcStatsLocal.disabled = false;
                 btnCalcStatsLocal.innerText = 'آخر حفظ';
             }
+            const btnSearchAll = document.getElementById('btnSearchAll');
+            if (btnSearchAll) {
+                btnSearchAll.disabled = false;
+                btnSearchAll.innerText = 'تحديث';
+            }
+            const btnSearchAllLocal = document.getElementById('btnSearchAllLocal');
+            if (btnSearchAllLocal) {
+                btnSearchAllLocal.disabled = false;
+                btnSearchAllLocal.innerText = 'آخر حفظ';
+            }
 
             try {
                 await fetch('/api/abort', { method: 'POST' });
