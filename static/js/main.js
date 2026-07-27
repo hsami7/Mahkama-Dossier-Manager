@@ -3336,6 +3336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchAllTableColumns = [];
     let searchAllTableData = [];
     let searchAllSort = null; // { colIdx, dir } or null for default
+    let searchAllFileStatuses = null;
 
     function initSearchAllTable(data) {
         if (searchAllDataTable) {
@@ -3348,16 +3349,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const headerRow = document.querySelector('#searchAllTable thead tr');
         if (headerRow) headerRow.querySelectorAll('th').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
 
-        if (!data || data.length === 0) {
+        // Normalize: support both old (array) and new ({rows, files}) format
+        let rows = data;
+        let fileStatuses = null;
+        if (data && !Array.isArray(data)) {
+            rows = data.rows || [];
+            fileStatuses = data.files || null;
+            searchAllFileStatuses = fileStatuses;
+        } else {
+            fileStatuses = searchAllFileStatuses;
+        }
+
+        if (!rows || rows.length === 0) {
             searchAllTableHeadRow.innerHTML = '<th>لا توجد بيانات</th>';
             searchAllTableBody.innerHTML = '<tr><td>لا توجد بيانات لعرضها</td></tr>';
+            renderFileStatuses(fileStatuses);
             return;
         }
 
         const columnsSet = new Set();
-        data.forEach(row => Object.keys(row).forEach(key => columnsSet.add(key)));
+        rows.forEach(row => Object.keys(row).forEach(key => columnsSet.add(key)));
         searchAllTableColumns = Array.from(columnsSet);
-        searchAllTableData = data;
+        searchAllTableData = rows;
 
         // Build header row with filter button hint (dropdowns created dynamically on click)
         searchAllTableHeadRow.innerHTML = '';
@@ -3373,7 +3386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         while (thead.children.length > 1) thead.removeChild(thead.lastChild);
 
         // Build body
-        data.forEach(row => {
+        rows.forEach(row => {
             const tr = document.createElement('tr');
             searchAllTableColumns.forEach(col => {
                 const td = document.createElement('td');
@@ -3393,6 +3406,47 @@ document.addEventListener('DOMContentLoaded', () => {
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             mark: true
         });
+
+        renderFileStatuses(fileStatuses);
+    }
+
+    function renderFileStatuses(fileStatuses) {
+        let container = document.getElementById('searchAllFileStatus');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'searchAllFileStatus';
+            document.getElementById('searchAllSection').appendChild(container);
+        }
+        if (!fileStatuses || fileStatuses.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'block';
+
+        const read = fileStatuses.filter(f => f.status === 'read');
+        const skipped = fileStatuses.filter(f => f.status === 'skipped');
+        const failed = fileStatuses.filter(f => f.status === 'failed');
+
+        let html = '<div class="file-status-section">';
+        html += '<div class="file-status-title">حالة الملفات المقروءة</div>';
+        html += '<div class="file-status-legend">';
+        html += '<span class="file-status-badge file-status-read">● تمت القراءة</span>';
+        html += '<span class="file-status-badge file-status-skipped">● تم التجاهل</span>';
+        html += '<span class="file-status-badge file-status-failed">● فشلت القراءة</span>';
+        html += '</div>';
+        html += '<div class="file-status-list">';
+
+        fileStatuses.forEach(f => {
+            const cls = f.status === 'read' ? 'file-status-read' : f.status === 'skipped' ? 'file-status-skipped' : 'file-status-failed';
+            let label = f.name;
+            if (f.status === 'read' && f.rows !== undefined) label += ` (${f.rows} سجل)`;
+            if (f.status === 'failed' && f.reason) label += ` — ${f.reason}`;
+            if (f.status === 'skipped' && f.reason) label += ` — ${f.reason}`;
+            html += `<div class="file-status-item ${cls}">${label}</div>`;
+        });
+
+        html += '</div></div>';
+        container.innerHTML = html;
     }
 
     // ── Search All filter event handlers (delegated, outside init to survive DataTable redraws) ──

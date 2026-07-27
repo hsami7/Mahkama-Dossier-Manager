@@ -78,6 +78,7 @@ def main():
             
     print("[*] جاري قراءة الملفات المحلية...")
     all_rows = []
+    file_statuses = []
         
     # parse dates for filtering
     sd = parse_date(args.start_date)
@@ -86,29 +87,32 @@ def main():
     for yr in years:
         yr_dir = os.path.join(args.download_dir, str(yr))
         if os.path.exists(yr_dir):
-            for file in os.listdir(yr_dir):
-                if file.endswith('.xlsx'):
-                    file_path = os.path.join(yr_dir, file)
-                    print(f"[*] قراءة الملف: {file}")
+            for file in sorted(os.listdir(yr_dir)):
+                file_path = os.path.join(yr_dir, file)
+                if not file.endswith('.xlsx'):
+                    file_statuses.append({"name": file, "status": "skipped", "reason": "ليس ملف Excel"})
+                    continue
+                try:
                     rows = engine.parse_excel_file_with_headers(file_path)
+                    file_statuses.append({"name": file, "status": "read", "rows": len(rows)})
+                    print(f"[+] قراءة الملف: {file} ({len(rows)} سجل)")
                     
                     if sd and ed:
-                        # filter by date if needed. The column is usually 'تاريخ التسجيل'
-                        # But wait, date parsing is complex, the frontend data table can filter dates better.
-                        # We will just pass all rows and let DataTables filter, or we filter here? 
-                        # Filtering here is safer for memory.
                         for r in rows:
                             date_val = engine.parse_excel_date(r.get('تاريخ التسجيل'))
                             if date_val:
                                 if sd <= date_val <= ed:
                                     all_rows.append(r)
                             else:
-                                all_rows.append(r) # keep rows without date just in case
+                                all_rows.append(r)
                     else:
                         all_rows.extend(rows)
+                except Exception as e:
+                    file_statuses.append({"name": file, "status": "failed", "reason": str(e)})
+                    print(f"[-] فشل قراءة الملف: {file} - {str(e)}")
                     
     print("[+] اكتملت القراءة.")
-    print(f"RESULT:{json.dumps(all_rows)}")
+    print(f"RESULT:{json.dumps({'rows': all_rows, 'files': file_statuses})}")
 
 if __name__ == '__main__':
     main()

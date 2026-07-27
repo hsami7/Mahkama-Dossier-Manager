@@ -128,20 +128,6 @@ def sync_dossiers(years, output_dir="data/downloads", debug=False, log_callback=
             except PlaywrightTimeoutError:
                 pass # Just proceed if networkidle hangs
             
-            # --- 3. Select Year ---
-            log(f"[*] جاري اختيار السنة {year}...")
-            # Try to find a select element
-            select_element = page.locator('select#AnneeEnregistrement, select').first
-            if select_element.count() > 0:
-                select_element.select_option(label=str(year))
-                log(f"[+] تم اختيار السنة {year}.")
-                
-                # Now we must click the load button
-                load_btn = page.locator('#charger, input[value="تحميل لائحة السجلات"]').first
-                if load_btn.count() > 0:
-                    load_btn.click()
-                    log("[*] جاري تحميل جدول السجلات، يرجى الانتظار...")
-                    # Wait for the grid to populate (it should have a table inside)
             # --- 3. Loop through Years ---
             for year in years:
                 target_dir = os.path.join(output_dir, str(year))
@@ -154,14 +140,23 @@ def sync_dossiers(years, output_dir="data/downloads", debug=False, log_callback=
                                 os.remove(os.path.join(target_dir, item))
                             except Exception as e:
                                 log(f"[-] تعذر حذف الملف القديم ({item}) لأن الملف مفتوح.")
-                        try:
-                            page.wait_for_selector("#gridDossiersEnregistres table, #gridDossiersEnregistres a", timeout=20000)
-                        except PlaywrightTimeoutError:
-                            log("[-] انتهى وقت الانتظار للجدول. قد يكون فارغاً أو هناك مشكلة في الاتصال.")
-                    else:
-                        log("[-] لم يتم العثور على زر التحميل.")
-                else:
-                    log("[-] لم يتم العثور على قائمة اختيار السنة.")
+                
+                # Select year in dropdown
+                log(f"[*] جاري اختيار السنة {year}...")
+                select_element = page.locator('select#AnneeEnregistrement, select').first
+                if select_element.count() > 0:
+                    select_element.select_option(label=str(year))
+                    log(f"[+] تم اختيار السنة {year}.")
+                    load_btn = page.locator('#charger, input[value="تحميل لائحة السجلات"]').first
+                    if load_btn.count() > 0:
+                        load_btn.click()
+                        log("[*] جاري تحميل جدول السجلات، يرجى الانتظار...")
+                
+                # Wait for the grid to populate
+                try:
+                    page.wait_for_selector("#gridDossiersEnregistres table, #gridDossiersEnregistres a", timeout=20000)
+                except PlaywrightTimeoutError:
+                    log("[-] انتهى وقت الانتظار للجدول. قد يكون فارغاً أو هناك مشكلة في الاتصال.")
             
                 # --- DEBUG: Save HTML to inspect if needed ---
                 with open("debug_registre_page.html", "w", encoding="utf-8") as f:
