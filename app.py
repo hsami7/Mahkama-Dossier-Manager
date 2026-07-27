@@ -680,6 +680,7 @@ def api_calculate_stats_status():
         })
 
 search_thread = None
+search_process = None
 search_active = False
 search_logs = []
 search_result = None
@@ -687,7 +688,7 @@ search_error = False
 search_lock = threading.Lock()
 
 def run_search_process(years, base_download_dir, start_date=None, end_date=None, username=None, password=None, local_only=False):
-    global search_active, search_logs, search_result, search_error
+    global search_active, search_logs, search_result, search_error, search_process
     with search_lock:
         search_logs.clear()
         search_result = None
@@ -729,6 +730,8 @@ def run_search_process(years, base_download_dir, start_date=None, end_date=None,
             cmd.append('--local-only')
             
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
+        with search_lock:
+            search_process = process
         
         for line in iter(process.stdout.readline, ''):
             line_str = line.strip()
@@ -756,6 +759,7 @@ def run_search_process(years, base_download_dir, start_date=None, end_date=None,
     finally:
         with search_lock:
             search_active = False
+            search_process = None
 
 @app.route('/api/search-all-dossiers', methods=['POST'])
 def api_search_all_dossiers():
@@ -804,6 +808,7 @@ def api_search_all_dossiers():
     except Exception as e:
         with search_lock:
             search_active = False
+            search_process = None
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/search-all-dossiers/status', methods=['GET'])
@@ -883,7 +888,23 @@ def api_abort():
                         pass
             write_log("[-] تم إيقاف المزامنة.")
             aborted_any = True
-            
+
+    with search_lock:
+        if search_active:
+            search_active = False
+            if search_process:
+                try:
+                    import subprocess as sp
+                    sp.run(['taskkill', '/F', '/T', '/PID', str(search_process.pid)], capture_output=True)
+                except Exception:
+                    try:
+                        search_process.kill()
+                    except Exception:
+                        pass
+                search_process = None
+            write_log("[-] تم إيقاف البحث الشامل.")
+            aborted_any = True
+
     return jsonify({"success": True, "aborted": aborted_any})
 
 

@@ -57,6 +57,7 @@ body {
     left: 0;
     z-index: 1000;
     box-sizing: border-box;
+    transition: transform 0.3s ease-in-out;
 }
 
 .header-container {
@@ -112,9 +113,8 @@ body {
 
 /* Main Layout */
 .mahakim-main {
-    max-width: max-content;
-    min-width: 100%;
-    margin: 40px auto;
+    max-width: 100%;
+        margin: 120px auto 40px auto;
     padding: 0 20px;
     display: flex;
     flex-direction: column;
@@ -130,8 +130,7 @@ body {
     padding: 30px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     transition: box-shadow 0.3s ease;
-    width: max-content;
-    min-width: 100%;
+    width: 100%;
     box-sizing: border-box;
 }
 
@@ -334,6 +333,9 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus {
 
 .table-wrapper {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 180px); /* Increased from 280px */
+    width: 100%;
     border-radius: 8px;
     border: 1px solid var(--mahakim-border);
     background: #ffffff;
@@ -861,15 +863,23 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus {
 }
 
 
-/* Sticky DataTables controls */
-.search-all-table-card .dataTables_length,
-.search-all-table-card .dataTables_filter,
-.search-all-table-card .dataTables_info,
-.search-all-table-card .dataTables_paginate {
-    position: sticky !important;
-    right: 20px !important;
-    left: 20px !important;
-    z-index: 100;
-    width: max-content !important;
-    display: inline-block;
+
+
+
+/* Sticky DataTables controls to prevent scrolling away */
+
+
+
+
+
+.mahakim-header.header-hidden {
+    transform: translateY(-100%);
+}
+
+
+.dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    clear: both;
 }

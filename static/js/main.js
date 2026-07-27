@@ -24,6 +24,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAddSearchYear = document.getElementById('btnAddSearchYear');
     const searchYearsContainer = document.getElementById('searchYearsContainer');
     const btnReturnHome = document.getElementById('btnReturnHome');
+        // Delegated event listener for Live Logs Minimize Button
+    document.body.addEventListener('click', (e) => {
+        const btnMinimizeLiveLogs = e.target.closest('#btnMinimizeLiveLogs');
+        if (btnMinimizeLiveLogs) {
+            const liveSyncLogs = document.getElementById('liveSyncLogs');
+            if (liveSyncLogs) {
+                if (liveSyncLogs.style.display === 'none') {
+                    liveSyncLogs.style.display = 'block';
+                    btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m17 14-5-5-5 5"/></svg> إخفاء التفاصيل`;
+                } else {
+                    liveSyncLogs.style.display = 'none';
+                    btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
+                }
+            }
+        }
+    });
+
     // Modal Elements
     const settingsModal = document.getElementById('settingsModal');
     const btnSettingsOpen = document.getElementById('btnSettingsOpen');
@@ -1605,17 +1622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (btnMinimizeLiveLogs && liveSyncLogs) {
-        btnMinimizeLiveLogs.addEventListener('click', () => {
-            if (liveSyncLogs.style.display === 'none') {
-                liveSyncLogs.style.display = 'block';
-                btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m17 14-5-5-5 5"/></svg> إخفاء التفاصيل`;
-            } else {
-                liveSyncLogs.style.display = 'none';
-                btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
-            }
-        });
-    }
+    
 
     // --- Statistics Calculations Handler ---
     const btnCalculateStats = document.getElementById('btnCalculateStats');
@@ -3472,7 +3479,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.closest('.search-filter-dropdown')) return;
 
         // Close existing dropdown first
-        const existing = document.querySelector('#searchAllSection > .search-filter-dropdown');
+        const existing = document.querySelector('#searchAllSection .search-filter-dropdown');
         if (existing) {
             existing.remove();
             const existingCol = existing.getAttribute('data-col');
@@ -3517,8 +3524,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <input class="search-filter-search" type="text" placeholder="بحث...">
           <div class="search-filter-options"></div>
           <div class="search-filter-actions">
-            <button class="search-filter-select-all">تحديد الكل</button>
-            <button class="search-filter-clear">إلغاء الكل</button>
+            <div class="search-filter-actions-row">
+                <button class="search-filter-select-all">تحديد الكل</button>
+                <button class="search-filter-clear">إلغاء الكل</button>
+            </div>
+            <button class="search-filter-ok">موافق</button>
           </div>`;
         document.querySelector('#searchAllSection').appendChild(dd);
         populateSearchFilter(colIdx);
@@ -3530,12 +3540,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortClear = e.target.closest('.search-filter-sort-clear');
         const selectAllBtn = e.target.closest('.search-filter-select-all');
         const clearBtn = e.target.closest('.search-filter-clear');
+        const okBtn = e.target.closest('.search-filter-ok');
+
+        if (okBtn) {
+            e.stopPropagation();
+            const dd = e.target.closest('.search-filter-dropdown');
+            if (dd) dd.remove();
+            return;
+        }
 
         if (sortBtn || sortClear) {
             e.stopPropagation();
             const dd = e.target.closest('.search-filter-dropdown');
             const colIdx = dd ? parseInt(dd.getAttribute('data-col'), 10) : null;
-            const existing = document.querySelector('#searchAllSection > .search-filter-dropdown');
+            const existing = document.querySelector('#searchAllSection .search-filter-dropdown');
             if (existing) existing.remove();
             if (colIdx == null) return;
 
@@ -3606,7 +3624,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // For local-only search, show a brief status message
         if (localOnly && liveSyncLogs) {
-            liveSyncLogs.style.display = 'block';
             const msg = document.createElement('div');
             msg.textContent = '[+] جاري القراءة من الملفات المحلية...';
             msg.style.color = '#4ade80';
@@ -3796,3 +3813,46 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
+
+// Header scroll hide/show logic
+let lastScrollTop = 0;
+const header = document.querySelector('.mahakim-header');
+
+window.addEventListener('scroll', () => {
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    if (scrollTop > lastScrollTop && scrollTop > 100) {
+        // Downscroll
+        if (header) header.classList.add('header-hidden');
+    } else {
+        // Upscroll
+        if (header) header.classList.remove('header-hidden');
+    }
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; 
+}, false);
+
+
+    // Update dropdown position on table scroll
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (tableWrapper) {
+        tableWrapper.addEventListener('scroll', () => {
+            const dd = document.querySelector('#searchAllSection .search-filter-dropdown.open');
+            if (dd) {
+                const colIdx = dd.getAttribute('data-col');
+                const th = document.querySelector(`#searchAllTable th[data-col="${colIdx}"]`);
+                if (th) {
+                    const rect = th.getBoundingClientRect();
+                    let leftStyle = `left:${Math.max(4, rect.left + window.scrollX)}px;right:auto;`;
+                    if (rect.left + 300 > window.innerWidth) {
+                        leftStyle = `right:${Math.max(4, window.innerWidth - rect.right - window.scrollX)}px;left:auto;`;
+                    }
+                    dd.style.cssText = `position:absolute;top:${rect.bottom + window.scrollY + 4}px;${leftStyle}z-index:10000;`;
+                }
+            }
+        });
+    }
+
+
+    document.querySelectorAll('#searchAllTable th').forEach((th, idx) => {
+        th.setAttribute('data-col', idx);
+    });
