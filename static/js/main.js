@@ -21,8 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAutoSync = document.getElementById('btnAutoSync');
     const btnAddYear = document.getElementById('btnAddYear');
     const syncYearsContainer = document.getElementById('syncYearsContainer');
-    const btnAddSearchYear = document.getElementById('btnAddSearchYear');
-    const searchYearsContainer = document.getElementById('searchYearsContainer');
     const btnReturnHome = document.getElementById('btnReturnHome');
         // Delegated event listener for Live Logs Minimize Button
     document.body.addEventListener('click', (e) => {
@@ -1159,115 +1157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateYearOptions();
     }
 
-    // Search Years Container Logic
-    if (btnAddSearchYear && searchYearsContainer) {
-        let searchAllPossibleYears = ["2026", "2025", "2024"];
 
-        function populateSearchYearSelects(years) {
-            if (!years || !years.length) return;
-            searchAllPossibleYears = years.map(String).sort((a, b) => b - a);
-
-            const selects = document.querySelectorAll('.search-year-select');
-            selects.forEach(select => {
-                const currentValue = select.value;
-                select.innerHTML = '';
-                searchAllPossibleYears.forEach(y => {
-                    const opt = document.createElement('option');
-                    opt.value = y;
-                    opt.textContent = y;
-                    if (y === currentValue) opt.selected = true;
-                    select.appendChild(opt);
-                });
-            });
-        }
-
-        fetch('/api/years')
-            .then(r => r.json())
-            .then(data => {
-                if (data.years && data.years.length) {
-                    populateSearchYearSelects(data.years);
-                }
-            })
-            .catch(() => { });
-
-        const updateSearchYearOptions = () => {
-            const selects = Array.from(searchYearsContainer.querySelectorAll('.search-year-select'));
-            const currentSelections = selects.map(s => s.value);
-
-            selects.forEach((select, index) => {
-                const currentValue = select.value;
-                const otherSelections = currentSelections.filter((_, i) => i !== index);
-                const availableYears = searchAllPossibleYears.filter(y => !otherSelections.includes(y));
-
-                select.innerHTML = '';
-                availableYears.forEach(year => {
-                    const opt = document.createElement('option');
-                    opt.value = year;
-                    opt.textContent = year;
-                    if (year === currentValue) {
-                        opt.selected = true;
-                    }
-                    select.appendChild(opt);
-                });
-
-                if (!availableYears.includes(currentValue) && availableYears.length > 0) {
-                    select.value = availableYears[0];
-                }
-            });
-
-            if (selects.length >= searchAllPossibleYears.length) {
-                btnAddSearchYear.disabled = true;
-                btnAddSearchYear.style.opacity = '0.5';
-                btnAddSearchYear.style.cursor = 'not-allowed';
-            } else {
-                btnAddSearchYear.disabled = false;
-                btnAddSearchYear.style.opacity = '1';
-                btnAddSearchYear.style.cursor = 'pointer';
-            }
-        };
-
-        const bindSearchSelectChange = (select) => {
-            select.addEventListener('change', updateSearchYearOptions);
-        };
-
-        searchYearsContainer.querySelectorAll('.search-year-select').forEach(bindSearchSelectChange);
-
-        btnAddSearchYear.addEventListener('click', () => {
-            const firstRow = searchYearsContainer.querySelector('.search-year-row');
-            if (firstRow) {
-                const newRow = firstRow.cloneNode(true);
-                const select = newRow.querySelector('.search-year-select');
-
-                let delBtn = newRow.querySelector('.remove-year-btn');
-                if (!delBtn) {
-                    delBtn = document.createElement('button');
-                    delBtn.className = 'remove-year-btn';
-                    delBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;';
-                    delBtn.innerText = 'X';
-                    newRow.appendChild(delBtn);
-                }
-
-                delBtn.onclick = () => {
-                    newRow.remove();
-                    updateSearchYearOptions();
-                };
-
-                searchYearsContainer.appendChild(newRow);
-                bindSearchSelectChange(select);
-
-                const currentSelects = Array.from(searchYearsContainer.querySelectorAll('.search-year-select'));
-                const selectedYears = currentSelects.slice(0, -1).map(s => s.value);
-                const firstAvailable = searchAllPossibleYears.find(y => !selectedYears.includes(y));
-                if (firstAvailable) {
-                    select.value = firstAvailable;
-                }
-
-                updateSearchYearOptions();
-            }
-        });
-
-        updateSearchYearOptions();
-    }
 
     let pollInterval = null;
     let lastLogCount = 0;
@@ -3297,9 +3187,6 @@ document.addEventListener('DOMContentLoaded', () => {
     checkUpdate();
 
     // --- Search All Logic ---
-    const searchRangeRadios = document.querySelectorAll('input[name="searchRange"]');
-    const searchYearWrapper = document.getElementById('searchYearWrapper');
-    const searchCustomDateWrapper = document.getElementById('searchCustomDateWrapper');
     const btnSearchAll = document.getElementById('btnSearchAll');
     const btnSearchAllLocal = document.getElementById('btnSearchAllLocal');
     const searchAllSection = document.getElementById('searchAllSection');
@@ -3310,19 +3197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchAllDataTable = null;
     let searchPollInterval = null;
 
-    if (searchRangeRadios.length) {
-        searchRangeRadios.forEach(r => {
-            r.addEventListener('change', function () {
-                if (this.value === 'year') {
-                    searchYearWrapper.style.display = 'block';
-                    searchCustomDateWrapper.style.display = 'none';
-                } else {
-                    searchYearWrapper.style.display = 'none';
-                    searchCustomDateWrapper.style.display = 'flex';
-                }
-            });
-        });
-    }
+
 
     if (btnSearchAllReturnHome) {
         btnSearchAllReturnHome.addEventListener('click', () => {
@@ -3339,15 +3214,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchAllFileStatuses = null;
 
     function initSearchAllTable(data) {
+        // Destroy previous DataTable but keep DOM clean
         if (searchAllDataTable) {
             searchAllDataTable.destroy();
-            searchAllTableHeadRow.innerHTML = '';
-            searchAllTableBody.innerHTML = '';
         }
+        searchAllTableBody.innerHTML = '';
         searchAllColFilters = {};
         searchAllSort = null;
-        const headerRow = document.querySelector('#searchAllTable thead tr');
-        if (headerRow) headerRow.querySelectorAll('th').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
 
         // Normalize: support both old (array) and new ({rows, files}) format
         let rows = data;
@@ -3367,12 +3240,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Compute columns and store data
         const columnsSet = new Set();
         rows.forEach(row => Object.keys(row).forEach(key => columnsSet.add(key)));
         searchAllTableColumns = Array.from(columnsSet);
         searchAllTableData = rows;
 
-        // Build header row with filter button hint (dropdowns created dynamically on click)
+        // Build header row
         searchAllTableHeadRow.innerHTML = '';
         searchAllTableColumns.forEach((col, idx) => {
             const th = document.createElement('th');
@@ -3382,30 +3256,40 @@ document.addEventListener('DOMContentLoaded', () => {
             searchAllTableHeadRow.appendChild(th);
         });
 
+        // Remove extra thead rows if any
         const thead = document.querySelector('#searchAllTable thead');
         while (thead.children.length > 1) thead.removeChild(thead.lastChild);
 
-        // Build body
-        rows.forEach(row => {
-            const tr = document.createElement('tr');
-            searchAllTableColumns.forEach(col => {
-                const td = document.createElement('td');
-                td.textContent = row[col] || '';
-                tr.appendChild(td);
-            });
-            searchAllTableBody.appendChild(tr);
-        });
-
-        // Initialize DataTable (ordering disabled — we handle it manually)
+        // Initialize DataTable IMMEDIATELY (with empty body) — search input appears now
         searchAllDataTable = $('#searchAllTable').DataTable({
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json' },
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json',
+                search: 'بحث:',
+                zeroRecords: 'لا توجد نتائج',
+                info: 'عرض _START_ إلى _END_ من _TOTAL_',
+                infoEmpty: 'عرض 0 إلى 0 من 0',
+                infoFiltered: '(مصفاة من _MAX_ إجمالي)',
+                lengthMenu: 'أظهر _MENU_',
+                loadingRecords: 'جار التحميل...',
+                processing: 'معالجة...',
+                emptyTable: 'لا توجد بيانات في الجدول',
+                paginate: { first: 'الأول', previous: 'السابق', next: 'التالي', last: 'الأخير' },
+                aria: { sortAscending: 'ترتيب تصاعدي', sortDescending: 'ترتيب تنازلي' }
+            },
             scrollX: false,
             pageLength: 25,
             ordering: false,
             order: [],
             dom: '<"top"f>rt<"bottom"lip><"clear">',
-            mark: true
+            mark: false,
+            searchDelay: 400
         });
+
+        // Now populate rows in batch (after DataTable init — search input already visible)
+        const bodyData = searchAllTableData.map(row => searchAllTableColumns.map(c => row[c] || ''));
+        searchAllDataTable.clear();
+        searchAllDataTable.rows.add(bodyData);
+        searchAllDataTable.draw();
 
         renderFileStatuses(fileStatuses);
     }
@@ -3458,6 +3342,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(vals).sort((a, b) => a.localeCompare(b, 'ar'));
     }
 
+    function applyFilterToColumn(colIdx) {
+        if (!searchAllDataTable) return;
+        const f = searchAllColFilters[colIdx];
+        if (f && f.size > 0) {
+            const v = Array.from(f).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            searchAllDataTable.column(colIdx).search('^(' + v.join('|') + ')$', true, false).draw();
+        } else {
+            searchAllDataTable.column(colIdx).search('').draw();
+        }
+    }
+
     function populateSearchFilter(colIdx) {
         const dd = document.querySelector(`.search-filter-dropdown[data-col="${colIdx}"]`);
         if (!dd) return;
@@ -3466,40 +3361,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const allVals = getAllValues(colIdx);
         const selected = searchAllColFilters[colIdx] || new Set(allVals);
         const query = (searchInput.value || '').toLowerCase();
-        optsDiv.innerHTML = '';
-        allVals.forEach(val => {
-            if (query && !val.toLowerCase().includes(query)) return;
-            const label = document.createElement('label');
-            label.className = 'search-filter-option';
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.checked = selected.has(val);
-            cb.addEventListener('change', () => {
-                if (cb.checked) selected.add(val); else selected.delete(val);
-                searchAllColFilters[colIdx] = selected.size === allVals.length ? null : selected;
-                const btn = document.querySelector(`.search-filter-btn[data-col="${colIdx}"]`);
-                if (btn) btn.classList.toggle('active', !!searchAllColFilters[colIdx]);
-                if (!searchAllDataTable) return;
-                searchAllDataTable.columns().every(function () {
-                    const ci = this.index();
-                    const f = searchAllColFilters[ci];
-                    if (f && f.size > 0) {
-                        const v = Array.from(f).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                        this.search('^(' + v.join('|') + ')$', true, false).draw();
-                    } else {
-                        this.search('').draw();
-                    }
-                });
-            });
-            const span = document.createElement('span');
-            span.className = 'search-opt-label';
-            span.textContent = val;
-            label.appendChild(cb);
-            label.appendChild(span);
-            optsDiv.appendChild(label);
-        });
+
+        // First-time init: create all checkboxes
         if (optsDiv.children.length === 0) {
-            optsDiv.innerHTML = '<div style="padding:8px;color:#94a3b8;font-size:0.8rem;text-align:center;">لا توجد نتائج</div>';
+            allVals.forEach(val => {
+                const label = document.createElement('label');
+                label.className = 'search-filter-option';
+                label.setAttribute('data-value', val);
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = selected.has(val);
+                const span = document.createElement('span');
+                span.className = 'search-opt-label';
+                span.textContent = val;
+                label.appendChild(cb);
+                label.appendChild(span);
+                optsDiv.appendChild(label);
+            });
+        } else {
+            // Subsequent calls: just update check states + show/hide based on query
+            const labels = optsDiv.querySelectorAll('.search-filter-option');
+            let matched = 0;
+            labels.forEach(label => {
+                const val = label.getAttribute('data-value');
+                const cb = label.querySelector('input[type="checkbox"]');
+                cb.checked = selected.has(val);
+                const match = !query || val.toLowerCase().includes(query);
+                label.style.display = match ? '' : 'none';
+                if (match) matched++;
+            });
+            if (matched === 0) {
+                let emptyMsg = optsDiv.querySelector('.search-filter-empty');
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'search-filter-empty';
+                    emptyMsg.style.cssText = 'padding:8px;color:#94a3b8;font-size:0.8rem;text-align:center;';
+                    emptyMsg.textContent = 'لا توجد نتائج';
+                    optsDiv.appendChild(emptyMsg);
+                }
+                emptyMsg.style.display = '';
+            } else {
+                const emptyMsg = optsDiv.querySelector('.search-filter-empty');
+                if (emptyMsg) emptyMsg.style.display = 'none';
+            }
         }
     }
 
@@ -3519,115 +3423,153 @@ document.addEventListener('DOMContentLoaded', () => {
             return dir === 'asc' ? cmp : -cmp;
         });
         searchAllDataTable.clear();
-        sorted.forEach(row => {
-            const arr = searchAllTableColumns.map(c => row[c] || '');
-            searchAllDataTable.row.add(arr);
-        });
+        searchAllDataTable.rows.add(sorted.map(row => searchAllTableColumns.map(c => row[c] || '')));
         searchAllDataTable.draw();
 
-        // Update sort visuals on both original and cloned headers
-        document.querySelectorAll('#searchAllSection thead th').forEach(th => {
-            th.classList.remove('sort-asc', 'sort-desc');
-        });
-        document.querySelectorAll('#searchAllSection thead th').forEach(th => {
-            const parent = th.parentElement;
-            if (!parent) return;
-            const idx = Array.from(parent.children).indexOf(th);
-            if (idx === colIdx) th.classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
-        });
+        // Update sort visuals on header
+        const ths = document.querySelectorAll('#searchAllSection thead th');
+        ths.forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+        if (ths[colIdx]) ths[colIdx].classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
     }
 
-    // Event delegation on document — any header click opens filter dropdown
-    document.addEventListener('mousedown', (e) => {
-        if (!e.target.closest('#searchAllSection')) return;
+    // Reusable filter dropdown (avoids destroy/recreate per open)
+    const searchFilterDropdown = document.createElement('div');
+    searchFilterDropdown.className = 'search-filter-dropdown';
+    searchFilterDropdown.style.cssText = 'position:fixed;z-index:10000;display:none;';
+    let searchFilterDropdownVisible = false;
+    searchFilterDropdown.innerHTML = `
+      <div class="search-filter-sort-section">
+        <button class="search-filter-sort-btn" data-dir="asc">▲ ترتيب تصاعدي</button>
+        <button class="search-filter-sort-btn" data-dir="desc">▼ ترتيب تنازلي</button>
+        <button class="search-filter-sort-clear" style="display:none">إلغاء الترتيب</button>
+      </div>
+      <div class="search-filter-divider"></div>
+      <input class="search-filter-search" type="text" placeholder="بحث...">
+      <div class="search-filter-options"></div>
+      <div class="search-filter-actions">
+        <div class="search-filter-actions-row">
+            <button class="search-filter-select-all">تحديد الكل</button>
+            <button class="search-filter-clear">إلغاء الكل</button>
+        </div>
+        <button class="search-filter-ok">موافق</button>
+      </div>`;
+    document.querySelector('#searchAllSection').appendChild(searchFilterDropdown);
 
-        // If clicking inside an open dropdown, let it be
-        if (e.target.closest('.search-filter-dropdown')) return;
+    function hideSearchFilterDropdown() {
+        searchFilterDropdown.classList.remove('visible');
+        searchFilterDropdown.style.display = 'none';
+        searchFilterDropdownVisible = false;
+    }
 
-        // Close existing dropdown first
-        const existing = document.querySelector('#searchAllSection .search-filter-dropdown');
-        if (existing) {
-            existing.remove();
-            const existingCol = existing.getAttribute('data-col');
-            const clickedTh = e.target.closest('th');
-            if (clickedTh) {
-                const colIdx = Array.from(clickedTh.parentElement.children).indexOf(clickedTh);
-                if (colIdx >= 0 && String(colIdx) === existingCol) return;
-            }
+    function showSearchFilterDropdown(th, colIdx) {
+        const rect = th.getBoundingClientRect();
+        searchFilterDropdown.setAttribute('data-col', colIdx);
+
+        // Position using fixed coords
+        let leftStyle = `left:${Math.max(4, rect.left)}px;right:auto;`;
+        if (rect.left + 280 > window.innerWidth) {
+            leftStyle = `right:${Math.max(4, window.innerWidth - rect.right)}px;left:auto;`;
         }
 
-        // Open dropdown for the clicked header cell
+        // Calculate max height: available space below th minus padding
+        const availableHeight = window.innerHeight - rect.bottom - 16;
+        const maxH = Math.min(Math.max(availableHeight, 200), 500);
+        searchFilterDropdown.style.cssText = `position:fixed;top:${rect.bottom + 4}px;${leftStyle}z-index:10000;max-height:${maxH}px;`;
+        searchFilterDropdown.style.display = 'flex';
+        searchFilterDropdown.classList.add('visible');
+        searchFilterDropdownVisible = true;
+
+        // Update sort button visuals
+        const activeDir = (searchAllSort && searchAllSort.colIdx === colIdx) ? searchAllSort.dir : null;
+        searchFilterDropdown.querySelectorAll('.search-filter-sort-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-dir') === activeDir);
+        });
+        const clearBtn = searchFilterDropdown.querySelector('.search-filter-sort-clear');
+        clearBtn.style.display = activeDir ? '' : 'none';
+
+        // Reset search input and clear options so they rebuild on first populate
+        searchFilterDropdown.querySelector('.search-filter-search').value = '';
+        searchFilterDropdown.querySelector('.search-filter-options').innerHTML = '';
+        populateSearchFilter(colIdx);
+    }
+
+    // Open dropdown on header mousedown (scoped to #searchAllSection thead)
+    document.querySelector('#searchAllSection thead').addEventListener('mousedown', (e) => {
         const th = e.target.closest('th');
         if (!th) return;
+
         const colIdx = Array.from(th.parentElement.children).indexOf(th);
         if (colIdx < 0) return;
 
+        // Toggle: if clicking same column's th, just close
+        if (searchFilterDropdownVisible && !e.target.closest('.search-filter-dropdown')) {
+            const currentCol = searchFilterDropdown.getAttribute('data-col');
+            if (currentCol === String(colIdx)) {
+                hideSearchFilterDropdown();
+                return;
+            }
+            hideSearchFilterDropdown();
+        }
+
         e.stopPropagation();
         e.preventDefault();
-
-        const rect = th.getBoundingClientRect();
-        const dd = document.createElement('div');
-        dd.className = 'search-filter-dropdown open';
-        dd.setAttribute('data-col', colIdx);
-        let leftStyle = `left:${Math.max(4, rect.left + window.scrollX)}px;right:auto;`;
-        if (rect.left + 300 > window.innerWidth) {
-            leftStyle = `right:${Math.max(4, window.innerWidth - rect.right - window.scrollX)}px;left:auto;`;
-        }
-        dd.style.cssText = `position:absolute;top:${rect.bottom + window.scrollY + 4}px;${leftStyle}z-index:10000;`;
-
-        const activeDir = (searchAllSort && searchAllSort.colIdx === colIdx) ? searchAllSort.dir : null;
-        const ascActive = activeDir === 'asc' ? 'active' : '';
-        const descActive = activeDir === 'desc' ? 'active' : '';
-        const clearHidden = activeDir ? '' : 'style="display:none"';
-
-        dd.innerHTML = `
-          <div class="search-filter-sort-section">
-            <button class="search-filter-sort-btn ${ascActive}" data-dir="asc">▲ ترتيب تصاعدي</button>
-            <button class="search-filter-sort-btn ${descActive}" data-dir="desc">▼ ترتيب تنازلي</button>
-            <button class="search-filter-sort-clear" ${clearHidden}>إلغاء الترتيب</button>
-          </div>
-          <div class="search-filter-divider"></div>
-          <input class="search-filter-search" type="text" placeholder="بحث...">
-          <div class="search-filter-options"></div>
-          <div class="search-filter-actions">
-            <div class="search-filter-actions-row">
-                <button class="search-filter-select-all">تحديد الكل</button>
-                <button class="search-filter-clear">إلغاء الكل</button>
-            </div>
-            <button class="search-filter-ok">موافق</button>
-          </div>`;
-        document.querySelector('#searchAllSection').appendChild(dd);
-        populateSearchFilter(colIdx);
+        showSearchFilterDropdown(th, colIdx);
     });
 
-    // Delegation for dropdown actions (sort buttons + select/clear)
+    // Close dropdown on click outside thead
+    document.addEventListener('mousedown', (e) => {
+        if (!searchFilterDropdownVisible) return;
+        if (e.target.closest('#searchAllSection thead')) return;
+        if (e.target.closest('.search-filter-dropdown')) return;
+        hideSearchFilterDropdown();
+    });
+
+    // Delegation for dropdown actions (sort buttons + select/clear + checkboxes)
     document.querySelector('#searchAllSection').addEventListener('click', (e) => {
         const sortBtn = e.target.closest('.search-filter-sort-btn');
         const sortClear = e.target.closest('.search-filter-sort-clear');
         const selectAllBtn = e.target.closest('.search-filter-select-all');
         const clearBtn = e.target.closest('.search-filter-clear');
         const okBtn = e.target.closest('.search-filter-ok');
+        const checkbox = e.target.closest('.search-filter-option input[type="checkbox"]');
 
         if (okBtn) {
             e.stopPropagation();
-            const dd = e.target.closest('.search-filter-dropdown');
-            if (dd) dd.remove();
+            hideSearchFilterDropdown();
             return;
         }
 
         if (sortBtn || sortClear) {
             e.stopPropagation();
-            const dd = e.target.closest('.search-filter-dropdown');
-            const colIdx = dd ? parseInt(dd.getAttribute('data-col'), 10) : null;
-            const existing = document.querySelector('#searchAllSection .search-filter-dropdown');
-            if (existing) existing.remove();
-            if (colIdx == null) return;
+            const colIdx = parseInt(searchFilterDropdown.getAttribute('data-col'), 10);
+            hideSearchFilterDropdown();
+            if (isNaN(colIdx)) return;
 
             if (sortClear) {
                 applySearchSort(colIdx, null);
             } else if (sortBtn) {
                 applySearchSort(colIdx, sortBtn.getAttribute('data-dir'));
             }
+            return;
+        }
+
+        if (checkbox) {
+            e.stopPropagation();
+            const dd = checkbox.closest('.search-filter-dropdown');
+            if (!dd) return;
+            const colIdx = parseInt(dd.getAttribute('data-col'), 10);
+            const allVals = getAllValues(colIdx);
+            const selected = searchAllColFilters[colIdx] || new Set(allVals);
+            const val = checkbox.closest('.search-filter-option').getAttribute('data-value');
+            if (checkbox.checked) {
+                selected.add(val);
+            } else {
+                selected.delete(val);
+            }
+            searchAllColFilters[colIdx] = selected.size === allVals.length ? null : selected;
+            const btn = document.querySelector(`.search-filter-btn[data-col="${colIdx}"]`);
+            if (btn) btn.classList.toggle('active', !!searchAllColFilters[colIdx]);
+            applyFilterToColumn(colIdx);
             return;
         }
 
@@ -3645,20 +3587,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.querySelector(`.search-filter-btn[data-col="${colIdx}"]`);
         if (btn) btn.classList.toggle('active', !!searchAllColFilters[colIdx]);
         populateSearchFilter(colIdx);
-        if (!searchAllDataTable) return;
-        searchAllDataTable.columns().every(function () {
-            const ci = this.index();
-            const f = searchAllColFilters[ci];
-            if (f && f.size > 0) {
-                const v = Array.from(f).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                this.search('^(' + v.join('|') + ')$', true, false).draw();
-            } else {
-                this.search('').draw();
-            }
-        });
+        applyFilterToColumn(colIdx);
     });
 
-    // Delegation for search inside dropdowns
+    // Delegation for search inside dropdowns (debounced)
+    let searchFilterDebounce = null;
     document.querySelector('#searchAllSection').addEventListener('input', (e) => {
         const searchInput = e.target.closest('.search-filter-search');
         if (!searchInput) return;
@@ -3666,16 +3599,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const dd = searchInput.closest('.search-filter-dropdown');
         if (!dd) return;
         const colIdx = parseInt(dd.getAttribute('data-col'), 10);
-        populateSearchFilter(colIdx);
+        if (searchFilterDebounce) clearTimeout(searchFilterDebounce);
+        searchFilterDebounce = setTimeout(() => populateSearchFilter(colIdx), 150);
     });
 
     let lastSearchLogCount = 0;
+    const MAX_LIVE_LOG_LINES = 100;
     function startSearchPolling(localOnly = false) {
         const overlay = document.getElementById('loadingOverlay');
         const overlayText = document.getElementById('loadingOverlayText');
         const liveSyncLogsWrapper = document.getElementById('liveSyncLogsWrapper');
         const liveSyncLogs = document.getElementById('liveSyncLogs');
-        const logsConsole = document.getElementById('logsConsole');
         const btnMinimizeLiveLogs = document.getElementById('btnMinimizeLiveLogs');
 
         lastSearchLogCount = 0;
@@ -3688,24 +3622,13 @@ document.addEventListener('DOMContentLoaded', () => {
             btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
         }
 
-        // For local-only search, show a brief status message
-        if (localOnly && liveSyncLogs) {
-            const msg = document.createElement('div');
-            msg.textContent = '[+] جاري القراءة من الملفات المحلية...';
-            msg.style.color = '#4ade80';
-            liveSyncLogs.appendChild(msg);
-            lastSearchLogCount = 1;
-        }
-
         searchPollInterval = setInterval(async () => {
             try {
                 const res = await fetch('/api/search-all-dossiers/status');
                 const data = await res.json();
 
-                // Append new logs
                 if (data.logs && data.logs.length > lastSearchLogCount) {
                     const isLiveSyncAtBottom = liveSyncLogs && (liveSyncLogs.scrollHeight - liveSyncLogs.clientHeight - liveSyncLogs.scrollTop < 50);
-                    const isConsoleAtBottom = logsConsole && (logsConsole.scrollHeight - logsConsole.clientHeight - logsConsole.scrollTop < 50);
 
                     const newLogs = data.logs.slice(lastSearchLogCount);
                     newLogs.forEach(logLine => {
@@ -3717,21 +3640,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             div.style.color = '#4ade80';
                         }
                         if (liveSyncLogs) liveSyncLogs.appendChild(div);
-
-                        // Also append to global history console
-                        const historyDiv = document.createElement('div');
-                        historyDiv.textContent = logLine;
-                        if (logLine.includes('[-]')) historyDiv.style.color = '#f87171';
-                        else if (logLine.includes('[+]')) historyDiv.style.color = '#4ade80';
-                        if (logsConsole) logsConsole.appendChild(historyDiv);
                     });
                     lastSearchLogCount = data.logs.length;
 
-                    if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
-                    if (logsConsole && isConsoleAtBottom) logsConsole.scrollTop = logsConsole.scrollHeight;
+                    // Trim live log to prevent DOM bloat
+                    if (liveSyncLogs && liveSyncLogs.children.length > MAX_LIVE_LOG_LINES) {
+                        const remove = liveSyncLogs.children.length - MAX_LIVE_LOG_LINES;
+                        for (let i = 0; i < remove; i++) {
+                            liveSyncLogs.removeChild(liveSyncLogs.firstChild);
+                        }
+                    }
 
-                    if (overlayText) {
-                        overlayText.textContent = data.logs[data.logs.length - 1];
+                    if (liveSyncLogs && isLiveSyncAtBottom) liveSyncLogs.scrollTop = liveSyncLogs.scrollHeight;
+
+                    if (overlayText && newLogs.length > 0) {
+                        overlayText.textContent = newLogs[newLogs.length - 1];
                     }
                 }
 
@@ -3765,13 +3688,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleSearchAll(localOnly = false) {
-        const isCustom = document.querySelector('input[name="searchRange"]:checked').value === 'custom';
-        const yearSelects = document.querySelectorAll('.search-year-select');
-        const years = Array.from(yearSelects).map(s => s.value.trim()).filter(y => y);
-        const uniqueYears = [...new Set(years)].map(y => parseInt(y));
-
-        const startDate = document.getElementById('searchStartDateInput')?.value;
-        const endDate = document.getElementById('searchEndDateInput')?.value;
         const usernameInput = document.getElementById('savedUsernameStats');
         const passwordInput = document.getElementById('savedPasswordStats');
 
@@ -3780,17 +3696,6 @@ document.addEventListener('DOMContentLoaded', () => {
             username: usernameInput ? usernameInput.value.trim() : '',
             password: passwordInput ? passwordInput.value.trim() : ''
         };
-
-        if (isCustom) {
-            if (!startDate || !endDate) {
-                showAlert('الرجاء إدخال تاريخ البداية والنهاية.');
-                return;
-            }
-            payload.start_date = startDate;
-            payload.end_date = endDate;
-        } else {
-            payload.years = uniqueYears;
-        }
 
         try {
             if (btnSearchAll) {
@@ -3850,19 +3755,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize Flatpickr for search inputs if they exist
-    if (document.getElementById('searchStartDateInput')) {
-        flatpickr("#searchStartDateInput", {
-            dateFormat: "Y-m-d",
-            allowInput: true
-        });
-    }
-    if (document.getElementById('searchEndDateInput')) {
-        flatpickr("#searchEndDateInput", {
-            dateFormat: "Y-m-d",
-            allowInput: true
-        });
-    }
-
     // Fix for Ctrl+C text copying in PyWebView
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
@@ -3898,27 +3790,4 @@ window.addEventListener('scroll', () => {
 }, false);
 
 
-    // Update dropdown position on table scroll
-    const tableWrapper = document.querySelector('.table-wrapper');
-    if (tableWrapper) {
-        tableWrapper.addEventListener('scroll', () => {
-            const dd = document.querySelector('#searchAllSection .search-filter-dropdown.open');
-            if (dd) {
-                const colIdx = dd.getAttribute('data-col');
-                const th = document.querySelector(`#searchAllTable th[data-col="${colIdx}"]`);
-                if (th) {
-                    const rect = th.getBoundingClientRect();
-                    let leftStyle = `left:${Math.max(4, rect.left + window.scrollX)}px;right:auto;`;
-                    if (rect.left + 300 > window.innerWidth) {
-                        leftStyle = `right:${Math.max(4, window.innerWidth - rect.right - window.scrollX)}px;left:auto;`;
-                    }
-                    dd.style.cssText = `position:absolute;top:${rect.bottom + window.scrollY + 4}px;${leftStyle}z-index:10000;`;
-                }
-            }
-        });
-    }
-
-
-    document.querySelectorAll('#searchAllTable th').forEach((th, idx) => {
-        th.setAttribute('data-col', idx);
-    });
+    // Scroll reposition not needed — dropdown uses position:fixed
