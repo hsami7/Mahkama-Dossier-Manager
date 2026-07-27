@@ -41,7 +41,10 @@ def main():
         else:
             years = [engine.AVAILABLE_YEARS[0]]
 
-    if not args.local_only:
+    if args.local_only:
+        file_statuses = []
+    else:
+        file_statuses = []
         print("[*] بدء جلب البيانات من محاكم...")
         try:
             print("[*] جلب ملفات الإحصائيات (Stats)...")
@@ -62,10 +65,18 @@ def main():
             print("[*] جلب ملفات السجلات (Dossiers)...")
             for yr in years:
                 try:
+                    import re as _re
+                    def dossiers_log(msg):
+                        print(msg, flush=True)
+                        if "تم التخطي (فارغ" in msg:
+                            m = _re.search(r'السجل \d+ \((.+?)\):', msg)
+                            if m:
+                                file_statuses.append({"name": m.group(1), "status": "skipped", "reason": "فارغ (0 ملفات)"})
                     sync_dossiers(
                         years=[yr],
                         output_dir=args.download_dir,
                         debug=False,
+                        log_callback=dossiers_log,
                         username=args.username,
                         password=args.password
                     )
@@ -78,7 +89,6 @@ def main():
             
     print("[*] جاري قراءة الملفات المحلية...")
     all_rows = []
-    file_statuses = []
         
     # parse dates for filtering
     sd = parse_date(args.start_date)
