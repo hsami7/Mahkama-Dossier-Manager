@@ -731,9 +731,24 @@ def run_search_process(years, base_download_dir, start_date=None, end_date=None,
             
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding='utf-8', env=env)
         with search_lock:
+            if not search_active:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+                log_cb("[-] تم إيقاف البحث من قبل المستخدم.")
+                return
             search_process = process
         
         for line in iter(process.stdout.readline, ''):
+            with search_lock:
+                if not search_active:
+                    try:
+                        process.kill()
+                    except Exception:
+                        pass
+                    log_cb("[-] تم إيقاف البحث من قبل المستخدم.")
+                    break
             line_str = line.strip()
             if not line_str:
                 continue
@@ -754,6 +769,8 @@ def run_search_process(years, base_download_dir, start_date=None, end_date=None,
         
     except Exception as e:
         with search_lock:
+            if not search_active:
+                return
             search_error = True
         log_cb(f"[-] خطأ أثناء البحث: {e}")
     finally:
@@ -763,7 +780,7 @@ def run_search_process(years, base_download_dir, start_date=None, end_date=None,
 
 @app.route('/api/search-all-dossiers', methods=['POST'])
 def api_search_all_dossiers():
-    global search_thread, search_active
+    global search_thread, search_active, search_process
     data = request.get_json() or {}
     years = data.get('years')
     if not years:
@@ -856,7 +873,7 @@ def api_log_client_event():
 
 @app.route('/api/abort', methods=['POST'])
 def api_abort():
-    global stats_active, sync_active
+    global stats_active, sync_active, search_active, search_process
     aborted_any = False
     
     with stats_lock:

@@ -148,6 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 console.error("Error aborting operation:", err);
             }
+            btnAbortOperation.disabled = false;
+            btnAbortOperation.innerText = 'إلغاء وإيقاف العملية الجارية';
         });
     }
 

@@ -63,7 +63,7 @@ def main():
             for yr in years:
                 try:
                     sync_dossiers(
-                        year=yr,
+                        years=[yr],
                         output_dir=args.download_dir,
                         debug=False,
                         username=args.username,
