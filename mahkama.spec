@@ -16,6 +16,7 @@ a = Analysis(
         ('engine.py', '.'),
         ('sync_dossiers.py', '.'),
         ('sync_stats.py', '.'),
+        ('fetch_search_data.py', '.'),
         ('templates/*', 'templates/'),
         ('static/css/*', 'static/css/'),
         ('static/js/*', 'static/js/'),
