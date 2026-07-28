@@ -163,7 +163,7 @@ def api_check_update():
             'https://api.github.com/repos/hsami7/Mahkama-Dossier-Manager/releases/latest',
             headers={'User-Agent': 'Mahkama-Dossier-Manager'}
         )
-        with urllib.request.urlopen(req, timeout=3) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode())
             latest_version = data.get('tag_name')
             html_url = data.get('html_url')
@@ -193,8 +193,8 @@ def api_check_update():
                     "latest_version": latest_version,
                     "download_url": html_url
                 })
-    except Exception:
-        pass
+    except Exception as e:
+        write_log(f"Update check failed: {str(e)}")
         
     return jsonify({"has_update": False})
 
