@@ -3224,17 +3224,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Normalize: support both old (array) and new ({rows, files}) format
         let rows = data;
         let fileStatuses = null;
+        let errorMsg = null;
         if (data && !Array.isArray(data)) {
             rows = data.rows || [];
             fileStatuses = data.files || null;
+            errorMsg = data.error || null;
             searchAllFileStatuses = fileStatuses;
         } else {
             fileStatuses = searchAllFileStatuses;
         }
 
         if (!rows || rows.length === 0) {
-            searchAllTableHeadRow.innerHTML = '<th>لا توجد بيانات</th>';
-            searchAllTableBody.innerHTML = '<tr><td>لا توجد بيانات لعرضها</td></tr>';
+            const displayTitle = errorMsg ? 'خطأ أثناء الجلب' : 'لا توجد بيانات';
+            const displayMessage = errorMsg ? `تعذر تحميل البيانات: ${errorMsg}` : 'لا توجد بيانات لعرضها';
+            searchAllTableHeadRow.innerHTML = `<th>${displayTitle}</th>`;
+            searchAllTableBody.innerHTML = `<tr><td style="color: ${errorMsg ? 'red' : 'inherit'};">${displayMessage}</td></tr>`;
             renderFileStatuses(fileStatuses);
             return;
         }

@@ -44,6 +44,7 @@ def main():
 
     file_statuses = []
 
+    fetch_error = None
     if not args.local_only:
         print("[*] بدء جلب البيانات من محاكم...")
         print("[*] جلب ملفات السجلات (Dossiers)...")
@@ -64,7 +65,8 @@ def main():
             )
             print("[+] انتهت محاولة جلب البيانات.")
         except Exception as e:
-            print(f"[-] خطأ غير متوقع أثناء جلب البيانات: {str(e)}")
+            fetch_error = str(e)
+            print(f"[-] خطأ غير متوقع أثناء جلب البيانات: {fetch_error}")
             
     print("[*] جاري قراءة الملفات المحلية...")
     all_rows = []
@@ -88,7 +90,7 @@ def main():
                 print(f"[-] فشل قراءة الملف: {yr}/{file} - {str(e)}")
                     
     print("[+] اكتملت القراءة.")
-    print(f"RESULT:{json.dumps({'rows': all_rows, 'files': file_statuses})}")
+    print(f"RESULT:{json.dumps({'rows': all_rows, 'files': file_statuses, 'error': fetch_error})}")
 
 if __name__ == '__main__':
     main()
