@@ -248,6 +248,7 @@ def sync_dossiers(years, output_dir="data/downloads", debug=False, log_callback=
                     # Remove extra spaces/newlines
                     return " ".join(cleaned.split())
                 
+                failed_tasks = []
                 for i, task in enumerate(download_tasks):
                     display_index = i + 1  # 1-based index for logs
                     reg_name = sanitize_filename(task['name'] or f"registry_{display_index}")
@@ -285,13 +286,43 @@ def sync_dossiers(years, output_dir="data/downloads", debug=False, log_callback=
                         downloaded_count += 1
                     
                     except PlaywrightTimeoutError:
-                        error_msg = f"السجل {display_index} ({reg_name}): لم يتم بدء التنزيل (انتهى الوقت). يرجى التحقق من الاتصال والمحاولة مرة أخرى."
+                        error_msg = f"السجل {display_index} ({reg_name}): لم يتم بدء التنزيل (انتهى الوقت)."
                         log(f"[-] {error_msg}")
+                        failed_tasks.append((task, display_index, reg_name))
                         continue
                     except Exception as e:
-                        error_msg = f"السجل {display_index} ({reg_name}): خطأ أثناء التنزيل: {e}. يرجى التحقق والمحاولة مرة أخرى."
+                        error_msg = f"السجل {display_index} ({reg_name}): خطأ أثناء التنزيل: {e}."
                         log(f"[-] {error_msg}")
+                        failed_tasks.append((task, display_index, reg_name))
                         continue
+                        
+                max_retries = 3
+                for retry in range(1, max_retries + 1):
+                    if not failed_tasks:
+                        break
+                    log(f"[*] محاولة إعادة تنزيل الملفات الفاشلة (المحاولة {retry}/{max_retries})...")
+                    still_failed = []
+                    for task, display_index, reg_name in failed_tasks:
+                        log(f"[*] السجل {display_index} ({reg_name}): إعادة التنزيل...")
+                        try:
+                            with page.expect_download(timeout=20000) as download_info:
+                                task['link'].click(force=True)
+                            
+                            download = download_info.value
+                            suggested = download.suggested_filename
+                            ext = os.path.splitext(suggested)[1] or ".xlsx" if suggested else ".xlsx"
+                            file_name = f"registry_{display_index}_{reg_name}{ext}"
+                            file_path = os.path.join(target_dir, file_name)
+                            download.save_as(file_path)
+                            log(f"[+] السجل {display_index} ({reg_name}): تم التنزيل بنجاح بعد إعادة المحاولة: {file_name}")
+                            downloaded_count += 1
+                        except PlaywrightTimeoutError:
+                            log(f"[-] السجل {display_index} ({reg_name}): فشل مجددا (انتهى الوقت).")
+                            still_failed.append((task, display_index, reg_name))
+                        except Exception as e:
+                            log(f"[-] السجل {display_index} ({reg_name}): فشل مجددا ({e}).")
+                            still_failed.append((task, display_index, reg_name))
+                    failed_tasks = still_failed
                     
                 log(f"\n[+] اكتملت العملية. تم تنزيل {downloaded_count} ملف بنجاح إلى المجلد {target_dir}")
             
