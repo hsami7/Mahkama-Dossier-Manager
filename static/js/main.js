@@ -3234,11 +3234,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fileStatuses = searchAllFileStatuses;
         }
 
+        if (errorMsg) {
+            showAlert(`خطأ أثناء الجلب: ${errorMsg}`);
+        }
+
         if (!rows || rows.length === 0) {
-            const displayTitle = errorMsg ? 'خطأ أثناء الجلب' : 'لا توجد بيانات';
-            const displayMessage = errorMsg ? `تعذر تحميل البيانات: ${errorMsg}` : 'لا توجد بيانات لعرضها';
-            searchAllTableHeadRow.innerHTML = `<th>${displayTitle}</th>`;
-            searchAllTableBody.innerHTML = `<tr><td style="color: ${errorMsg ? 'red' : 'inherit'};">${displayMessage}</td></tr>`;
+            searchAllTableHeadRow.innerHTML = '<th>لا توجد بيانات</th>';
+            searchAllTableBody.innerHTML = '<tr><td>لا توجد بيانات لعرضها</td></tr>';
             renderFileStatuses(fileStatuses);
             return;
         }
