@@ -21,16 +21,26 @@ def main():
     args = parser.parse_args()
     
     years = args.year
-    if not years:
-        try:
-            years = sorted([int(d) for d in os.listdir(args.download_dir) if os.path.isdir(os.path.join(args.download_dir, d)) and d.isdigit()])
-        except Exception:
-            years = []
-            
-    if not years and not args.local_only:
+    if not args.local_only:
         import datetime
+        import shutil
         current_year = datetime.datetime.now().year
-        years = [current_year, current_year - 1, current_year - 2]
+        # Update (تحديث): fetch from 2024 to current_year and clear existing folder
+        years = list(range(2024, current_year + 1))
+        
+        if os.path.exists(args.download_dir):
+            try:
+                shutil.rmtree(args.download_dir)
+            except Exception as e:
+                pass
+        os.makedirs(args.download_dir, exist_ok=True)
+    else:
+        # Saved (آخر حفظ): Just read what's there
+        if not years:
+            try:
+                years = sorted([int(d) for d in os.listdir(args.download_dir) if os.path.isdir(os.path.join(args.download_dir, d)) and d.isdigit()])
+            except Exception:
+                years = []
 
     file_statuses = []
 
