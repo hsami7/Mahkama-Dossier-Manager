@@ -22,7 +22,15 @@ def main():
     
     years = args.year
     if not years:
-        years = sorted([int(d) for d in os.listdir(args.download_dir) if os.path.isdir(os.path.join(args.download_dir, d)) and d.isdigit()])
+        try:
+            years = sorted([int(d) for d in os.listdir(args.download_dir) if os.path.isdir(os.path.join(args.download_dir, d)) and d.isdigit()])
+        except Exception:
+            years = []
+            
+    if not years and not args.local_only:
+        import datetime
+        current_year = datetime.datetime.now().year
+        years = [current_year, current_year - 1, current_year - 2]
 
     file_statuses = []
 
