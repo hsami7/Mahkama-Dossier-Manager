@@ -287,11 +287,11 @@ def sync_dossiers(years, output_dir="data/downloads", debug=False, log_callback=
                     except PlaywrightTimeoutError:
                         error_msg = f"السجل {display_index} ({reg_name}): لم يتم بدء التنزيل (انتهى الوقت). يرجى التحقق من الاتصال والمحاولة مرة أخرى."
                         log(f"[-] {error_msg}")
-                        raise RuntimeError(error_msg)
+                        continue
                     except Exception as e:
                         error_msg = f"السجل {display_index} ({reg_name}): خطأ أثناء التنزيل: {e}. يرجى التحقق والمحاولة مرة أخرى."
                         log(f"[-] {error_msg}")
-                        raise RuntimeError(error_msg)
+                        continue
                     
                 log(f"\n[+] اكتملت العملية. تم تنزيل {downloaded_count} ملف بنجاح إلى المجلد {target_dir}")
             
