@@ -3788,13 +3788,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleSearchAll(localOnly = false) {
-        const usernameInput = document.getElementById('savedUsernameStats');
-        const passwordInput = document.getElementById('savedPasswordStats');
+        let finalUsername = '';
+        let finalPassword = '';
+
+        if (!localOnly) {
+            const creds = await promptLogin('dossier');
+            if (!creds) return; // User cancelled login
+            finalUsername = creds.username;
+            finalPassword = creds.password;
+        }
 
         const payload = {
             local_only: localOnly,
-            username: usernameInput ? usernameInput.value.trim() : '',
-            password: passwordInput ? passwordInput.value.trim() : ''
+            username: finalUsername,
+            password: finalPassword
         };
 
         try {

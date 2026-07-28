@@ -23,7 +23,7 @@ try:
     _config.read(os.path.join(base_dir, 'version.ini'))
     CURRENT_VERSION = "v" + _config['Version']['AppVersion']
 except Exception as e:
-    CURRENT_VERSION = "v1.2.9"
+    CURRENT_VERSION = "v1.2.10"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
