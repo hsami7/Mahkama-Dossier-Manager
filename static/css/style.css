@@ -807,6 +807,36 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus {
     box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1) !important;
 }
 
+/* DataTable Search Filter Styling */
+.dataTables_filter {
+    margin-bottom: 15px;
+    margin-top: 5px;
+    padding: 0 10px;
+}
+.dataTables_filter label {
+    font-weight: 600;
+    color: var(--mahakim-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+.dataTables_filter input {
+    border: 1.5px solid var(--mahakim-border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    outline: none;
+    transition: all 0.2s ease;
+    width: 250px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--mahakim-text);
+}
+.dataTables_filter input:focus {
+    border-color: var(--mahakim-accent);
+    box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+}
+
 /* Radio buttons container */
 .radio-group {
     display: flex;

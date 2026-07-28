@@ -23,7 +23,7 @@ try:
     _config.read(os.path.join(base_dir, 'version.ini'))
     CURRENT_VERSION = "v" + _config['Version']['AppVersion']
 except Exception as e:
-    CURRENT_VERSION = "v1.2.7"
+    CURRENT_VERSION = "v1.2.8"
 
 def write_log(msg):
     log_dir = engine.get_data_dir()
@@ -700,16 +700,11 @@ def run_search_process(base_download_dir, username=None, password=None, local_on
         write_log(msg)
             
     msg = r"""
-  ____  _____  _   _  ___  ______  _   _  __
- / ___|| ____|| \ | ||_ _||__  (_)/ \ | \| |
- \___ \|  _|  |  \| | | |   / / / _ \| .` |
-  ___) | |___ | |\  | | |  / /_/ ___ \| |\  |
- |____/|_____||_| \_||___|/____/_/   \_\_| \_|
- ______  _   _   ___   _   _  ___
-|  ____|| \ | | / _ \ | \ | ||_ _|
-| |__   |  \| || | | ||  \| | | |
-|  __|  | |\  || |_| || |\  | | |
-|_|     |_| \_| \___/ |_| \_||___|
+  ____  _____    _    ____   ____ _   _ 
+ / ___|| ____|  / \  |  _ \ / ___| | | |
+ \___ \|  _|   / _ \ | |_) | |   | |_| |
+  ___) | |___ / ___ \|  _ <| |___|  _  |
+ |____/|_____/_/   \_\_| \_\\____|_| |_|
 """
     write_log(msg)
     msg = "[*] بدء جلب جميع الملفات..."

@@ -3265,6 +3265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchAllDataTable = $('#searchAllTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json',
+                searchPlaceholder: '',
                 search: 'بحث:',
                 zeroRecords: 'لا توجد نتائج',
                 info: 'عرض _START_ إلى _END_ من _TOTAL_',
@@ -3277,10 +3278,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 paginate: { first: 'الأول', previous: 'السابق', next: 'التالي', last: 'الأخير' },
                 aria: { sortAscending: 'ترتيب تصاعدي', sortDescending: 'ترتيب تنازلي' }
             },
-            scrollX: false,
+            scrollX: true,
             pageLength: 25,
             ordering: false,
             order: [],
+            columnDefs: [
+                {
+                    targets: '_all',
+                    render: function (data, type, row) {
+                        if (type === 'filter') {
+                            if (data && typeof data === 'string' && data.includes('/')) {
+                                const reversed = data.split('/').reverse().join('/');
+                                return data + ' ' + reversed;
+                            }
+                            return data;
+                        }
+                        if (type === 'display' && data && typeof data === 'string' && data.length > 50) {
+                            var safeData = data.replace(/"/g, '&quot;');
+                            return '<span title="' + safeData + '" style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle;">' + data.substr(0, 50) + '...</span>';
+                        }
+                        return data;
+                    }
+                }
+            ],
             dom: '<"top"f>rt<"bottom"lip><"clear">',
             mark: true,
             searchDelay: 400
@@ -3291,6 +3311,41 @@ document.addEventListener('DOMContentLoaded', () => {
         searchAllDataTable.clear();
         searchAllDataTable.rows.add(bodyData);
         searchAllDataTable.draw();
+
+        // Auto-scroll horizontally to the first highlighted search result
+        searchAllDataTable.on('draw.dt', function () {
+            setTimeout(() => {
+                let stringsToMark = [];
+                const globalSearch = ($('#searchAllTable_filter input').val() || '').trim();
+                if (globalSearch && globalSearch.includes('/')) {
+                    stringsToMark.push(globalSearch.split('/').reverse().join('/'));
+                }
+                if (typeof searchAllColFilters !== 'undefined' && searchAllColFilters) {
+                    Object.values(searchAllColFilters).forEach(filterSet => {
+                        if (filterSet && filterSet.size > 0) {
+                            filterSet.forEach(val => {
+                                if (val.includes('/')) {
+                                    stringsToMark.push(val.split('/').reverse().join('/'));
+                                }
+                            });
+                        }
+                    });
+                }
+                if (stringsToMark.length > 0) {
+                    $('#searchAllTable tbody').mark(stringsToMark, {
+                        element: 'mark',
+                        separateWordSearch: false,
+                        diacritics: false,
+                        accuracy: 'partially'
+                    });
+                }
+                
+                const firstMark = document.querySelector('#searchAllTable_wrapper .dataTables_scrollBody mark');
+                if (firstMark) {
+                    firstMark.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 150); // slight delay for mark.js to render
+        });
 
         renderFileStatuses(fileStatuses);
     }
@@ -3388,7 +3443,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const val = label.getAttribute('data-value');
                 const cb = label.querySelector('input[type="checkbox"]');
                 cb.checked = selected.has(val);
-                const match = !query || val.toLowerCase().includes(query);
+                
+                let queryReversed = null;
+                if (query.includes('/')) {
+                    queryReversed = query.split('/').reverse().join('/');
+                }
+                const valLower = val.toLowerCase();
+                const match = !query || valLower.includes(query) || (queryReversed && valLower.includes(queryReversed));
+                
                 label.style.display = match ? '' : 'none';
                 if (match) matched++;
             });
@@ -3594,7 +3656,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectAllBtn) {
             if (query) {
                 // Only select values matching the search query
-                const matching = allVals.filter(v => v.toLowerCase().includes(query));
+                let queryReversed = null;
+                if (query.includes('/')) {
+                    queryReversed = query.split('/').reverse().join('/');
+                }
+                const matching = allVals.filter(v => {
+                    const valLower = v.toLowerCase();
+                    return valLower.includes(query) || (queryReversed && valLower.includes(queryReversed));
+                });
                 searchAllColFilters[colIdx] = matching.length < allVals.length ? new Set(matching) : null;
             } else {
                 delete searchAllColFilters[colIdx];
@@ -3634,14 +3703,20 @@ document.addEventListener('DOMContentLoaded', () => {
         lastSearchLogCount = 0;
         if (liveSyncLogs) {
             liveSyncLogs.innerHTML = '';
-            liveSyncLogs.style.display = 'none';
+            liveSyncLogs.style.display = 'block';
         }
-        if (liveSyncLogsWrapper) liveSyncLogsWrapper.style.display = 'block';
+        if (liveSyncLogsWrapper) {
+            liveSyncLogsWrapper.style.display = 'block';
+            const titleSpan = liveSyncLogsWrapper.querySelector('span');
+            if (titleSpan) {
+                titleSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg> ${localOnly ? 'تفاصيل قراءة الملفات المحلية:' : 'تفاصيل عملية المزامنة المباشرة:'}`;
+            }
+        }
         if (btnMinimizeLiveLogs) {
-            btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m7 10 5 5 5-5"/></svg> عرض التفاصيل`;
+            btnMinimizeLiveLogs.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 4px;"><path d="m17 14-5-5-5 5"/></svg> إخفاء التفاصيل`;
         }
 
-        searchPollInterval = setInterval(async () => {
+        const doPoll = async () => {
             try {
                 const res = await fetch('/api/search-all-dossiers/status');
                 const data = await res.json();
@@ -3703,7 +3778,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 console.error('Error polling search status:', err);
             }
-        }, 1500);
+        };
+
+        // Poll immediately, then set interval
+        doPoll();
+        searchPollInterval = setInterval(doPoll, 800);
     }
 
     async function handleSearchAll(localOnly = false) {
