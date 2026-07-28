@@ -3368,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const failed = fileStatuses.filter(f => f.status === 'failed');
 
         let html = '<div class="file-status-section">';
-        html += '<div class="file-status-title">حالة الملفات المقروءة</div>';
+        html += `<div class="file-status-title">حالة الملفات المقروءة (${fileStatuses.length})</div>`;
         html += '<div class="file-status-legend">';
         html += '<span class="file-status-badge file-status-read">● تمت القراءة</span>';
         html += '<span class="file-status-badge file-status-skipped">● تم التجاهل</span>';
