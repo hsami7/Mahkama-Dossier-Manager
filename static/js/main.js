@@ -3756,6 +3756,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(searchPollInterval);
                     searchPollInterval = null;
                     if (overlay) overlay.style.display = 'none';
+                    const loginHint = document.getElementById('loginHintText');
+                    if (loginHint) loginHint.style.display = 'none';
                     if (btnSearchAll) {
                         btnSearchAll.disabled = false;
                         btnSearchAll.innerText = 'تحديث';
@@ -3806,6 +3808,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const overlay = document.getElementById('loadingOverlay');
+            const loginHint = document.getElementById('loginHintText');
+            if (loginHint) {
+                loginHint.style.display = localOnly ? 'none' : 'block';
+            }
             if (overlay) overlay.style.display = 'flex';
 
             const res = await fetch('/api/search-all-dossiers', {
@@ -3818,6 +3824,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.error) {
                 showAlert(data.error);
                 if (overlay) overlay.style.display = 'none';
+                const loginHint = document.getElementById('loginHintText');
+                if (loginHint) loginHint.style.display = 'none';
                 if (btnSearchAll) {
                     btnSearchAll.disabled = false;
                     btnSearchAll.innerText = 'تحديث';
@@ -3834,6 +3842,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert('فشل الاتصال بالخادم لبدء البحث.');
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) overlay.style.display = 'none';
+            const loginHint = document.getElementById('loginHintText');
+            if (loginHint) loginHint.style.display = 'none';
             if (btnSearchAll) {
                 btnSearchAll.disabled = false;
                 btnSearchAll.innerText = 'تحديث';
