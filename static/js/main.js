@@ -809,32 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (btnSaveAccount) {
-        btnSaveAccount.addEventListener('click', async () => {
-            const payload = {
-                dossier_username: savedUsernameDossier.value.trim(),
-                dossier_password: savedPasswordDossier.value,
-                stats_username: savedUsernameStats.value.trim(),
-                stats_password: savedPasswordStats.value
-            };
-            try {
-                const res = await fetch('/api/credentials', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    savedCredentials = { ...savedCredentials, ...payload };
-                    showAlert('✅ تم حفظ بيانات تسجيل الدخول بنجاح!');
-                } else {
-                    showAlert('❌ ' + data.error);
-                }
-            } catch (e) {
-                showAlert('❌ حدث خطأ أثناء الحفظ.');
-            }
-        });
-    }
+    // btnSaveAccount logic removed, now handled by btnSettingsSave
 
     async function loadSettings() {
         loadCredentials();
@@ -916,13 +891,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         try {
+            // Save Settings
             const response = await fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updated)
             });
 
-            if (response.ok) {
+            // Save Credentials
+            let credsSaved = true;
+            if (savedUsernameDossier && savedPasswordDossier && savedUsernameStats && savedPasswordStats) {
+                const credsPayload = {
+                    dossier_username: savedUsernameDossier.value.trim(),
+                    dossier_password: savedPasswordDossier.value,
+                    stats_username: savedUsernameStats.value.trim(),
+                    stats_password: savedPasswordStats.value
+                };
+                const credsRes = await fetch('/api/credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(credsPayload)
+                });
+                const credsData = await credsRes.json();
+                if (credsData.success) {
+                    savedCredentials = { ...savedCredentials, ...credsPayload };
+                } else {
+                    credsSaved = false;
+                    showAlert('❌ ' + credsData.error);
+                }
+            }
+
+            if (response.ok && credsSaved) {
                 const settingsModal = document.getElementById('settingsModal');
                 if (settingsModal) settingsModal.style.display = 'none';
 
@@ -933,7 +932,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     showAlert('تم حفظ الإعدادات بنجاح!');
                 }
-            } else {
+            } else if (!response.ok) {
                 showAlert('حدث خطأ أثناء حفظ الإعدادات.');
             }
         } catch (error) {
