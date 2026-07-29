@@ -3214,11 +3214,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                if (typeof XLSX === 'undefined') {
-                    if (typeof showAlert === 'function') showAlert('عذراً، لم يتم تحميل مكتبة التصدير (تحتاج لاتصال بالإنترنت).');
-                    return;
-                }
-                
                 // Get all filtered data from DataTables
                 const filteredData = searchAllDataTable.rows({ search: 'applied' }).data().toArray();
                 
@@ -3227,28 +3222,114 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Map the 2D array back to an array of objects using columns
-                const exportData = filteredData.map(rowArray => {
-                    const rowObj = {};
-                    searchAllTableColumns.forEach((colName, index) => {
-                        rowObj[colName] = rowArray[index] || '';
+                let rowsHtml = '';
+                filteredData.forEach(rowArray => {
+                    rowsHtml += '<tr>';
+                    rowArray.forEach((cellData) => {
+                        const txt = cellData || '-';
+                        rowsHtml += `<td style="border:1px solid #cbd5e1;padding:6px;text-align:center;">${txt}</td>`;
                     });
-                    return rowObj;
+                    rowsHtml += '</tr>';
                 });
 
-                // Convert to worksheet
-                const ws = XLSX.utils.json_to_sheet(exportData);
-                
-                // Right-to-Left sheet direction for Arabic
-                if(!ws['!views']) ws['!views'] = [];
-                ws['!views'].push({ rightToLeft: true });
+                const headers = searchAllTableColumns;
+                const now = new Date();
+                const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+                const tabLabel = 'نتائج البحث الشامل';
 
-                // Create workbook and download
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "نتائج البحث");
+                const excelTemplate = `
+                    <html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <!--[if gte mso 9]>
+                    <xml>
+                    <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                    <x:ExcelWorksheet>
+                    <x:Name>${tabLabel}</x:Name>
+                    <x:WorksheetOptions>
+                    <x:DisplayRightToLeft/>
+                    <x:DisplayGridlines/>
+                    </x:WorksheetOptions>
+                    </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th { background-color: #1e3a8a; color: #ffffff; border: 1px solid #cbd5e1; padding: 10px; font-weight: bold; text-align: center; }
+                    </style>
+                    </head>
+                    <body>
+                        <table dir="rtl">
+                            <tr>
+                                <td colspan="${headers.length}" style="font-weight:bold; font-size:14pt; text-align:right; border:none; padding-bottom:5px;">
+                                    المملكة المغربية
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="${headers.length}" style="font-weight:bold; font-size:12pt; text-align:right; border:none; padding-bottom:5px;">
+                                    وزارة العدل
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="${headers.length}" style="font-weight:bold; font-size:12pt; text-align:right; border:none; padding-bottom:15px;">
+                                    محكمة الاستئناف الادارية فاس
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="${headers.length}" style="font-weight:bold; font-size:16pt; color:#1e3a8a; text-align:center; border:none; padding-bottom:5px;">
+                                    ${tabLabel}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="${headers.length}" style="font-size:10pt; color:#64748b; text-align:center; border:none; padding-bottom:15px;">
+                                    حرر في: ${dateStr}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="${headers.length}" style="background-color:#f8fafc; border:1px solid #e2e8f0; font-weight:bold; padding:10px; text-align:right;">
+                                    إجمالي الملفات المصدرة: ${filteredData.length}
+                                </td>
+                            </tr>
+                            <tr><td colspan="${headers.length}" style="border:none; height:15px;"></td></tr>
+                            <thead>
+                                <tr>
+                                    ${headers.map(h => `<th>${h}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </body>
+                    </html>
+                `;
 
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-                XLSX.writeFile(wb, `نتائج_البحث_${timestamp}.xlsx`);
+                const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const filename = `البحث_الشامل_${stamp}.xls`;
+
+                if (typeof showAlert === 'function') showAlert('جاري التصدير وتجهيز الملف... ⏳');
+
+                fetch('/api/export-excel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: excelTemplate, filename })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof showAlert === 'function') showAlert(`✅ تم تصدير الملف بنجاح إلى:\n${data.path}`, data.path);
+                        } else {
+                            if (typeof showAlert === 'function') showAlert('❌ فشل تصدير الملف: ' + (data.error || 'خطأ غير معروف'));
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof showAlert === 'function') showAlert('❌ فشل التصدير لسبب تقني: ' + err.message);
+                    });
+
             } catch (err) {
                 console.error('Export Error:', err);
                 if (typeof showAlert === 'function') showAlert('حدث خطأ أثناء التصدير: ' + err.message);
