@@ -3205,9 +3205,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const btnExportExcel = document.getElementById('btnExportExcel');
-    if (btnExportExcel) {
-        btnExportExcel.addEventListener('click', () => {
+    const btnSearchAllExportExcel = document.getElementById('btnExportExcel');
+    if (btnSearchAllExportExcel) {
+        btnSearchAllExportExcel.addEventListener('click', () => {
             if (!searchAllDataTable) {
                 if (typeof showAlert === 'function') showAlert('لا توجد بيانات للتصدير');
                 return;
