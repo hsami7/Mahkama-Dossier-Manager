@@ -3238,6 +3238,17 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(`خطأ أثناء الجلب: ${errorMsg}`);
         }
 
+        // Clean up data to avoid exact-match filter issues (e.g. trailing spaces, newlines)
+        if (rows) {
+            rows.forEach(row => {
+                Object.keys(row).forEach(key => {
+                    if (typeof row[key] === 'string') {
+                        row[key] = row[key].replace(/[\r\n]+/g, ' ').trim();
+                    }
+                });
+            });
+        }
+
         if (!rows || rows.length === 0) {
             searchAllTableHeadRow.innerHTML = '<th>لا توجد بيانات</th>';
             searchAllTableBody.innerHTML = '<tr><td>لا توجد بيانات لعرضها</td></tr>';
