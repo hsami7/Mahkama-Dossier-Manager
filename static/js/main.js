@@ -3208,41 +3208,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSearchAllExportExcel = document.getElementById('btnExportExcel');
     if (btnSearchAllExportExcel) {
         btnSearchAllExportExcel.addEventListener('click', () => {
-            if (!searchAllDataTable) {
-                if (typeof showAlert === 'function') showAlert('لا توجد بيانات للتصدير');
-                return;
-            }
-            
-            // Get all filtered data from DataTables
-            const filteredData = searchAllDataTable.rows({ search: 'applied' }).data().toArray();
-            
-            if (filteredData.length === 0) {
-                if (typeof showAlert === 'function') showAlert('لا توجد نتائج مطابقة للتصدير');
-                return;
-            }
+            try {
+                if (!searchAllDataTable) {
+                    if (typeof showAlert === 'function') showAlert('لا توجد بيانات للتصدير');
+                    return;
+                }
+                
+                if (typeof XLSX === 'undefined') {
+                    if (typeof showAlert === 'function') showAlert('عذراً، لم يتم تحميل مكتبة التصدير (تحتاج لاتصال بالإنترنت).');
+                    return;
+                }
+                
+                // Get all filtered data from DataTables
+                const filteredData = searchAllDataTable.rows({ search: 'applied' }).data().toArray();
+                
+                if (filteredData.length === 0) {
+                    if (typeof showAlert === 'function') showAlert('لا توجد نتائج مطابقة للتصدير');
+                    return;
+                }
 
-            // Map the 2D array back to an array of objects using columns
-            const exportData = filteredData.map(rowArray => {
-                const rowObj = {};
-                searchAllTableColumns.forEach((colName, index) => {
-                    rowObj[colName] = rowArray[index] || '';
+                // Map the 2D array back to an array of objects using columns
+                const exportData = filteredData.map(rowArray => {
+                    const rowObj = {};
+                    searchAllTableColumns.forEach((colName, index) => {
+                        rowObj[colName] = rowArray[index] || '';
+                    });
+                    return rowObj;
                 });
-                return rowObj;
-            });
 
-            // Convert to worksheet
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            
-            // Right-to-Left sheet direction for Arabic
-            if(!ws['!views']) ws['!views'] = [];
-            ws['!views'].push({ rightToLeft: true });
+                // Convert to worksheet
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                
+                // Right-to-Left sheet direction for Arabic
+                if(!ws['!views']) ws['!views'] = [];
+                ws['!views'].push({ rightToLeft: true });
 
-            // Create workbook and download
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "نتائج البحث");
+                // Create workbook and download
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "نتائج البحث");
 
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            XLSX.writeFile(wb, `نتائج_البحث_${timestamp}.xlsx`);
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                XLSX.writeFile(wb, `نتائج_البحث_${timestamp}.xlsx`);
+            } catch (err) {
+                console.error('Export Error:', err);
+                if (typeof showAlert === 'function') showAlert('حدث خطأ أثناء التصدير: ' + err.message);
+            }
         });
     }
 
