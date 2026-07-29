@@ -102,7 +102,7 @@ import uuid
 import time
 
 update_status = {"status": "idle", "progress": 0, "version": None, "error": None}
-update_lock = threading.Lock()
+update_lock = threading.RLock()
 update_thread = None
 
 def download_update_worker(download_url, version):
@@ -327,7 +327,7 @@ import uuid
 sync_thread = None
 sync_logs = []
 sync_active = False
-sync_lock = threading.Lock()
+sync_lock = threading.RLock()
 sync_dir = ""
 sync_target_years = []
 sync_process = None
@@ -513,7 +513,7 @@ def api_sync_status():
 stats_thread = None
 stats_logs = []
 stats_active = False
-stats_lock = threading.Lock()
+stats_lock = threading.RLock()
 stats_result = None
 stats_error = False
 stats_process = None
@@ -685,7 +685,7 @@ search_active = False
 search_logs = []
 search_result = None
 search_error = False
-search_lock = threading.Lock()
+search_lock = threading.RLock()
 
 def run_search_process(base_download_dir, username=None, password=None, local_only=False):
     global search_active, search_logs, search_result, search_error, search_process

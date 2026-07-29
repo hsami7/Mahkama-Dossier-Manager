@@ -3825,6 +3825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginHint.style.display = localOnly ? 'none' : 'block';
             }
             if (overlay) overlay.style.display = 'flex';
+            operationRunning = true; // Mark operation as running so abort can cancel properly
 
             const res = await fetch('/api/search-all-dossiers', {
                 method: 'POST',
@@ -3832,6 +3833,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
+            
+            // If the user cancelled during the fetch, do not proceed
+            if (!operationRunning) {
+                return;
+            }
 
             if (data.error) {
                 showAlert(data.error);
