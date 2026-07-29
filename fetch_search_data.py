@@ -71,7 +71,12 @@ def main():
     print("[*] جاري قراءة الملفات المحلية...")
     all_rows = []
         
-    for yr in sorted(os.listdir(args.download_dir)):
+    try:
+        dir_list = os.listdir(args.download_dir)
+    except FileNotFoundError:
+        dir_list = []
+        
+    for yr in sorted(dir_list):
         yr_dir = os.path.join(args.download_dir, yr)
         if not os.path.isdir(yr_dir) or not yr.isdigit():
             continue
