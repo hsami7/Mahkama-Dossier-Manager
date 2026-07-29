@@ -3205,7 +3205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const btnSearchAllExportExcel = document.getElementById('btnExportExcel');
+    const btnSearchAllExportExcel = document.getElementById('btnSearchAllExportExcel');
     if (btnSearchAllExportExcel) {
         btnSearchAllExportExcel.addEventListener('click', () => {
             try {
