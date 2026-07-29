@@ -16,6 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/jquery.mark.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.mark.js@2.0.1/dist/datatables.mark.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.mark.js@2.0.1/dist/datatables.mark.min.css">
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -547,6 +549,19 @@
                         <path d="m12 5 7 7-7 7" />
                     </svg>
                     العودة لخيارات البحث
+                </button>
+                <button class="btn-mahakim" id="btnExportExcel" style="background-color: #10b981; border-color: #10b981; color: white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-file-spreadsheet" style="margin-left: 5px;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <path d="M8 13h2" />
+                        <path d="M8 17h2" />
+                        <path d="M14 13h2" />
+                        <path d="M14 17h2" />
+                    </svg>
+                    تصدير إلى Excel
                 </button>
             </div>
 
