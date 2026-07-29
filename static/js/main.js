@@ -3460,7 +3460,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const f = searchAllColFilters[colIdx];
         if (f && f.size > 0) {
             const v = Array.from(f).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-            searchAllDataTable.column(colIdx).search('^(' + v.join('|') + ')$', true, false).draw();
+            // Use (?: |$) instead of $ because orthogonal 'filter' data might append ' ' + reversed
+            searchAllDataTable.column(colIdx).search('^(?:' + v.join('|') + ')(?: |$)', true, false).draw();
         } else {
             searchAllDataTable.column(colIdx).search('').draw();
         }
